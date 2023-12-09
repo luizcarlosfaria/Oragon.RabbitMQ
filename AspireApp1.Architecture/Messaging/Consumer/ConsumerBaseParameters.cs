@@ -19,8 +19,8 @@ public class ConsumerBaseParameters
         return this;
     }
 
-    public Func<IConnection> ConnectionFactoryFunc { get; private set; }
-    public ConsumerBaseParameters WithConnectionFactoryFunc(Func<IConnection> connectionFactoryFunc)
+    public Func<IServiceProvider, IConnection> ConnectionFactoryFunc { get; private set; }
+    public ConsumerBaseParameters WithConnectionFactoryFunc(Func<IServiceProvider, IConnection> connectionFactoryFunc)
     {
         this.ConnectionFactoryFunc = connectionFactoryFunc;
         return this;

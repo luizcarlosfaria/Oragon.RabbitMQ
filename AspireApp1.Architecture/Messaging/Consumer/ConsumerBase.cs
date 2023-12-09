@@ -13,6 +13,7 @@ namespace AspireApp1.Architecture.Messaging.Consumer;
 public abstract class ConsumerBase : BackgroundService
 {
     protected readonly ILogger logger;
+    private readonly IServiceProvider serviceProvider;
     protected IConnection connection;
     protected IBasicConsumer consumer;
     private string consumerTag;
@@ -23,11 +24,12 @@ public abstract class ConsumerBase : BackgroundService
 
     #region Constructors 
 
-    protected ConsumerBase(ILogger logger, ConsumerBaseParameters parameters)
+    protected ConsumerBase(ILogger logger, ConsumerBaseParameters parameters, IServiceProvider serviceProvider)
     {
         this.logger = Guard.Argument(logger).NotNull().Value;
         this.parameters = Guard.Argument(parameters).NotNull().Value;
         this.parameters.Validate();
+        this.serviceProvider = serviceProvider;
     }
 
 
@@ -35,7 +37,7 @@ public abstract class ConsumerBase : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        this.connection = this.parameters.ConnectionFactoryFunc();
+        this.connection = this.parameters.ConnectionFactoryFunc(this.serviceProvider);
 
         await this.WaitQueueCreationAsync();
 

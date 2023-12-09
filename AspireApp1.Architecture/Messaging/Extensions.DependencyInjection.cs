@@ -2,6 +2,7 @@
 using AspireApp1.Architecture.Messaging.Serialization;
 using Dawn;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System.Diagnostics;
@@ -34,7 +35,7 @@ public static class DependencyInjectionExtensions
                 parameters.WithServiceProvider(sp);
                 parameters.WithDisplayLoopInConsoleEvery(TimeSpan.FromMinutes(1));
                 parameters.WithTestQueueRetryCount(5);
-                parameters.WithConnectionFactoryFunc(() => sp.GetRequiredService<IConnection>());
+                parameters.WithConnectionFactoryFunc((sp) => sp.GetRequiredService<IConnection>());
                 parameters.WithDispatchInRootScope();
                 parameters.WithActivitySource(sp.GetRequiredService<ActivitySource>());
                 parameters.WithSerializer(sp.GetRequiredService<IAMQPSerializer>());
@@ -43,7 +44,8 @@ public static class DependencyInjectionExtensions
 
                 return new AsyncRpcConsumer<TService, TRequest, TResponse>(
                     sp.GetService<ILogger<AsyncRpcConsumer<TService, TRequest, TResponse>>>(),
-                    parameters
+                    parameters,
+                    sp
                 );
             });
     }
@@ -71,7 +73,7 @@ public static class DependencyInjectionExtensions
             parameters.WithServiceProvider(sp);
             parameters.WithDisplayLoopInConsoleEvery(TimeSpan.FromMinutes(1));
             parameters.WithTestQueueRetryCount(5);
-            parameters.WithConnectionFactoryFunc(() => sp.GetRequiredService<IConnection>());
+            parameters.WithConnectionFactoryFunc((sp) => sp.GetRequiredService<IConnection>());
             parameters.WithDispatchInRootScope();
             parameters.WithActivitySource(sp.GetRequiredService<ActivitySource>());
             parameters.WithSerializer(sp.GetRequiredService<IAMQPSerializer>());
@@ -80,7 +82,8 @@ public static class DependencyInjectionExtensions
 
             return new AsyncQueueConsumer<TService, TRequest, Task>(
                     sp.GetService<ILogger<AsyncQueueConsumer<TService, TRequest, Task>>>(),
-                    parameters
+                    parameters,
+                    sp
                 );
         });
     }

@@ -13,6 +13,7 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddHttpClient<WeatherApiClient>(client=> client.BaseAddress = new("http://apiservice"));
 
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -32,3 +33,5 @@ app.MapRazorComponents<App>()
 app.MapDefaultEndpoints();
 
 app.Run();
+
+Console.WriteLine("Web");

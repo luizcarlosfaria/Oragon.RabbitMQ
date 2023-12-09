@@ -1,0 +1,38 @@
+﻿@page "/enqueue"
+@* @attribute [StreamRendering(true)] *@
+@rendermode InteractiveServer
+@* @attribute [OutputCache(Duration = 5)] *@
+
+@inject WeatherApiClient api
+
+<PageTitle>enqueue</PageTitle>
+
+<h1>enqueue</h1>
+
+<p>This component demonstrates showing data loaded from a backend API service.</p>
+
+<p>
+    <label>
+        Id
+        <input @bind="itemId" />
+    </label>
+    <button @onclick="UpdateHeading">
+        Update heading
+    </button>
+</p>
+
+@code {
+
+    private string itemId;
+
+
+    private async Task UpdateHeading()
+    {
+        await api.EnqueueAsync(this.itemId);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        
+    }
+}

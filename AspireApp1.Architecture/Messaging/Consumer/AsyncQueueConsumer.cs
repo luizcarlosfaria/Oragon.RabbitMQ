@@ -18,8 +18,8 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
 
     #region Constructors 
 
-    public AsyncQueueConsumer(ILogger logger, AsyncQueueConsumerParameters<TService, TRequest, TResponse> parameters)
-        : base(logger, parameters)
+    public AsyncQueueConsumer(ILogger logger, AsyncQueueConsumerParameters<TService, TRequest, TResponse> parameters, IServiceProvider serviceProvider)
+        : base(logger, parameters, serviceProvider)
     {
         this.parameters = Guard.Argument(parameters).NotNull().Value;
         this.parameters.Validate();
@@ -90,8 +90,8 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
 
         using Activity dispatchActivity = this.parameters.ActivitySource.SafeStartActivity("AsyncQueueServiceWorker.Dispatch", ActivityKind.Internal, receiveActivity.Context);
 
-        using (var logContext = new EnterpriseApplicationLogContext())
-        {
+        //using (var logContext = new EnterpriseApplicationLogContext())
+        //{
             try
             {
                 TService service = this.parameters.ServiceProvider.GetRequiredService<TService>();
@@ -109,11 +109,11 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
             }
             catch (Exception exception)
             {
-                logContext?.Exception = exception;
+                //logContext?.Exception = exception;
                 this.logger.LogWarning("Exception on processing message {queueName} {exception}", this.parameters.QueueName, exception);
                 returnValue = new NackResult(this.parameters.RequeueOnCrash);
             }
-        }
+        //}
 
         dispatchActivity?.SetEndTime(DateTime.UtcNow);
 

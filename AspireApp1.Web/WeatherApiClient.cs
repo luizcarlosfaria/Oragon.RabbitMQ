@@ -1,3 +1,5 @@
+using System.Net.Http.Json;
+
 namespace AspireApp1.Web;
 
 public class WeatherApiClient(HttpClient httpClient)
@@ -6,9 +8,17 @@ public class WeatherApiClient(HttpClient httpClient)
     {
         return await httpClient.GetFromJsonAsync<WeatherForecast[]>("/weatherforecast") ?? [];
     }
+
+    public async Task EnqueueAsync(string itemId)
+    {
+        await httpClient.PostAsJsonAsync<MsgToEnqueue>("/enqueue", new MsgToEnqueue(itemId));
+    }
 }
 
 public record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    public int TemperatureF => 32 + (int)(this.TemperatureC / 0.5556);
+}
+record MsgToEnqueue(string ItemId)
+{
 }

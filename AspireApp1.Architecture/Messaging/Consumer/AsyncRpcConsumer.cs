@@ -16,8 +16,8 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
 {
     private AsyncQueueConsumerParameters<TService, TRequest, Task<TResponse>> parameters;
 
-    public AsyncRpcConsumer(ILogger logger, AsyncQueueConsumerParameters<TService, TRequest, Task<TResponse>> parameters)
-        : base(logger, parameters)
+    public AsyncRpcConsumer(ILogger logger, AsyncQueueConsumerParameters<TService, TRequest, Task<TResponse>> parameters, IServiceProvider serviceProvider)
+        : base(logger, parameters, serviceProvider)
     {
         this.parameters = Guard.Argument(parameters).NotNull().Value;
         this.parameters.Validate();
