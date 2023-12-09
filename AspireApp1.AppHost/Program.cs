@@ -8,13 +8,12 @@ var cache = builder.AddRedisContainer("cache");
 
 var rabbitmq = builder.AddRabbitMQContainer("rabbitmq");
 
-var init = builder.AddProject<Projects.AspireApp1_AppInit>("init")
-    .WithReference(rabbitmq)
+var init = builder.AddProject<Projects.AspireApp1_AppInit>("init")    
     .WithReference(cache);
 
 var apiservice = builder.AddProject<Projects.AspireApp1_ApiService>("apiservice")
-    .WithReference(init)
-    .WithReference(rabbitmq);
+    .WithReference(rabbitmq)
+    .WithReference(init);
 
 builder.AddProject<Projects.AspireApp1_Web>("webfrontend")
     .WithReference(init)

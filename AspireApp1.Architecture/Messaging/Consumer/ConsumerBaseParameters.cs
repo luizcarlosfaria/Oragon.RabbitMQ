@@ -5,10 +5,18 @@ namespace AspireApp1.Architecture.Messaging.Consumer;
 
 public class ConsumerBaseParameters
 {
+
     public string QueueName { get; private set; }
     public ConsumerBaseParameters WithQueueName(string queueName)
     {
         this.QueueName = queueName;
+        return this;
+    }
+
+    public Action<IServiceProvider, IModel> Configurer { get; private set; }
+    public ConsumerBaseParameters WithTopology(Action<IServiceProvider, IModel> configurer)
+    {
+        this.Configurer = configurer;
         return this;
     }
 
@@ -47,4 +55,6 @@ public class ConsumerBaseParameters
         Guard.Argument(this.TestQueueRetryCount).NotNegative();
         Guard.Argument(this.ConnectionFactoryFunc).NotNull();
     }
+
+
 }

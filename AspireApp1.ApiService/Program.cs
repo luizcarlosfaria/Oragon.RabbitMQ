@@ -1,5 +1,8 @@
 using AspireApp1.Architecture.Messaging;
+using AspireApp1.Architecture.Messaging.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using RabbitMQ.Client;
+using System.Text.Unicode;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,21 +13,25 @@ builder.AddServiceDefaults();
 builder.Services.AddProblemDetails();
 
 builder.Services.AddSingleton<BusinessService>();
+builder.Services.AddSingleton<IAMQPSerializer, SystemTextJsonAMQPSerializer>();
 
-//builder.Services.MapQueue<BusinessService, BusinessCommandOrEvent>(config => config
-//    .WithDispatchInRootScope()
-//    .WithAdapter(async(svc, msg) => await svc.DoSomethingAsync(msg))
-//    .WithConnectionFactoryFunc(sp => sp.GetRequiredKeyedService<IConnection>("rabbitmq-a") )
+
+
+builder.Services.MapQueue<BusinessService, BusinessCommandOrEvent>(config => config
     
-//    .WithQueueName("events")
-//    .WithPrefetchCount(1)
-//    .WithDisplayLoopInConsoleEvery(TimeSpan.FromSeconds(30))    
+    .WithDispatchInRootScope()
+    .WithAdapter(async (svc, msg) => await svc.DoSomethingAsync(msg))
+    .WithQueueName("events")
+    .WithPrefetchCount(1)
+    .WithTopology((sp, model) => {
+        model.QueueDeclare("events");
+    })
+);
 
-//);
-
-builder.AddKeyedRabbitMQ("rabbitmq-a");
+builder.AddRabbitMQ("rabbitmq", null, cf => { ((ConnectionFactory)cf).DispatchConsumersAsync = true; });
 
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler();
@@ -32,7 +39,7 @@ app.UseExceptionHandler();
 
 string[] summaries =
 [
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", 
+    "Freezing", "Bracing", "Chilly", "Cool", "Mild",
     "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 ];
 
@@ -49,8 +56,16 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 });
 
-app.MapPost("/enqueue", (BusinessCommandOrEvent msg) =>
+app.MapPost("/enqueue", (BusinessCommandOrEvent msg, [FromServices] IConnection connection) =>
 {
+    using var model = connection.CreateModel();
+
+    string msgText = Newtonsoft.Json.JsonConvert.SerializeObject(msg);
+
+    var bytes = System.Text.Encoding.UTF8.GetBytes(msgText);
+
+    model.BasicPublish("", "events", model.CreateBasicProperties(), bytes);
+
     Console.WriteLine(msg.ItemId);
 });
 

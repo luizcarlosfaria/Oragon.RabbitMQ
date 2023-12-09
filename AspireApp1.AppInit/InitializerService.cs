@@ -15,6 +15,8 @@ public class InitializerService: IHostedService
 
     public Task StartAsync(CancellationToken stoppingToken)
     {
+
+
         return Task.Delay(TimeSpan.FromSeconds(10));
     }
 

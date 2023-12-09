@@ -39,6 +39,12 @@ public abstract class ConsumerBase : BackgroundService
     {
         this.connection = this.parameters.ConnectionFactoryFunc(this.serviceProvider);
 
+        if (this.parameters.Configurer != null)
+        {
+            using var tmpModel = this.connection.CreateModel();
+            this.parameters.Configurer(this.serviceProvider, tmpModel);
+        }
+
         await this.WaitQueueCreationAsync();
 
         this.Model = this.connection.CreateModel();
