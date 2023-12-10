@@ -1,3 +1,4 @@
+using GagoAspireApp.Architecture.Aspire;
 using GagoAspireApp.Architecture.Messaging;
 using GagoAspireApp.Architecture.Messaging.Serialization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,7 +19,6 @@ builder.Services.AddSingleton<IAMQPSerializer, SystemTextJsonAMQPSerializer>();
 
 
 builder.Services.MapQueue<BusinessService, BusinessCommandOrEvent>(config => config
-    
     .WithDispatchInRootScope()
     .WithAdapter(async (svc, msg) => await svc.DoSomethingAsync(msg))
     .WithQueueName("events")
@@ -78,7 +78,7 @@ app.MapDefaultEndpoints();
 
 app.Run();
 
-Console.WriteLine("ApiService");
+Console.WriteLine("backend");
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {

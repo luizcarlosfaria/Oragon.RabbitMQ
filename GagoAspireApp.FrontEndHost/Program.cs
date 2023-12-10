@@ -1,5 +1,6 @@
-using GagoAspireApp.Web;
-using GagoAspireApp.Web.Components;
+using GagoAspireApp.Architecture.Aspire;
+using GagoAspireApp.FrontEndHost.Components;
+using GagoAspireApp.FrontEndHost;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +12,7 @@ builder.AddRedisOutputCache("cache");
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddHttpClient<WeatherApiClient>(client=> client.BaseAddress = new("http://apiservice"));
+builder.Services.AddHttpClient<BackendApiClient>(client=> client.BaseAddress = new("http://backend"));
 
 
 var app = builder.Build();

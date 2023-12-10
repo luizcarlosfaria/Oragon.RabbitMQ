@@ -1,6 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using GagoAspireApp.AppInit;
+using GagoAspireApp.Architecture.Aspire;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 

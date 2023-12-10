@@ -6,9 +6,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\GagoAspireApp.Architecture\GagoAspireApp.Architecture.csproj" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\GagoAspireApp.ServiceDefaults\GagoAspireApp.ServiceDefaults.csproj" />
-  </ItemGroup>
 
 </Project>

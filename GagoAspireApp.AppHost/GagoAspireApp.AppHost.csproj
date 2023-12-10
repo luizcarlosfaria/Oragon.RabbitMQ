@@ -10,9 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\GagoAspireApp.ApiService\GagoAspireApp.ApiService.csproj" />
+    <ProjectReference Include="..\GagoAspireApp.Architecture\GagoAspireApp.Architecture.csproj" />
+    <ProjectReference Include="..\GagoAspireApp.BackendHost\GagoAspireApp.BackendHost.csproj" />
     <ProjectReference Include="..\GagoAspireApp.AppInit\GagoAspireApp.AppInit.csproj" />
-    <ProjectReference Include="..\GagoAspireApp.Web\GagoAspireApp.Web.csproj" />
+    <ProjectReference Include="..\GagoAspireApp.FrontEndHost\GagoAspireApp.FrontEndHost.csproj" />
   </ItemGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

@@ -1,8 +1,8 @@
 using System.Net.Http.Json;
 
-namespace GagoAspireApp.Web;
+namespace GagoAspireApp.FrontEndHost;
 
-public class WeatherApiClient(HttpClient httpClient)
+public class BackendApiClient(HttpClient httpClient)
 {
     public async Task<WeatherForecast[]> GetWeatherAsync()
     {
@@ -11,7 +11,7 @@ public class WeatherApiClient(HttpClient httpClient)
 
     public async Task EnqueueAsync(string itemId)
     {
-        await httpClient.PostAsJsonAsync<MsgToEnqueue>("/enqueue", new MsgToEnqueue(itemId));
+        await httpClient.PostAsJsonAsync("/enqueue", new MsgToEnqueue(itemId));
     }
 }
 

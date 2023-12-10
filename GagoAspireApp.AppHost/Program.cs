@@ -11,14 +11,14 @@ var rabbitmq = builder.AddRabbitMQContainer("rabbitmq");
 var init = builder.AddProject<Projects.GagoAspireApp_AppInit>("init")    
     .WithReference(cache);
 
-var apiservice = builder.AddProject<Projects.GagoAspireApp_ApiService>("apiservice")
+var backend = builder.AddProject<Projects.GagoAspireApp_BackendHost>("backend")
     .WithReference(rabbitmq)
     .WithReference(init);
 
-builder.AddProject<Projects.GagoAspireApp_Web>("webfrontend")
+builder.AddProject<Projects.GagoAspireApp_FrontEndHost>("webfrontend")
     .WithReference(init)
     .WithReference(cache)
-    .WithReference(apiservice);
+    .WithReference(backend);
 
 
 

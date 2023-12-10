@@ -2,12 +2,13 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 
-namespace Microsoft.Extensions.Hosting;
+namespace GagoAspireApp.Architecture.Aspire;
 
 public static class Extensions
 {
@@ -52,10 +53,8 @@ public static class Extensions
             .WithTracing(tracing =>
             {
                 if (builder.Environment.IsDevelopment())
-                {
                     // We want to view all traces in development
                     tracing.SetSampler(new AlwaysOnSampler());
-                }
 
                 tracing.AddAspNetCoreInstrumentation()
                        .AddGrpcClientInstrumentation()
