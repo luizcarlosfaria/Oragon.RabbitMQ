@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsAspireHost>true</IsAspireHost>
+    <AnalysisLevel>latest-all</AnalysisLevel>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GagoAspireApp.ApiService\GagoAspireApp.ApiService.csproj" />
+    <ProjectReference Include="..\GagoAspireApp.AppInit\GagoAspireApp.AppInit.csproj" />
+    <ProjectReference Include="..\GagoAspireApp.Web\GagoAspireApp.Web.csproj" />
+  </ItemGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+        <NoWarn>1701;1702;IDE0058</NoWarn>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+        <NoWarn>1701;1702;IDE0058</NoWarn>
+    </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting" Version="8.0.0-preview.1.23557.2" />
+  </ItemGroup>
+
+</Project>
