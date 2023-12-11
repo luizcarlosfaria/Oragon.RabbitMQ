@@ -44,11 +44,11 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
         Guard.Argument(delivery).NotNull();
         Guard.Argument(delivery.BasicProperties).NotNull();
 
-        using Activity receiveActivity = this.parameters.ActivitySource.SafeStartActivity("AsyncQueueServiceWorker.Receive", ActivityKind.Server);
-        receiveActivity?.SetParentId(delivery.BasicProperties.GetTraceId(), delivery.BasicProperties.GetSpanId(), ActivityTraceFlags.Recorded);
-        receiveActivity?.AddTag("Queue", this.parameters.QueueName);
-        receiveActivity?.AddTag("MessageId", delivery.BasicProperties.MessageId);
-        receiveActivity?.AddTag("CorrelationId", delivery.BasicProperties.CorrelationId);
+        using Activity receiveActivity = this.parameters.ActivitySource.SafeStartActivity("AsyncQueueServiceWorker.Receive", ActivityKind.Consumer);
+        receiveActivity.SetParentId(delivery.BasicProperties.GetTraceId(), delivery.BasicProperties.GetSpanId());
+        receiveActivity.AddTag("Queue", this.parameters.QueueName);
+        receiveActivity.AddTag("MessageId", delivery.BasicProperties.MessageId);
+        receiveActivity.AddTag("CorrelationId", delivery.BasicProperties.CorrelationId);
 
         IAMQPResult result = this.TryDeserialize(delivery, out TRequest request)
                             ? await this.Dispatch(delivery, receiveActivity, request)

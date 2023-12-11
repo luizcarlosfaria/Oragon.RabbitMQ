@@ -29,6 +29,8 @@
     private async Task UpdateHeading()
     {
         await api.EnqueueAsync(this.itemId);
+
+        this.itemId = string.Empty;
     }
 
     protected override async Task OnInitializedAsync()

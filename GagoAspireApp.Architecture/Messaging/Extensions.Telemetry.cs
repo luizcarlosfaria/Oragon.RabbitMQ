@@ -42,8 +42,8 @@ public static partial class TelemetryExtensions
         return default;
     }
 
-    public static IBasicProperties SetTelemetry(this IBasicProperties basicProperties, Activity activity)
-    {
+    public static IBasicProperties SetTelemetry(this IBasicProperties basicProperties, Activity? activity)
+    {        
         if (basicProperties is null) throw new ArgumentNullException(nameof(basicProperties));
         if (activity != null)
         {

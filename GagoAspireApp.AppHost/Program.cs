@@ -1,5 +1,4 @@
 using Aspire.Hosting.Lifecycle;
-using GagoAspireApp.AppHost;
 using Microsoft.Extensions.DependencyInjection;
 
 var builder = DistributedApplication.CreateBuilder(args);
@@ -21,8 +20,6 @@ builder.AddProject<Projects.GagoAspireApp_FrontEndHost>("webfrontend")
     .WithReference(backend);
 
 
-
-builder.Services.AddTransient<IDistributedApplicationLifecycleHook, RabbitMQSetup>();
 
 builder.Build().Run();
 

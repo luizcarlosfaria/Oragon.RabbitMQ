@@ -3,9 +3,12 @@ using GagoAspireApp.Architecture.Messaging;
 using GagoAspireApp.Architecture.Messaging.Serialization;
 using Microsoft.AspNetCore.Mvc;
 using RabbitMQ.Client;
+using System.Diagnostics;
 using System.Text.Unicode;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSingleton(sp => new ActivitySource("RabbitMQ.Gago", "1.0.0"));
 
 // Add service defaults & Aspire components.
 builder.AddServiceDefaults();
@@ -16,19 +19,16 @@ builder.Services.AddProblemDetails();
 builder.Services.AddSingleton<BusinessService>();
 builder.Services.AddSingleton<IAMQPSerializer, SystemTextJsonAMQPSerializer>();
 
-
-
 builder.Services.MapQueue<BusinessService, BusinessCommandOrEvent>(config => config
-    .WithDispatchInRootScope()
-    .WithAdapter(async (svc, msg) => await svc.DoSomethingAsync(msg))
+    .WithDispatchInChildScope()    
+    .WithActivitySource(new ActivitySource("RabbitMQ.Client.Consume"))
+    .WithAdapter(async (svc, msg) => await svc.DoSomethingAsync(msg))    
     .WithQueueName("events")
     .WithPrefetchCount(1)
-    .WithTopology((sp, model) => {
-        model.QueueDeclare("events");
-    })
+    .WithTopology((sp, model) => model.QueueDeclare("events"))
 );
 
-builder.AddRabbitMQ("rabbitmq", null, cf => { ((ConnectionFactory)cf).DispatchConsumersAsync = true; });
+builder.AddRabbitMQ("rabbitmq", null, cf =>  cf.Unbox().DispatchConsumersAsync());
 
 var app = builder.Build();
 
@@ -56,7 +56,7 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 });
 
-app.MapPost("/enqueue", (BusinessCommandOrEvent msg, [FromServices] IConnection connection) =>
+app.MapPost("/enqueue", (BusinessCommandOrEvent msg, [FromServices] IConnection connection, [FromServices] ActivitySource activitySource) =>
 {
     using var model = connection.CreateModel();
 
@@ -64,9 +64,16 @@ app.MapPost("/enqueue", (BusinessCommandOrEvent msg, [FromServices] IConnection 
 
     var bytes = System.Text.Encoding.UTF8.GetBytes(msgText);
 
-    model.BasicPublish("", "events", model.CreateBasicProperties(), bytes);
 
-    Console.WriteLine(msg.ItemId);
+    using var currentActivity = activitySource.StartActivity("RabbitMQ.Client.BasicPublish", ActivityKind.Producer);
+
+    currentActivity?.SetTag("exchange", "");
+    currentActivity?.SetTag("routing-key", "events");
+
+    model.BasicPublish("", "events", model.CreateBasicProperties().SetTelemetry(currentActivity).SetDurable(true), bytes);
+    
+
+    Console.WriteLine($"API Enviou | {msg.ItemId}");
 });
 
 
@@ -95,7 +102,7 @@ public class BusinessService
 {
     public Task DoSomethingAsync(BusinessCommandOrEvent commandOrEvent)
     {
-        Console.WriteLine(commandOrEvent.ItemId);
+        Console.WriteLine($"Consumer Recebeu | {commandOrEvent.ItemId}");
 
         return Task.CompletedTask;
     }

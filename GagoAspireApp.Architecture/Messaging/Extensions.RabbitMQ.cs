@@ -113,6 +113,14 @@ public static partial class RabbitMQExtensions
         return false;
     }
 
+    public static ConnectionFactory DispatchConsumersAsync(this ConnectionFactory connectionFactory, bool useAsync = true)
+    {
+        connectionFactory.DispatchConsumersAsync = useAsync;
+        return connectionFactory;
+    }
+
+    public static ConnectionFactory Unbox(this IConnectionFactory connectionFactory) => (ConnectionFactory)connectionFactory;
+    
 
 
     public static List<object> GetDeathHeader(this IBasicProperties basicProperties)
