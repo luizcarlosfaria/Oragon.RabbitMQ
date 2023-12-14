@@ -1,4 +1,3 @@
-using GagoAspireApp.Architecture.Messaging;
 using GagoAspireApp.Architecture.Messaging.Consumer.Actions;
 using Dawn;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,10 +8,6 @@ using System.Diagnostics;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry;
 using System.Text;
-using Microsoft.Extensions.Diagnostics.Latency;
-using static Google.Protobuf.WellKnownTypes.Field.Types;
-using GagoAspireApp.Architecture.Messaging.Publisher;
-using System.Linq.Expressions;
 
 namespace GagoAspireApp.Architecture.Messaging.Consumer;
 

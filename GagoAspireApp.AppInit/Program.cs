@@ -3,7 +3,6 @@
 using GagoAspireApp.AppInit;
 using GagoAspireApp.Architecture.Aspire;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 

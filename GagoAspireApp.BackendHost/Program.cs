@@ -5,7 +5,6 @@ using GagoAspireApp.Architecture.Messaging.Serialization;
 using Microsoft.AspNetCore.Mvc;
 using RabbitMQ.Client;
 using System.Diagnostics;
-using System.Text.Unicode;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -85,20 +84,22 @@ public record BusinessCommandOrEvent(string ItemId)
 
 public class BusinessService
 {
-    public Task DoSomethingAsync(BusinessCommandOrEvent commandOrEvent)
+    public async Task DoSomethingAsync(BusinessCommandOrEvent commandOrEvent)
     {
         Console.WriteLine($"Consumer Recebeu | {commandOrEvent.ItemId}");
 
-        return Task.CompletedTask;
+        await Task.Delay(5000);
     }
 }
 
 public class BusinessService2
 {
-    public Task<BusinessCommandOrEvent> DoSomething2Async(BusinessCommandOrEvent commandOrEvent)
+    public async Task<BusinessCommandOrEvent> DoSomething2Async(BusinessCommandOrEvent commandOrEvent)
     {
         Console.WriteLine($"Consumer Recebeu | {commandOrEvent.ItemId}");
 
-        return Task.FromResult(new BusinessCommandOrEvent("ItemId"));
+        await Task.Delay(5000);
+
+        return commandOrEvent;
     }
 }

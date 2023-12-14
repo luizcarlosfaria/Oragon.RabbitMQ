@@ -1,10 +1,7 @@
-﻿using GagoAspireApp.Architecture.Messaging;
-using Dawn;
+﻿using Dawn;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using System;
 using System.Diagnostics;
-using System.Diagnostics.Tracing;
 
 namespace GagoAspireApp.Architecture.Messaging.Serialization;
 

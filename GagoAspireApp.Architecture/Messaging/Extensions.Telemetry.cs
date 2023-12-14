@@ -1,7 +1,4 @@
-﻿using GagoAspireApp.Architecture.Messaging;
-using RabbitMQ.Client;
-using System;
-using System.Collections.Generic;
+﻿using RabbitMQ.Client;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 

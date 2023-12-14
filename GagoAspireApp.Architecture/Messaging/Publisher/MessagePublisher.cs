@@ -2,12 +2,7 @@
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry;
 using RabbitMQ.Client;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace GagoAspireApp.Architecture.Messaging.Publisher;

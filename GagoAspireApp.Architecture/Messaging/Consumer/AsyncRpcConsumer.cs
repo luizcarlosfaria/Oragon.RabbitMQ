@@ -1,4 +1,3 @@
-using GagoAspireApp.Architecture.Messaging;
 using GagoAspireApp.Architecture.Messaging.Consumer.Actions;
 using Dawn;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Diagnostics;
-using System;
 
 namespace GagoAspireApp.Architecture.Messaging.Consumer;
 

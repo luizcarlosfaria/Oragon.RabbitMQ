@@ -1,8 +1,5 @@
-﻿using GagoAspireApp.Architecture.Messaging;
-using Dawn;
+﻿using Dawn;
 using RabbitMQ.Client;
-using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace GagoAspireApp.Architecture.Messaging;

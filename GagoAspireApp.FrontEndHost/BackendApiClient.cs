@@ -1,5 +1,3 @@
-using System.Net.Http.Json;
-
 namespace GagoAspireApp.FrontEndHost;
 
 public class BackendApiClient(HttpClient httpClient)

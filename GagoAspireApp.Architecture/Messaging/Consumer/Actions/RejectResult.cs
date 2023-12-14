@@ -1,7 +1,6 @@
 ﻿using Dawn;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client;
-using Polly;
 
 namespace GagoAspireApp.Architecture.Messaging.Consumer.Actions;
 
