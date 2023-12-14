@@ -1,4 +1,5 @@
-# ASPIRE Demo
+# ASPIRE / RabbitMQ Minimal API's 
+## Demos
 
 Demonstração do uso do ASPIRE em ambiente de desenvolvimento.
 
