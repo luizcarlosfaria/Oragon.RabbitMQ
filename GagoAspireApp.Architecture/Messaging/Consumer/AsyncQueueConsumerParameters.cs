@@ -1,6 +1,7 @@
 ﻿using GagoAspireApp.Architecture.Messaging.Serialization;
 using Dawn;
 using System.Diagnostics;
+using System.Linq.Expressions;
 
 namespace GagoAspireApp.Architecture.Messaging.Consumer;
 
@@ -29,10 +30,14 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
         return this;
     }
 
+    public Expression<Func<TService, TRequest, TResponse>> AdapterExpression { get; private set; }
+    public string AdapterExpressionText { get; private set; }
     public Func<TService, TRequest, TResponse> AdapterFunc { get; private set; }
-    public AsyncQueueConsumerParameters<TService, TRequest, TResponse> WithAdapter(Func<TService, TRequest, TResponse> adapterFunc)
+    public AsyncQueueConsumerParameters<TService, TRequest, TResponse> WithAdapter(Expression<Func<TService, TRequest, TResponse>> adapterExpression)
     {
-        this.AdapterFunc = adapterFunc;
+        this.AdapterExpression = adapterExpression;
+        this.AdapterFunc = adapterExpression.Compile();
+        this.AdapterExpressionText = adapterExpression.ToString();
         return this;
     }
 

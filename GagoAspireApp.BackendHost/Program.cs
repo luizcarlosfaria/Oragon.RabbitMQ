@@ -1,5 +1,6 @@
 using GagoAspireApp.Architecture.Aspire;
 using GagoAspireApp.Architecture.Messaging;
+using GagoAspireApp.Architecture.Messaging.Publisher;
 using GagoAspireApp.Architecture.Messaging.Serialization;
 using Microsoft.AspNetCore.Mvc;
 using RabbitMQ.Client;
@@ -10,25 +11,29 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton(sp => new ActivitySource("RabbitMQ.Gago", "1.0.0"));
 
-// Add service defaults & Aspire components.
-builder.AddServiceDefaults();
+
 
 // Add services to the container.
 builder.Services.AddProblemDetails();
 
 builder.Services.AddSingleton<BusinessService>();
+builder.Services.AddSingleton<MessagePublisher>();
 builder.Services.AddSingleton<IAMQPSerializer, SystemTextJsonAMQPSerializer>();
 
 builder.Services.MapQueue<BusinessService, BusinessCommandOrEvent>(config => config
-    .WithDispatchInChildScope()    
+    .WithDispatchInRootScope()
     .WithActivitySource(new ActivitySource("RabbitMQ.Client.Consume"))
-    .WithAdapter(async (svc, msg) => await svc.DoSomethingAsync(msg))    
+    .WithAdapter((svc, msg) => svc.DoSomethingAsync(msg))
     .WithQueueName("events")
     .WithPrefetchCount(1)
     .WithTopology((sp, model) => model.QueueDeclare("events"))
 );
 
-builder.AddRabbitMQ("rabbitmq", null, cf =>  cf.Unbox().DispatchConsumersAsync());
+builder.AddRabbitMQ("rabbitmq", null, cf => cf.Unbox().DispatchConsumersAsync());
+
+
+// Add service defaults & Aspire components.
+builder.AddServiceDefaults();
 
 var app = builder.Build();
 
@@ -56,28 +61,8 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 });
 
-app.MapPost("/enqueue", (BusinessCommandOrEvent msg, [FromServices] IConnection connection, [FromServices] ActivitySource activitySource) =>
-{
-    using var model = connection.CreateModel();
-
-    string msgText = Newtonsoft.Json.JsonConvert.SerializeObject(msg);
-
-    var bytes = System.Text.Encoding.UTF8.GetBytes(msgText);
-
-
-    using var currentActivity = activitySource.StartActivity("RabbitMQ.Client.BasicPublish", ActivityKind.Producer);
-
-    currentActivity?.SetTag("exchange", "");
-    currentActivity?.SetTag("routing-key", "events");
-
-    model.BasicPublish("", "events", model.CreateBasicProperties().SetTelemetry(currentActivity).SetDurable(true), bytes);
-    
-
-    Console.WriteLine($"API Enviou | {msg.ItemId}");
-});
-
-
-
+app.MapPost("/enqueue", (BusinessCommandOrEvent msg, [FromServices] MessagePublisher messagePublisher)
+    => messagePublisher.Send("", "events", msg));
 
 
 
@@ -105,5 +90,15 @@ public class BusinessService
         Console.WriteLine($"Consumer Recebeu | {commandOrEvent.ItemId}");
 
         return Task.CompletedTask;
+    }
+}
+
+public class BusinessService2
+{
+    public Task<BusinessCommandOrEvent> DoSomething2Async(BusinessCommandOrEvent commandOrEvent)
+    {
+        Console.WriteLine($"Consumer Recebeu | {commandOrEvent.ItemId}");
+
+        return Task.FromResult(new BusinessCommandOrEvent("ItemId"));
     }
 }

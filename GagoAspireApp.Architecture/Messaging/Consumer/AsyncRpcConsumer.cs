@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Diagnostics;
+using System;
 
 namespace GagoAspireApp.Architecture.Messaging.Consumer;
 
@@ -23,13 +24,11 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
         this.parameters.Validate();
     }
 
-    protected override async Task<IAMQPResult> Dispatch(BasicDeliverEventArgs receivedItem, Activity receiveActivity, TRequest request)
+    protected override async Task<IAMQPResult> Dispatch(Activity receiveActivity, BasicDeliverEventArgs receivedItem, TRequest request)
     {
         Guard.Argument(receivedItem).NotNull();
         Guard.Argument(receiveActivity).NotNull();
         Guard.Argument(request).NotNull();
-
-        using Activity dispatchActivity = this.parameters.ActivitySource.SafeStartActivity($"{nameof(AsyncRpcConsumer<TService, TRequest, TResponse>)}.Dispatch", ActivityKind.Internal, receiveActivity.Context);
 
         if (receivedItem.BasicProperties.ReplyTo == null)
         {
@@ -40,60 +39,66 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
 
         TResponse responsePayload = default;
 
-        try
+        using (Activity? dispatchActivity = activitySource.StartActivity(this.parameters.AdapterExpressionText, ActivityKind.Internal, receiveActivity.Context))
         {
-            if (this.parameters.DispatchScope == DispatchScope.RootScope)
-                responsePayload = await this.parameters.AdapterFunc(this.parameters.ServiceProvider.GetRequiredService<TService>(), request);
-            else if (this.parameters.DispatchScope == DispatchScope.ChildScope)
+            try
             {
-                using (var scope = this.parameters.ServiceProvider.CreateScope())
+                TService service = this.parameters.ServiceProvider.GetRequiredService<TService>();
+
+                if (this.parameters.DispatchScope == DispatchScope.RootScope)
                 {
-                    responsePayload = await this.parameters.AdapterFunc(scope.ServiceProvider.GetRequiredService<TService>(), request);
+                    responsePayload = await this.parameters.AdapterFunc(service, request);
+                }
+                else if (this.parameters.DispatchScope == DispatchScope.ChildScope)
+                {
+                    using (var scope = this.parameters.ServiceProvider.CreateScope())
+                    {
+                        responsePayload = await this.parameters.AdapterFunc(service, request);
+                    }
                 }
             }
+            catch (Exception exception)
+            {
+                dispatchActivity?.SetStatus(ActivityStatusCode.Error, exception.ToString());
+
+                this.SendReply(dispatchActivity, receivedItem, null, exception);
+
+                return new NackResult(this.parameters.RequeueOnCrash);
+            }
         }
-        catch (Exception ex)
+
+        using (Activity? replyActivity = activitySource.StartActivity(this.parameters.AdapterExpressionText, ActivityKind.Internal, receiveActivity.Context))
         {
-            this.SendReply(receivedItem, receiveActivity, null, ex);
-
-            return new NackResult(this.parameters.RequeueOnCrash);
+            this.SendReply(replyActivity, receivedItem, responsePayload);
         }
-
-        dispatchActivity?.SetEndTime(DateTime.UtcNow);
-
-        this.SendReply(receivedItem, receiveActivity, responsePayload);
-
         return new AckResult();
     }
 
-    private void SendReply(BasicDeliverEventArgs receivedItem, Activity receiveActivity, TResponse responsePayload = null, Exception exception = null)
+    private void SendReply(Activity activity, BasicDeliverEventArgs receivedItem, TResponse responsePayload = null, Exception exception = null)
     {
         Guard.Argument(receivedItem).NotNull();
-        Guard.Argument(receiveActivity).NotNull();
         Guard.Argument(responsePayload).NotNull();
-
-        using Activity replyActivity = this.parameters.ActivitySource.SafeStartActivity($"{nameof(AsyncRpcConsumer<TService, TRequest, TResponse>)}.Reply", ActivityKind.Client, receiveActivity.Context);
 
 
         IBasicProperties responseProperties = this.Model.CreateBasicProperties()
                                                         .SetMessageId()
                                                         .IfFunction(it => exception != null, it => it.SetException(exception))
-                                                        .SetTelemetry(replyActivity)
+                                                        .SetTelemetry(activity)
                                                         .SetCorrelationId(receivedItem.BasicProperties);
 
-        replyActivity?.AddTag("Queue", receivedItem.BasicProperties.ReplyTo);
-        replyActivity?.AddTag("MessageId", responseProperties.MessageId);
-        replyActivity?.AddTag("CorrelationId", responseProperties.CorrelationId);
+        activity?.AddTag("Queue", receivedItem.BasicProperties.ReplyTo);
+        activity?.AddTag("MessageId", responseProperties.MessageId);
+        activity?.AddTag("CorrelationId", responseProperties.CorrelationId);
 
         this.Model.BasicPublish(string.Empty,
             receivedItem.BasicProperties.ReplyTo,
             responseProperties,
             exception != null
                 ? Array.Empty<byte>()
-                : this.parameters.Serializer.Serialize(responseProperties, responsePayload)
+                : this.parameters.Serializer.Serialize(basicProperties: responseProperties, objectToSerialize: responsePayload)
         );
 
-        replyActivity?.SetEndTime(DateTime.UtcNow);
+        //replyActivity?.SetEndTime(DateTime.UtcNow);
     }
 
 }

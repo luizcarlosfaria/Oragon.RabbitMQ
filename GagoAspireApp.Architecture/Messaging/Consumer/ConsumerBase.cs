@@ -12,6 +12,7 @@ namespace GagoAspireApp.Architecture.Messaging.Consumer;
 
 public abstract class ConsumerBase : BackgroundService
 {
+
     protected readonly ILogger logger;
     private readonly IServiceProvider serviceProvider;
     protected IConnection connection;

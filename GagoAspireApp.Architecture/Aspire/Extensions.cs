@@ -1,3 +1,4 @@
+using GagoAspireApp.Architecture.Messaging;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
@@ -58,7 +59,9 @@ public static class Extensions
 
                 tracing.AddAspNetCoreInstrumentation()
                        .AddGrpcClientInstrumentation()
-                       .AddHttpClientInstrumentation();
+                       .AddHttpClientInstrumentation()
+                       .AddRabbitMQInstrumentation()
+                       ;
             });
 
         builder.AddOpenTelemetryExporters();

@@ -11,22 +11,22 @@ public static partial class RabbitMQExtensions
 {
     public static IBasicProperties SetMessageId(this IBasicProperties basicProperties, string messageId = null)
     {
-        if (basicProperties is null) throw new ArgumentNullException(nameof(basicProperties));
+        ArgumentNullException.ThrowIfNull(basicProperties);
         basicProperties.MessageId = messageId ?? Guid.NewGuid().ToString("D");
         return basicProperties;
     }
 
     public static IBasicProperties SetCorrelationId(this IBasicProperties basicProperties, IBasicProperties originalBasicProperties)
     {
-        if (basicProperties is null) throw new ArgumentNullException(nameof(basicProperties));
-        if (originalBasicProperties is null) throw new ArgumentNullException(nameof(originalBasicProperties));
+        ArgumentNullException.ThrowIfNull(basicProperties);
+        ArgumentNullException.ThrowIfNull(originalBasicProperties);
 
         return basicProperties.SetCorrelationId(originalBasicProperties.MessageId);
     }
 
     public static IBasicProperties SetCorrelationId(this IBasicProperties basicProperties, string correlationId)
     {
-        if (basicProperties is null) throw new ArgumentNullException(nameof(basicProperties));
+        ArgumentNullException.ThrowIfNull(basicProperties);
         if (string.IsNullOrEmpty(correlationId)) throw new ArgumentException($"'{nameof(correlationId)}' cannot be null or empty.", nameof(correlationId));
 
         basicProperties.CorrelationId = correlationId;
@@ -35,14 +35,14 @@ public static partial class RabbitMQExtensions
 
     public static IBasicProperties SetDurable(this IBasicProperties basicProperties, bool durable = true)
     {
-        if (basicProperties is null) throw new ArgumentNullException(nameof(basicProperties));
+        ArgumentNullException.ThrowIfNull(basicProperties);
         basicProperties.Persistent = durable;
         return basicProperties;
     }
 
     public static IBasicProperties SetReplyTo(this IBasicProperties basicProperties, string replyTo = null)
     {
-        if (basicProperties is null) throw new ArgumentNullException(nameof(basicProperties));
+        ArgumentNullException.ThrowIfNull(basicProperties);
 
         if (!string.IsNullOrEmpty(replyTo))
             basicProperties.ReplyTo = replyTo;
@@ -52,7 +52,7 @@ public static partial class RabbitMQExtensions
 
     public static IBasicProperties SetAppId(this IBasicProperties basicProperties, string appId = null)
     {
-        if (basicProperties is null) throw new ArgumentNullException(nameof(basicProperties));
+        ArgumentNullException.ThrowIfNull(basicProperties);
 
         if (!string.IsNullOrEmpty(appId))
             basicProperties.AppId = appId;
@@ -73,7 +73,7 @@ public static partial class RabbitMQExtensions
 
     public static List<string> AsStringList(this object objectToConvert)
     {
-        if (objectToConvert is null) throw new ArgumentNullException(nameof(objectToConvert));
+        ArgumentNullException.ThrowIfNull(objectToConvert);
         var routingKeyList = (List<object>)objectToConvert;
 
         List<string> items = routingKeyList.ConvertAll(key => key.AsString());
@@ -83,8 +83,8 @@ public static partial class RabbitMQExtensions
 
     public static IBasicProperties SetException(this IBasicProperties basicProperties, Exception exception)
     {
-        if (basicProperties is null) throw new ArgumentNullException(nameof(basicProperties));
-        if (exception is null) throw new ArgumentNullException(nameof(exception));
+        ArgumentNullException.ThrowIfNull(basicProperties);
+        ArgumentNullException.ThrowIfNull(exception);
 
         if (basicProperties.Headers == null) basicProperties.Headers = new Dictionary<string, object>();
 
