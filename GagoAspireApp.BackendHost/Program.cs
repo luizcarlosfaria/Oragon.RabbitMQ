@@ -20,8 +20,7 @@ builder.Services.AddSingleton<MessagePublisher>();
 builder.Services.AddSingleton<IAMQPSerializer, SystemTextJsonAMQPSerializer>();
 
 builder.Services.MapQueue<BusinessService, BusinessCommandOrEvent>(config => config
-    .WithDispatchInRootScope()
-    .WithActivitySource(new ActivitySource("RabbitMQ.Client.Consume"))
+    .WithDispatchInRootScope()    
     .WithAdapter((svc, msg) => svc.DoSomethingAsync(msg))
     .WithQueueName("events")
     .WithPrefetchCount(1)

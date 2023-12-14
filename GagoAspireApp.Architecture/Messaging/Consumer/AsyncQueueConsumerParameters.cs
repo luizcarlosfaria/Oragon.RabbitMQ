@@ -23,15 +23,8 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
         return this;
     }
 
-    public ActivitySource ActivitySource { get; private set; }
-    public AsyncQueueConsumerParameters<TService, TRequest, TResponse> WithActivitySource(ActivitySource activitySource)
-    {
-        this.ActivitySource = activitySource;
-        return this;
-    }
-
-    public Expression<Func<TService, TRequest, TResponse>> AdapterExpression { get; private set; }
-    public string AdapterExpressionText { get; private set; }
+    public Expression<Func<TService, TRequest, TResponse>>? AdapterExpression { get; private set; }
+    public string? AdapterExpressionText { get; private set; }
     public Func<TService, TRequest, TResponse> AdapterFunc { get; private set; }
     public AsyncQueueConsumerParameters<TService, TRequest, TResponse> WithAdapter(Expression<Func<TService, TRequest, TResponse>> adapterExpression)
     {
@@ -86,8 +79,7 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
         base.Validate();
 
         Guard.Argument(this.ServiceProvider).NotNull();
-        Guard.Argument(this.Serializer).NotNull();
-        Guard.Argument(this.ActivitySource).NotNull();
+        Guard.Argument(this.Serializer).NotNull();        
         Guard.Argument(this.AdapterFunc).NotNull();
         Guard.Argument(this.DispatchScope).NotIn(DispatchScope.None);
     }

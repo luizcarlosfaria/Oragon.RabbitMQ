@@ -36,8 +36,7 @@ public static class DependencyInjectionExtensions
                 parameters.WithDisplayLoopInConsoleEvery(TimeSpan.FromMinutes(1));
                 parameters.WithTestQueueRetryCount(5);
                 parameters.WithConnectionFactoryFunc((sp) => sp.GetRequiredService<IConnection>());
-                parameters.WithDispatchInRootScope();
-                parameters.WithActivitySource(sp.GetRequiredService<ActivitySource>());
+                parameters.WithDispatchInRootScope();                
                 parameters.WithSerializer(sp.GetRequiredService<IAMQPSerializer>());
 
                 config(parameters);
@@ -75,7 +74,6 @@ public static class DependencyInjectionExtensions
             parameters.WithTestQueueRetryCount(5);
             parameters.WithConnectionFactoryFunc((sp) => sp.GetRequiredService<IConnection>());
             parameters.WithDispatchInRootScope();
-            parameters.WithActivitySource(sp.GetRequiredService<ActivitySource>());
             parameters.WithSerializer(sp.GetRequiredService<IAMQPSerializer>());
 
             config(parameters);
