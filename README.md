@@ -43,6 +43,8 @@ O resultado é um código absurdamente simples, desacoplado, agnóstico, mais re
 
 # RabbitMQ Tracing com OpenTelemetry
 
-Suporte completo para OpenTelemetry no envio e no consumo de mensagens do RabbitMQ.
+Suporte completo para OpenTelemetry na **publicação** e no **consumo** de mensagens do RabbitMQ.
 
 <img src="./docs/playground.gif">
+
+
