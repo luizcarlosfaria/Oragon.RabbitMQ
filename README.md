@@ -39,3 +39,9 @@ Essa é uma abordagem projetada para desacoplar o consumidor do RabbitMQ do cód
 Essa abordagem intensionalmente remove a capacidade de utilização de notification pattern para a rejeição de mensagens, fazendo com que necessariamente seja lançada uma exceção, de tal forma que permita ao administrador da infraestrutura de observabilidade, ser notificado claramente quando os processos falham, permitindo assim a criação de issues para correção no código, ao invés de omitir e suprimir erros.
 
 O resultado é um código absurdamente simples, desacoplado, agnóstico, mais reaproveitável e altamente testável.
+
+# RabbitMQ Tracing com OpenTelemetry
+
+Suporte completo para OpenTelemetry no envio e no consumo de mensagens do RabbitMQ.
+
+<img src="./docs/playground.gif">
