@@ -1,0 +1,60 @@
+<Project>
+
+  
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <LangVersion>preview</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Copyright>© Oragon, gaGO.io, LuizCarlosFaria. All rights reserved.</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/luizcarlosfaria/Oragon.RabbitMQ</PackageProjectUrl>
+    <Authors>LuizCarlosFaria</Authors>
+    <Company>oragon.io</Company>
+    <Product>Oragon</Product>
+    <PackageTags>oragon architecture luizcarlosfaria rabbitmq</PackageTags>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AnalysisLevel>latest-all</AnalysisLevel>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AssetsDir>$(MSBuildThisFileDirectory)/src/Assets/</AssetsDir>
+    <IntegratedTestsSharedDir>$(MSBuildThisFileDirectory)/tests/Shared/</IntegratedTestsSharedDir>
+    <PackageIconFullPath>$(AssetsDir)Oragon-Architecture-Penknife.export.png</PackageIconFullPath>
+    <WarnOnPackingNonPackableProject>false</WarnOnPackingNonPackableProject>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
+    <StrongNameKeyId>Open</StrongNameKeyId>
+    <!-- Redirect test logs into a subfolder -->
+    <TestResultsLogDir>$([MSBuild]::NormalizeDirectory('$(ArtifactsLogDir)', 'TestLogs'))</TestResultsLogDir>
+    <!-- We don't want to use the workload for AppHost projects in this repo -->
+    <SkipAspireWorkloadManifest>true</SkipAspireWorkloadManifest>
+
+    <DashboardPublishedArtifactsOutputDir>$([MSBuild]::NormalizeDirectory('$(ArtifactsDir)', 'DashboardArtifacts', '$(Configuration)'))</DashboardPublishedArtifactsOutputDir>
+    <WorkloadsPackageSource>$(ArtifactsShippingPackagesDir)</WorkloadsPackageSource>
+  </PropertyGroup>
+
+  <!-- OS/Architecture properties for local development resources -->
+  <PropertyGroup>
+    <BuildOs Condition="$([MSBuild]::IsOsPlatform('Linux'))">linux</BuildOs>
+    <BuildOs Condition=" '$(BuildOs)' == '' ">windows</BuildOs>
+    <BuildArch Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'X86' ">386</BuildArch>
+    <BuildArch Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'Arm64' ">arm64</BuildArch>
+    <BuildArch Condition=" '$(BuildArch)' == '' ">amd64</BuildArch>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AddPublicApiAnalyzers>true</AddPublicApiAnalyzers>
+  </PropertyGroup>
+
+</Project>
