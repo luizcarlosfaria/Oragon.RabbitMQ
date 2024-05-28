@@ -27,10 +27,10 @@ public class SystemTextJsonAMQPSerializer : AMQPBaseSerializer
     /// <returns></returns>
     protected override TMessage DeserializeInternal<TMessage>(IReadOnlyBasicProperties basicProperties, ReadOnlyMemory<byte> body)
     {
-        byte[] bytes = body.ToArray();
+        var bytes = body.ToArray();
         if (bytes.Length > 0)
         {
-            var message = Encoding.UTF8.GetString(body.ToArray());
+            var message = Encoding.UTF8.GetString(bytes);
             if (!string.IsNullOrWhiteSpace(message))
             {
                 return System.Text.Json.JsonSerializer.Deserialize<TMessage>(message);

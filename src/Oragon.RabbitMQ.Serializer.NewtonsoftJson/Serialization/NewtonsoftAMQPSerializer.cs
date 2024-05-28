@@ -1,3 +1,4 @@
+using Dawn;
 using RabbitMQ.Client;
 using System.Diagnostics;
 using System.Text;
@@ -25,10 +26,12 @@ public class NewtonsoftAMQPSerializer : AMQPBaseSerializer
     /// <returns></returns>
     protected override TMessage DeserializeInternal<TMessage>(IReadOnlyBasicProperties basicProperties, ReadOnlyMemory<byte> body)
     {
-        byte[] bytes = body.ToArray();
+        _ = Guard.Argument(basicProperties).NotNull();
+
+        var bytes = body.ToArray();
         if (bytes.Length > 0)
         {
-            var message = Encoding.UTF8.GetString(body.ToArray());
+            var message = Encoding.UTF8.GetString(bytes);
             if (!string.IsNullOrWhiteSpace(message))
             {
                 return Newtonsoft.Json.JsonConvert.DeserializeObject<TMessage>(message);

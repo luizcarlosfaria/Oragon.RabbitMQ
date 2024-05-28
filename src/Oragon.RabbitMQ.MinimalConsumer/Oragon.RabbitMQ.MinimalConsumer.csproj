@@ -36,6 +36,8 @@
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\Oragon.RabbitMQ.Abstractions\Oragon.RabbitMQ.Abstractions.csproj" />
+      <ProjectReference Include="..\Oragon.RabbitMQ.Serializer.NewtonsoftJson\Oragon.RabbitMQ.Serializer.NewtonsoftJson.csproj" />
+      <ProjectReference Include="..\Oragon.RabbitMQ.Serializer.SystemTextJson\Oragon.RabbitMQ.Serializer.SystemTextJson.csproj" />
       <ProjectReference Include="..\Oragon.RabbitMQ\Oragon.RabbitMQ.csproj" />
     </ItemGroup>
 
