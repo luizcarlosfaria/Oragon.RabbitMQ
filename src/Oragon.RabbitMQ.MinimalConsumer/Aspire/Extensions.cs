@@ -1,4 +1,3 @@
-using DotNetAspire.Architecture.Messaging;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using Oragon.RabbitMQ;
 
 namespace DotNetAspire.Architecture.Aspire;
 

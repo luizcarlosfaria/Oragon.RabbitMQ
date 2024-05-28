@@ -1,4 +1,4 @@
-﻿namespace DotNetAspire.Architecture.Messaging;
+﻿namespace Oragon.RabbitMQ;
 
 
 [Serializable]
@@ -12,7 +12,7 @@ public class AMQPRemoteException : Exception
     public AMQPRemoteException(string message, string remoteStackTrace, Exception inner) : base(message, inner) { this.remoteStackTrace = remoteStackTrace; }
 
 
-    public override string StackTrace => this.remoteStackTrace;
+    public override string StackTrace => remoteStackTrace;
 
 
     protected AMQPRemoteException(

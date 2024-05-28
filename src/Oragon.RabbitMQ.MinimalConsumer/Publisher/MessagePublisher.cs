@@ -1,11 +1,12 @@
-﻿using DotNetAspire.Architecture.Messaging.Serialization;
-using OpenTelemetry.Context.Propagation;
+﻿using OpenTelemetry.Context.Propagation;
 using OpenTelemetry;
 using RabbitMQ.Client;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
+using Oragon.RabbitMQ;
+using Oragon.RabbitMQ.Serialization;
 
-namespace DotNetAspire.Architecture.Messaging.Publisher;
+namespace Oragon.RabbitMQ.Publisher;
 public class MessagePublisher(IConnection connection, IAMQPSerializer serializer, ILogger<MessagePublisher> logger)
 {
     private static readonly ActivitySource activitySource = new(MessagingTelemetryNames.GetName(nameof(MessagePublisher)));
@@ -19,16 +20,16 @@ public class MessagePublisher(IConnection connection, IAMQPSerializer serializer
     {
         using Activity publisherActivity = activitySource.StartActivity("MessagePublisher.Send", ActivityKind.Producer) ?? throw new NullReferenceException(nameof(publisherActivity));
 
-        using IModel model = this.connection.CreateModel();
+        using IModel model = connection.CreateModel();
 
         var properties = model.CreateBasicProperties().EnsureHeaders().SetDurable(true);
 
-        ActivityContext contextToInject = GetActivityContext(publisherActivity);
+        var contextToInject = GetActivityContext(publisherActivity);
 
         // Inject the ActivityContext into the message headers to propagate trace context to the receiving service.
-        propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), properties, this.InjectTraceContextIntoBasicProperties);
+        propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), properties, InjectTraceContextIntoBasicProperties);
 
-        byte[] body = this.serializer.Serialize(basicProperties: properties, objectToSerialize: message);
+        var body = serializer.Serialize(basicProperties: properties, objectToSerialize: message);
 
         model.BasicPublish(exchange, routingKey, properties, body);
 
@@ -59,7 +60,7 @@ public class MessagePublisher(IConnection connection, IAMQPSerializer serializer
         }
         catch (Exception ex)
         {
-            this.logger.LogError(ex, "Failed to inject trace context.");
+            logger.LogError(ex, "Failed to inject trace context.");
         }
     }
 }

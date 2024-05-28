@@ -8,8 +8,10 @@ using System.Diagnostics;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry;
 using System.Text;
+using Oragon.RabbitMQ;
+using Oragon.RabbitMQ.Consumer.Actions;
 
-namespace DotNetAspire.Architecture.Messaging.Consumer;
+namespace Oragon.RabbitMQ.Consumer;
 
 
 public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
@@ -35,11 +37,11 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
 
     protected override IBasicConsumer BuildConsumer()
     {
-        Guard.Argument(this.Model).NotNull();
+        Guard.Argument(Model).NotNull();
 
-        var consumer = new AsyncEventingBasicConsumer(this.Model);
+        var consumer = new AsyncEventingBasicConsumer(Model);
 
-        consumer.Received += this.Receive;
+        consumer.Received += Receive;
 
         return consumer;
     }
@@ -53,9 +55,9 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
         var parentContext = propagator.Extract(default, delivery.BasicProperties, this.ExtractTraceContextFromBasicProperties);
         Baggage.Current = parentContext.Baggage;
 
-        using Activity receiveActivity = activitySource.StartActivity("AsyncQueueConsumer.Receive", ActivityKind.Consumer, parentContext.ActivityContext) ?? new Activity("?AsyncQueueConsumer.Receive");
+        using var receiveActivity = activitySource.StartActivity("AsyncQueueConsumer.Receive", ActivityKind.Consumer, parentContext.ActivityContext) ?? new Activity("?AsyncQueueConsumer.Receive");
 
-        receiveActivity.AddTag("Queue", this.parameters.QueueName);
+        receiveActivity.AddTag("Queue", parameters.QueueName);
         receiveActivity.AddTag("MessageId", delivery.BasicProperties.MessageId);
         receiveActivity.AddTag("CorrelationId", delivery.BasicProperties.CorrelationId);
 
@@ -64,11 +66,11 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
         receiveActivity.SetTag("messaging.destination", delivery.Exchange);
         receiveActivity.SetTag("messaging.rabbitmq.routing_key", delivery.RoutingKey);
 
-        IAMQPResult result = this.TryDeserialize(receiveActivity, delivery, out TRequest request)
-                            ? await this.Dispatch(receiveActivity, delivery, request)
+        var result = TryDeserialize(receiveActivity, delivery, out var request)
+                            ? await Dispatch(receiveActivity, delivery, request)
                             : new RejectResult(false);
 
-        result.Execute(this.Model, delivery);
+        result.Execute(Model, delivery);
 
         //receiveActivity?.SetEndTime(DateTime.UtcNow);
     }
@@ -85,7 +87,7 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
         }
         catch (Exception ex)
         {
-            this.logger.LogError(ex, "Failed to extract trace context.");
+            logger.LogError(ex, "Failed to extract trace context.");
         }
 
         return Enumerable.Empty<string>();
@@ -95,12 +97,12 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
     {
         Guard.Argument(receivedItem).NotNull();
 
-        bool returnValue  = true;
+        var returnValue = true;
 
         request = default;
         try
         {
-            request = this.parameters.Serializer.Deserialize<TRequest>(eventArgs: receivedItem);
+            request = parameters.Serializer.Deserialize<TRequest>(eventArgs: receivedItem);
         }
         catch (Exception exception)
         {
@@ -108,7 +110,7 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
 
             receiveActivity.SetStatus(ActivityStatusCode.Error, exception.ToString());
 
-            this.logger.LogWarning("Message rejected during deserialization {exception}", exception);
+            logger.LogWarning("Message rejected during deserialization {exception}", exception);
         }
 
         return returnValue;
@@ -117,44 +119,44 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
     protected virtual async Task<IAMQPResult> Dispatch(Activity receiveActivity, BasicDeliverEventArgs receivedItem, TRequest request)
     {
         Guard.Argument(receiveActivity).NotNull();
-        Guard.Argument(receivedItem).NotNull();        
+        Guard.Argument(receivedItem).NotNull();
 
         if (request == null) return new RejectResult(false);
 
         IAMQPResult returnValue;
 
-        using Activity? dispatchActivity = activitySource.StartActivity(this.parameters.AdapterExpressionText, ActivityKind.Internal, receiveActivity.Context);
+        using var dispatchActivity = activitySource.StartActivity(parameters.AdapterExpressionText, ActivityKind.Internal, receiveActivity.Context);
 
         //using (var logContext = new EnterpriseApplicationLogContext())
         //{
         try
         {
-            TService service = this.parameters.ServiceProvider.GetRequiredService<TService>();
+            var service = parameters.ServiceProvider.GetRequiredService<TService>();
 
-            if (this.parameters.DispatchScope == DispatchScope.RootScope)
+            if (parameters.DispatchScope == DispatchScope.RootScope)
             {
-                await this.parameters.AdapterFunc(service, request);
+                await parameters.AdapterFunc(service, request);
             }
-            else if (this.parameters.DispatchScope == DispatchScope.ChildScope)
+            else if (parameters.DispatchScope == DispatchScope.ChildScope)
             {
-                using (var scope = this.parameters.ServiceProvider.CreateScope())
+                using (var scope = parameters.ServiceProvider.CreateScope())
                 {
-                    await this.parameters.AdapterFunc(service, request);
+                    await parameters.AdapterFunc(service, request);
                 }
             }
             returnValue = new AckResult();
         }
         catch (Exception exception)
         {
-            
-            this.logger.LogWarning("Exception on processing message {queueName} {exception}", this.parameters.QueueName, exception);
-            returnValue = new NackResult(this.parameters.RequeueOnCrash);
-            
+
+            logger.LogWarning("Exception on processing message {queueName} {exception}", parameters.QueueName, exception);
+            returnValue = new NackResult(parameters.RequeueOnCrash);
+
             dispatchActivity?.SetStatus(ActivityStatusCode.Error, exception.ToString());
         }
         //}
 
-        
+
 
         return returnValue;
     }

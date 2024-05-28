@@ -5,7 +5,7 @@ using Polly;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 
-namespace DotNetAspire.Architecture.Messaging.Consumer;
+namespace Oragon.RabbitMQ.Consumer;
 
 public abstract class ConsumerBase : BackgroundService
 {
@@ -35,44 +35,44 @@ public abstract class ConsumerBase : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        this.connection = this.parameters.ConnectionFactoryFunc(this.serviceProvider);
+        connection = parameters.ConnectionFactoryFunc(serviceProvider);
 
-        if (this.parameters.Configurer != null)
+        if (parameters.Configurer != null)
         {
-            using var tmpModel = this.connection.CreateModel();
-            this.parameters.Configurer(this.serviceProvider, tmpModel);
+            using var tmpModel = connection.CreateModel();
+            parameters.Configurer(serviceProvider, tmpModel);
         }
 
-        await this.WaitQueueCreationAsync();
+        await WaitQueueCreationAsync();
 
-        this.Model = this.connection.CreateModel();
+        Model = connection.CreateModel();
 
-        this.Model.BasicQos(0, this.parameters.PrefetchCount, false);
+        Model.BasicQos(0, parameters.PrefetchCount, false);
 
-        this.consumer = this.BuildConsumer();
+        consumer = BuildConsumer();
 
-        DateTimeOffset startTime = DateTimeOffset.UtcNow;
+        var startTime = DateTimeOffset.UtcNow;
 
-        this.logger.LogInformation($"Consuming Queue {this.parameters.QueueName} since: {startTime}");
+        logger.LogInformation($"Consuming Queue {parameters.QueueName} since: {startTime}");
 
-        this.consumerTag = this.Model.BasicConsume(
-                         queue: this.parameters.QueueName,
+        consumerTag = Model.BasicConsume(
+                         queue: parameters.QueueName,
                          autoAck: false,
-                         consumer: this.consumer);
+                         consumer: consumer);
 
-        int timeToDisplay = (int)this.parameters.DisplayLoopInConsoleEvery.TotalSeconds;
+        var timeToDisplay = (int)parameters.DisplayLoopInConsoleEvery.TotalSeconds;
 
 
         long loopCount = 0;
         while (!stoppingToken.IsCancellationRequested)
         {
             loopCount++;
-            string logMessage = $"Consuming Queue {this.parameters.QueueName} since: {startTime} uptime: {DateTimeOffset.Now - startTime}";
+            var logMessage = $"Consuming Queue {parameters.QueueName} since: {startTime} uptime: {DateTimeOffset.Now - startTime}";
 
             if (loopCount % timeToDisplay == 0)
-                this.logger.LogInformation(logMessage);
+                logger.LogInformation(logMessage);
             else
-                this.logger.LogTrace(logMessage);
+                logger.LogTrace(logMessage);
 
             await Task.Delay(1000, stoppingToken);
         }
@@ -82,16 +82,16 @@ public abstract class ConsumerBase : BackgroundService
     {
         await Policy
         .Handle<OperationInterruptedException>()
-            .WaitAndRetryAsync(this.parameters.TestQueueRetryCount, retryAttempt =>
+            .WaitAndRetryAsync(parameters.TestQueueRetryCount, retryAttempt =>
             {
                 var timeToWait = TimeSpan.FromSeconds(Math.Pow(2, retryAttempt));
-                this.logger.LogWarning("Queue {queueName} not found... We will try in {tempo}.", this.parameters.QueueName, timeToWait);
+                logger.LogWarning("Queue {queueName} not found... We will try in {tempo}.", parameters.QueueName, timeToWait);
                 return timeToWait;
             })
             .ExecuteAsync(() =>
             {
-                using IModel testModel = this.connection.CreateModel();
-                testModel.QueueDeclarePassive(this.parameters.QueueName);
+                using IModel testModel = connection.CreateModel();
+                testModel.QueueDeclarePassive(parameters.QueueName);
                 return Task.CompletedTask;
             });
     }
@@ -100,12 +100,12 @@ public abstract class ConsumerBase : BackgroundService
 
     public override void Dispose()
     {
-        if (this.Model != null && !string.IsNullOrWhiteSpace(this.consumerTag))
-            this.Model.BasicCancelNoWait(this.consumerTag);
-        if (this.Model != null)
+        if (Model != null && !string.IsNullOrWhiteSpace(consumerTag))
+            Model.BasicCancelNoWait(consumerTag);
+        if (Model != null)
         {
-            this.Model.Dispose();
-            this.Model = null;
+            Model.Dispose();
+            Model = null;
         }
 
         base.Dispose();

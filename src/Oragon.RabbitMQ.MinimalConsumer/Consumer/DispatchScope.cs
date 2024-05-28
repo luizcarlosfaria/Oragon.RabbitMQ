@@ -1,4 +1,4 @@
-﻿namespace DotNetAspire.Architecture.Messaging.Consumer;
+﻿namespace Oragon.RabbitMQ.Consumer;
 
 public enum DispatchScope
 {

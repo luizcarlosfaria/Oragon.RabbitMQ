@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-namespace DotNetAspire.Architecture.Messaging;
+namespace Oragon.RabbitMQ;
 
 public static partial class TelemetryExtensions
 {
@@ -10,7 +10,7 @@ public static partial class TelemetryExtensions
     public static Activity SafeStartActivity(this ActivitySource activitySource, [CallerMemberName] string name = "", ActivityKind kind = ActivityKind.Internal)
     {
         ArgumentNullException.ThrowIfNull(activitySource);
-        Activity activity = activitySource.StartActivity(name, kind) ?? new Activity("?" + name);
+        var activity = activitySource.StartActivity(name, kind) ?? new Activity("?" + name);
         activity.SetStartTime(DateTime.UtcNow);
         return activity;
     }
@@ -18,7 +18,7 @@ public static partial class TelemetryExtensions
     public static Activity SafeStartActivity(this ActivitySource activitySource, string name, ActivityKind kind, ActivityContext parentContext)
     {
         ArgumentNullException.ThrowIfNull(activitySource);
-        Activity activity = activitySource.StartActivity(name, kind, parentContext) ?? new Activity("?" + name);
+        var activity = activitySource.StartActivity(name, kind, parentContext) ?? new Activity("?" + name);
         activity.SetStartTime(DateTime.UtcNow);
         return activity;
     }
@@ -68,7 +68,7 @@ public static partial class TelemetryExtensions
         return basicProperties;
     }
 
-    
+
 
     private static IBasicProperties SetSpanId(this IBasicProperties basicProperties, ActivitySpanId? activitySpanId)
     {

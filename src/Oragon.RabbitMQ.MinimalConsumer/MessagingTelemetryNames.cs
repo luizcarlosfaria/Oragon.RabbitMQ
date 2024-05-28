@@ -1,6 +1,6 @@
 ﻿using OpenTelemetry.Trace;
 
-namespace DotNetAspire.Architecture.Messaging;
+namespace Oragon.RabbitMQ;
 public static class MessagingTelemetryNames
 {
     private static List<string> names = [
@@ -11,7 +11,7 @@ public static class MessagingTelemetryNames
 
     public static string GetName(string name)
     {
-        string fullName = $"gaGO.io/RabbitMQ/{name}";
+        var fullName = $"gaGO.io/RabbitMQ/{name}";
         return !names.Contains(fullName)
             ? throw new InvalidOperationException($"Name '{name}' is not registred ")
             : fullName;
@@ -19,7 +19,7 @@ public static class MessagingTelemetryNames
 
     public static TracerProviderBuilder AddRabbitMQInstrumentation(this TracerProviderBuilder tracerProviderBuilder)
     {
-        foreach (string name in names)
+        foreach (var name in names)
         {
             tracerProviderBuilder.AddSource(name);
         }

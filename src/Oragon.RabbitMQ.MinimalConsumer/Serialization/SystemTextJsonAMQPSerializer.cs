@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace DotNetAspire.Architecture.Messaging.Serialization;
+namespace Oragon.RabbitMQ.Serialization;
 
 
 public class SystemTextJsonAMQPSerializer : AMQPBaseSerializer
@@ -13,7 +13,7 @@ public class SystemTextJsonAMQPSerializer : AMQPBaseSerializer
 
     protected override TResponse DeserializeInternal<TResponse>(IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
     {
-        string message = Encoding.UTF8.GetString(body.ToArray());
+        var message = Encoding.UTF8.GetString(body.ToArray());
         return System.Text.Json.JsonSerializer.Deserialize<TResponse>(message);
     }
 

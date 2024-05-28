@@ -1,0 +1,29 @@
+<Project>
+
+  <Import Project="./../Global.Build.props" />
+
+  <PropertyGroup>    
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <LangVersion>preview</LangVersion>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <RootNamespace>Oragon.RabbitMQ</RootNamespace>
+    <AnalysisLevel>latest-all</AnalysisLevel>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Copyright>© Oragon, gaGO.io, LuizCarlosFaria. All rights reserved.</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/luizcarlosfaria/Oragon.RabbitMQ</PackageProjectUrl>
+    <Authors>LuizCarlosFaria</Authors>
+    <Company>oragon.io</Company>
+    <Product>Oragon</Product>
+    <PackageTags>oragon architecture luizcarlosfaria rabbitmq</PackageTags>
+  </PropertyGroup>
+  
+</Project>

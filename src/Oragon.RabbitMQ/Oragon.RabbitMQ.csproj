@@ -1,6 +1,6 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <Import Project="./../../Oragon.RabbitMQ.Build.props" />
+  <Import Project="./../Oragon.RabbitMQ.Build.props" />
 
   <ItemGroup>
     <ProjectReference Include="..\Oragon.RabbitMQ.Abstractions\Oragon.RabbitMQ.Abstractions.csproj" />

@@ -1,13 +1,13 @@
-﻿using DotNetAspire.Architecture.Messaging.Consumer;
-using DotNetAspire.Architecture.Messaging.Serialization;
-using Dawn;
+﻿using Dawn;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System.Diagnostics;
+using Oragon.RabbitMQ.Serialization;
+using Oragon.RabbitMQ.Consumer;
 
-namespace DotNetAspire.Architecture.Messaging;
+namespace Oragon.RabbitMQ;
 
 public static class DependencyInjectionExtensions
 {
@@ -36,7 +36,7 @@ public static class DependencyInjectionExtensions
                 parameters.WithDisplayLoopInConsoleEvery(TimeSpan.FromMinutes(1));
                 parameters.WithTestQueueRetryCount(5);
                 parameters.WithConnectionFactoryFunc((sp) => sp.GetRequiredService<IConnection>());
-                parameters.WithDispatchInRootScope();                
+                parameters.WithDispatchInRootScope();
                 parameters.WithSerializer(sp.GetRequiredService<IAMQPSerializer>());
 
                 config(parameters);

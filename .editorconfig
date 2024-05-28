@@ -23,6 +23,7 @@ spelling_exclusion_path = spelling.dic
 [*.cs]
 indent_size = 4
 dotnet_sort_system_directives_first = true
+dotnet_code_quality.null_check_validation_methods = Dawn.Guard.Argument(ParamType).NotNull() | Argument | NotNull
 
 
 # use int x = .. over Int32
@@ -77,8 +78,8 @@ dotnet_naming_rule.camel_case_for_private_internal_fields.symbols  = private_int
 dotnet_naming_rule.camel_case_for_private_internal_fields.style = camel_case_underscore_style
 dotnet_naming_symbols.private_internal_fields.applicable_kinds = field
 dotnet_naming_symbols.private_internal_fields.applicable_accessibilities = private, internal
-dotnet_naming_style.camel_case_underscore_style.required_prefix = _
-dotnet_naming_style.camel_case_underscore_style.capitalization = camel_case
+# dotnet_naming_style.camel_case_underscore_style.required_prefix = _
+# dotnet_naming_style.camel_case_underscore_style.capitalization = camel_case
 csharp_indent_labels = one_less_than_current
 csharp_using_directive_placement = outside_namespace:warning
 csharp_prefer_simple_using_statement = true:silent

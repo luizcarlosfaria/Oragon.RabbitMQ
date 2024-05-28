@@ -2,7 +2,7 @@
 using RabbitMQ.Client;
 using System.Text;
 
-namespace DotNetAspire.Architecture.Messaging;
+namespace Oragon.RabbitMQ;
 
 public static partial class RabbitMQExtensions
 {
@@ -64,7 +64,7 @@ public static partial class RabbitMQExtensions
 
     public static string AsString(this IDictionary<string, object> dic, string key)
     {
-        object content = dic?[key];
+        var content = dic?[key];
         return content != null ? Encoding.UTF8.GetString((byte[])content) : null;
     }
 
@@ -73,7 +73,7 @@ public static partial class RabbitMQExtensions
         ArgumentNullException.ThrowIfNull(objectToConvert);
         var routingKeyList = (List<object>)objectToConvert;
 
-        List<string> items = routingKeyList.ConvertAll(key => key.AsString());
+        var items = routingKeyList.ConvertAll(key => key.AsString());
 
         return items;
     }
@@ -85,7 +85,7 @@ public static partial class RabbitMQExtensions
 
         if (basicProperties.Headers == null) basicProperties.Headers = new Dictionary<string, object>();
 
-        Type exceptionType = exception.GetType();
+        var exceptionType = exception.GetType();
 
         basicProperties.Headers.Add("exception.type", $"{exceptionType.Namespace}.{exceptionType.Name}, {exceptionType.Assembly.FullName}");
         basicProperties.Headers.Add("exception.message", exception.Message);
@@ -100,9 +100,9 @@ public static partial class RabbitMQExtensions
         remoteException = default;
         if (basicProperties?.Headers?.ContainsKey("exception.type") ?? false)
         {
-            string exceptionTypeString = basicProperties.Headers.AsString("exception.type");
-            string exceptionMessage = basicProperties.Headers.AsString("exception.message");
-            string exceptionStackTrace = basicProperties.Headers.AsString("exception.stacktrace");
+            var exceptionTypeString = basicProperties.Headers.AsString("exception.type");
+            var exceptionMessage = basicProperties.Headers.AsString("exception.message");
+            var exceptionStackTrace = basicProperties.Headers.AsString("exception.stacktrace");
             var exceptionInstance = (Exception)Activator.CreateInstance(Type.GetType(exceptionTypeString) ?? typeof(Exception), exceptionMessage);
             remoteException = new AMQPRemoteException("Remote consumer report a exception during execution", exceptionStackTrace, exceptionInstance);
             return true;
@@ -117,7 +117,7 @@ public static partial class RabbitMQExtensions
     }
 
     public static ConnectionFactory Unbox(this IConnectionFactory connectionFactory) => (ConnectionFactory)connectionFactory;
-    
+
 
 
     public static List<object> GetDeathHeader(this IBasicProperties basicProperties)
@@ -153,7 +153,7 @@ public static partial class RabbitMQExtensions
         if (target == null)
             return target;
 
-        bool conditionResult = condition(target);
+        var conditionResult = condition(target);
 
         if (conditionResult)
             target = actionWhenTrue(target);
@@ -171,7 +171,7 @@ public static partial class RabbitMQExtensions
         if (target == null)
             return target;
 
-        bool conditionResult = condition(target);
+        var conditionResult = condition(target);
 
         if (conditionResult)
             actionWhenTrue(target);
