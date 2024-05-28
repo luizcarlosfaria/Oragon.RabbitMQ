@@ -64,15 +64,15 @@ public abstract class AMQPBaseSerializer : IAMQPSerializer
     /// <summary>
     /// Serialize a message to a byte array with OpenTelemetry support
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="TMessage"></typeparam>
     /// <param name="basicProperties"></param>
-    /// <param name="objectToSerialize"></param>
+    /// <param name="message"></param>
     /// <returns></returns>
-    public byte[] Serialize<T>(IBasicProperties basicProperties, T objectToSerialize)
+    public byte[] Serialize<TMessage>(IBasicProperties basicProperties, TMessage message)
     {
         _ = Guard.Argument(basicProperties).NotNull();
 
-        var returnValue = SerializeInternal(basicProperties, objectToSerialize); ;
+        var returnValue = SerializeInternal(basicProperties, message); ;
 
         return returnValue;
     }
