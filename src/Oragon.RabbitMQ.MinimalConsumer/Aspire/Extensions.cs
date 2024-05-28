@@ -9,7 +9,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Oragon.RabbitMQ;
 
-namespace DotNetAspire.Architecture.Aspire;
+namespace Oragon.RabbitMQ.Aspire;
 
 public static class Extensions
 {

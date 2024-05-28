@@ -1,7 +1,7 @@
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client;
 
-namespace DotNetAspire.Architecture.Messaging.Consumer.Actions;
+namespace Oragon.RabbitMQ.Consumer.Actions;
 
 
 /// <summary>
