@@ -15,5 +15,5 @@ public interface IAMQPResult
     /// </summary>
     /// <param name="channel"></param>
     /// <param name="delivery"></param>
-    Task Execute(IChannel channel, BasicDeliverEventArgs delivery);
+    Task ExecuteAsync(IChannel channel, BasicDeliverEventArgs delivery);
 }

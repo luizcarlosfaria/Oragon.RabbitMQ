@@ -28,7 +28,7 @@ public class RejectResult : IAMQPResult
     /// </summary>
     /// <param name="channel"></param>
     /// <param name="delivery"></param>
-    public async Task Execute(IChannel channel, BasicDeliverEventArgs delivery)
+    public async Task ExecuteAsync(IChannel channel, BasicDeliverEventArgs delivery)
     {
         _ = Guard.Argument(channel).NotNull();
         _ = Guard.Argument(delivery).NotNull();
