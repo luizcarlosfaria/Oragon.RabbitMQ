@@ -2,7 +2,8 @@
 
   <Import Project="./../Global.Build.props" />
 
-  <PropertyGroup>    
+  <!--Project Settings-->
+  <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -10,13 +11,20 @@
     <DebugSymbols>true</DebugSymbols>
     <LangVersion>preview</LangVersion>
   </PropertyGroup>
-  
+
+  <!--Distribution Settings-->
   <PropertyGroup>
     <RootNamespace>Oragon.RabbitMQ</RootNamespace>
     <AnalysisLevel>latest-all</AnalysisLevel>
   </PropertyGroup>
 
+  <!--Package Settings-->
+
   <PropertyGroup>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>Oragon.RabbitMQ.png</PackageIcon>
+
     <Copyright>© Oragon, gaGO.io, LuizCarlosFaria. All rights reserved.</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/luizcarlosfaria/Oragon.RabbitMQ</PackageProjectUrl>
@@ -24,6 +32,18 @@
     <Company>oragon.io</Company>
     <Product>Oragon</Product>
     <PackageTags>oragon architecture luizcarlosfaria rabbitmq</PackageTags>
+    <PackageType>Library</PackageType>
   </PropertyGroup>
-  
+
+  <ItemGroup>
+    <None Include="..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\Assets\Oragon.RabbitMQ.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
 </Project>
