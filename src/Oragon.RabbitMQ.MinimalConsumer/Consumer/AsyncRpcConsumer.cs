@@ -24,11 +24,11 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
         this.parameters.Validate();
     }
 
-    protected override async Task<IAMQPResult> Dispatch(Activity receiveActivity, BasicDeliverEventArgs receivedItem, TRequest request)
+    protected override async Task<IAMQPResult> DispatchAsync(Activity receiveActivity, BasicDeliverEventArgs receivedItem, TRequest request)
     {
-        Guard.Argument(receivedItem).NotNull();
-        Guard.Argument(receiveActivity).NotNull();
-        Guard.Argument(request).NotNull();
+        _ = Guard.Argument(receivedItem).NotNull();
+        _ = Guard.Argument(receiveActivity).NotNull();
+        _ = Guard.Argument(request).NotNull();
 
         if (receivedItem.BasicProperties.ReplyTo == null)
         {
@@ -76,8 +76,8 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
 
     private void SendReply(Activity activity, BasicDeliverEventArgs receivedItem, TResponse responsePayload = null, Exception exception = null)
     {
-        Guard.Argument(receivedItem).NotNull();
-        Guard.Argument(responsePayload).NotNull();
+        _ = Guard.Argument(receivedItem).NotNull();
+        _ = Guard.Argument(responsePayload).NotNull();
 
 
         var responseProperties = Model.CreateBasicProperties()

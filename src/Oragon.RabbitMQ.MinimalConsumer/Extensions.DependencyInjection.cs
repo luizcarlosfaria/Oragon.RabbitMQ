@@ -1,4 +1,4 @@
-﻿using Dawn;
+using Dawn;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -25,8 +25,8 @@ public static class DependencyInjectionExtensions
         where TResponse : class
         where TRequest : class
     {
-        Guard.Argument(services).NotNull();
-        Guard.Argument(config).NotNull();
+        _ = Guard.Argument(services).NotNull();
+        _ = Guard.Argument(config).NotNull();
 
 
         services.AddSingleton<IHostedService>(sp =>
@@ -61,8 +61,8 @@ public static class DependencyInjectionExtensions
     public static void MapQueue<TService, TRequest>(this IServiceCollection services, Action<AsyncQueueConsumerParameters<TService, TRequest, Task>> config)
         where TRequest : class
     {
-        Guard.Argument(services).NotNull();
-        Guard.Argument(config).NotNull();
+        _ = Guard.Argument(services).NotNull();
+        _ = Guard.Argument(config).NotNull();
 
 
         services.AddSingleton<IHostedService>(sp =>

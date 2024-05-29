@@ -1,4 +1,3 @@
-using DotNetAspire.Architecture.Messaging.Consumer.Actions;
 using Dawn;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -8,23 +7,47 @@ using System.Diagnostics;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry;
 using System.Text;
-using Oragon.RabbitMQ;
 using Oragon.RabbitMQ.Consumer.Actions;
+using System.Diagnostics.CodeAnalysis;
+
 
 namespace Oragon.RabbitMQ.Consumer;
 
 
+
+/// <summary>
+/// Represents an asynchronous queue consumer.
+/// </summary>
+/// <typeparam name="TService">The type of the service.</typeparam>
+/// <typeparam name="TRequest">The type of the request.</typeparam>
+/// <typeparam name="TResponse">The type of the response.</typeparam>
 public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
     where TResponse : Task
     where TRequest : class
 {
-    private AsyncQueueConsumerParameters<TService, TRequest, TResponse> parameters;
+    /// <summary>
+    /// The parameters for the consumer.
+    /// </summary>
+    private readonly AsyncQueueConsumerParameters<TService, TRequest, TResponse> parameters;
 
+    /// <summary>
+    /// The activity source for telemetry.
+    /// </summary>
     protected static readonly ActivitySource activitySource = new(MessagingTelemetryNames.GetName(nameof(AsyncQueueConsumer<TService, TRequest, TResponse>)));
-    private static readonly TextMapPropagator propagator = Propagators.DefaultTextMapPropagator;
+
+    /// <summary>
+    /// The propagator for trace context.
+    /// </summary>
+    private static readonly TextMapPropagator s_propagator = Propagators.DefaultTextMapPropagator;
 
     #region Constructors 
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AsyncQueueConsumer{TService, TRequest, TResponse}"/> class.
+    /// </summary>
+    /// <param name="logger">The logger.</param>
+    /// <param name="parameters">The parameters.</param>
+    /// <param name="serviceProvider">The service provider.</param>
     public AsyncQueueConsumer(ILogger logger, AsyncQueueConsumerParameters<TService, TRequest, TResponse> parameters, IServiceProvider serviceProvider)
         : base(logger, parameters, serviceProvider)
     {
@@ -35,27 +58,33 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
     #endregion
 
 
+    /// <inheritdoc/>
     protected override IBasicConsumer BuildConsumer()
     {
-        Guard.Argument(Model).NotNull();
+        _ = Guard.Argument(Model).NotNull();
 
         var consumer = new AsyncEventingBasicConsumer(Model);
 
-        consumer.Received += Receive;
+        consumer.Received += ReceiveAsync;
 
         return consumer;
     }
 
-    public async Task Receive(object sender, BasicDeliverEventArgs delivery)
+
+    /// <summary>
+    /// Handles the asynchronous receive of a message.
+    /// </summary>
+    /// <param name="sender">The sender.</param>
+    /// <param name="delivery">The delivery arguments.</param>
+    [SuppressMessage("Performance", "CA1859", Justification = "Utilização de IAMQPResult é necessária pois ou temos uma resposta do DispatchAsync que pode ser de vários tipos, ou temos uma resposta com RejectResult")]
+    public async Task ReceiveAsync(object sender, BasicDeliverEventArgs delivery)
     {
-        Guard.Argument(delivery).NotNull();
-        Guard.Argument(delivery.BasicProperties).NotNull();
+        _ = Guard.Argument(delivery).NotNull();
 
-
-        var parentContext = propagator.Extract(default, delivery.BasicProperties, this.ExtractTraceContextFromBasicProperties);
+        var parentContext = s_propagator.Extract(default, (IReadOnlyBasicProperties)delivery.BasicProperties, this.ExtractTraceContextFromBasicProperties);
         Baggage.Current = parentContext.Baggage;
 
-        using var receiveActivity = activitySource.StartActivity("AsyncQueueConsumer.Receive", ActivityKind.Consumer, parentContext.ActivityContext) ?? new Activity("?AsyncQueueConsumer.Receive");
+        using var receiveActivity = activitySource.StartActivity("AsyncQueueConsumer.ReceiveAsync", ActivityKind.Consumer, parentContext.ActivityContext) ?? new Activity("?AsyncQueueConsumer.ReceiveAsync");
 
         receiveActivity.AddTag("Queue", parameters.QueueName);
         receiveActivity.AddTag("MessageId", delivery.BasicProperties.MessageId);
@@ -66,16 +95,25 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
         receiveActivity.SetTag("messaging.destination", delivery.Exchange);
         receiveActivity.SetTag("messaging.rabbitmq.routing_key", delivery.RoutingKey);
 
-        var result = TryDeserialize(receiveActivity, delivery, out var request)
-                            ? await Dispatch(receiveActivity, delivery, request)
-                            : new RejectResult(false);
+        IAMQPResult result = TryDeserialize(receiveActivity, delivery, out var request)
+                            ? await DispatchAsync(receiveActivity, delivery, request).ConfigureAwait(true)
+                            : (IAMQPResult)new RejectResult(false);
 
-        result.Execute(Model, delivery);
+        await result.ExecuteAsync(Model, delivery).ConfigureAwait(true);
 
         //receiveActivity?.SetEndTime(DateTime.UtcNow);
     }
 
-    private IEnumerable<string> ExtractTraceContextFromBasicProperties(IBasicProperties props, string key)
+    private static readonly Action<ILogger, Exception> s_logErrorOnExtractTraceContext = LoggerMessage.Define(LogLevel.Error, new EventId(1, "Failed to extract trace context."), "Failed to extract trace context.");
+
+    /// <summary>
+    /// Extracts the trace context from the basic properties.
+    /// </summary>
+    /// <param name="props">The basic properties.</param>
+    /// <param name="key">The key.</param>
+    /// <returns>The trace context.</returns>
+    [SuppressMessage("Design", "CA1031", Justification = "Tratamento de exceçào global, isolando uma micro-operação")]
+    private IEnumerable<string> ExtractTraceContextFromBasicProperties(IReadOnlyBasicProperties props, string key)
     {
         try
         {
@@ -87,15 +125,27 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to extract trace context.");
+            s_logErrorOnExtractTraceContext(logger, ex);
         }
 
         return Enumerable.Empty<string>();
     }
 
+
+    private static readonly Action<ILogger, Exception, Exception> s_logErrorOnDesserialize = LoggerMessage.Define<Exception>(LogLevel.Error, new EventId(1, "Message rejected during deserialization"), "Message rejected during deserialization {ExceptionDetails}");
+
+    
+    /// <summary>
+    /// Tries to deserialize the received item.
+    /// </summary>
+    /// <param name="receiveActivity">The receive activity.</param>
+    /// <param name="receivedItem">The received item.</param>
+    /// <param name="request">The deserialized request.</param>
+    /// <returns><c>true</c> if deserialization is successful; otherwise, <c>false</c>.</returns>
+    [SuppressMessage("Design", "CA1031", Justification = "Tratamento de exceçào global, isolando uma micro-operação")]
     private bool TryDeserialize(Activity receiveActivity, BasicDeliverEventArgs receivedItem, out TRequest request)
     {
-        Guard.Argument(receivedItem).NotNull();
+        _ = Guard.Argument(receivedItem).NotNull();
 
         var returnValue = true;
 
@@ -110,16 +160,27 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
 
             receiveActivity.SetStatus(ActivityStatusCode.Error, exception.ToString());
 
-            logger.LogWarning("Message rejected during deserialization {exception}", exception);
+            s_logErrorOnDesserialize(logger, exception, exception);
         }
 
         return returnValue;
     }
 
-    protected virtual async Task<IAMQPResult> Dispatch(Activity receiveActivity, BasicDeliverEventArgs receivedItem, TRequest request)
+    private static readonly Action<ILogger, string, Exception, Exception> s_logErrorOnDispatch = LoggerMessage.Define<string, Exception>(LogLevel.Error, new EventId(1, "Exception on processing message"), "Exception on processing message {QueueName} {Exception}");
+
+
+    /// <summary>
+    /// Dispatches the request to the appropriate handler.
+    /// </summary>
+    /// <param name="receiveActivity">The receive activity.</param>
+    /// <param name="receivedItem">The received item.</param>
+    /// <param name="request">The request.</param>
+    /// <returns>The result of the dispatch.</returns>
+    [SuppressMessage("Design", "CA1031", Justification = "Tratamento de exceção global, isolando uma macro-operação")]
+    protected virtual async Task<IAMQPResult> DispatchAsync(Activity receiveActivity, BasicDeliverEventArgs receivedItem, TRequest request)
     {
-        Guard.Argument(receiveActivity).NotNull();
-        Guard.Argument(receivedItem).NotNull();
+        _ = Guard.Argument(receiveActivity).NotNull();
+        _ = Guard.Argument(receivedItem).NotNull();
 
         if (request == null) return new RejectResult(false);
 
@@ -148,15 +209,13 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
         }
         catch (Exception exception)
         {
+            s_logErrorOnDispatch(logger, parameters.QueueName, exception, exception);
 
-            logger.LogWarning("Exception on processing message {queueName} {exception}", parameters.QueueName, exception);
             returnValue = new NackResult(parameters.RequeueOnCrash);
 
             dispatchActivity?.SetStatus(ActivityStatusCode.Error, exception.ToString());
         }
         //}
-
-
 
         return returnValue;
     }

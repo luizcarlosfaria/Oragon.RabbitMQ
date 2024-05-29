@@ -1,4 +1,4 @@
-﻿using Dawn;
+using Dawn;
 using RabbitMQ.Client;
 
 namespace Oragon.RabbitMQ.Consumer;
@@ -13,8 +13,8 @@ public class ConsumerBaseParameters
         return this;
     }
 
-    public Action<IServiceProvider, IModel> Configurer { get; private set; }
-    public ConsumerBaseParameters WithTopology(Action<IServiceProvider, IModel> configurer)
+    public Action<IServiceProvider, IChannel> Configurer { get; private set; }
+    public ConsumerBaseParameters WithTopology(Action<IServiceProvider, IChannel> configurer)
     {
         Configurer = configurer;
         return this;
@@ -50,10 +50,10 @@ public class ConsumerBaseParameters
 
     public virtual void Validate()
     {
-        Guard.Argument(QueueName).NotNull().NotEmpty().NotWhiteSpace();
-        Guard.Argument(PrefetchCount).NotZero().NotNegative();
-        Guard.Argument(TestQueueRetryCount).NotNegative();
-        Guard.Argument(ConnectionFactoryFunc).NotNull();
+        _ = Guard.Argument(QueueName).NotNull().NotEmpty().NotWhiteSpace();
+        _ = Guard.Argument(PrefetchCount).NotZero().NotNegative();
+        _ = Guard.Argument(TestQueueRetryCount).NotNegative();
+        _ = Guard.Argument(ConnectionFactoryFunc).NotNull();
     }
 
 

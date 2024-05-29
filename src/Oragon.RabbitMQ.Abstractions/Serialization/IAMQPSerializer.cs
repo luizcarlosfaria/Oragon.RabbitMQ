@@ -24,5 +24,5 @@ public interface IAMQPSerializer
     /// <param name="basicProperties"></param>
     /// <param name="message"></param>
     /// <returns></returns>
-    byte[] Serialize<T>(IBasicProperties basicProperties, T message);
+    byte[] Serialize<T>(BasicProperties basicProperties, T message);
 }

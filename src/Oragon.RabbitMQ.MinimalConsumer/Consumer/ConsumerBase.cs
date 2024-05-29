@@ -17,7 +17,7 @@ public abstract class ConsumerBase : BackgroundService
     private string consumerTag;
     private ConsumerBaseParameters parameters;
 
-    protected IModel Model { get; private set; }
+    protected IChannel Model { get; private set; }
 
 
     #region Constructors 
@@ -90,7 +90,7 @@ public abstract class ConsumerBase : BackgroundService
             })
             .ExecuteAsync(() =>
             {
-                using IModel testModel = connection.CreateModel();
+                using IChannel testModel = connection.CreateModel();
                 testModel.QueueDeclarePassive(parameters.QueueName);
                 return Task.CompletedTask;
             });

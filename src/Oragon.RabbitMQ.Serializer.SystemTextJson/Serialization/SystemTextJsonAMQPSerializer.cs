@@ -47,7 +47,7 @@ public class SystemTextJsonAMQPSerializer : AMQPBaseSerializer
     /// <param name="basicProperties"></param>
     /// <param name="message"></param>
     /// <returns></returns>
-    protected override byte[] SerializeInternal<TMessage>(IBasicProperties basicProperties, TMessage message)
+    protected override byte[] SerializeInternal<TMessage>(BasicProperties basicProperties, TMessage message)
     {
         return Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(message));
     }

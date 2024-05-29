@@ -47,7 +47,7 @@ public class NewtonsoftAMQPSerializer : AMQPBaseSerializer
     /// <param name="basicProperties"></param>
     /// <param name="objectToSerialize"></param>
     /// <returns></returns>
-    protected override byte[] SerializeInternal<T>(IBasicProperties basicProperties, T objectToSerialize)
+    protected override byte[] SerializeInternal<T>(BasicProperties basicProperties, T objectToSerialize)
     {
         return Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(objectToSerialize));
     }

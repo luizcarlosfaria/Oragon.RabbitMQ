@@ -1,4 +1,4 @@
-﻿using RabbitMQ.Client;
+using RabbitMQ.Client;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
@@ -23,7 +23,7 @@ public static partial class TelemetryExtensions
         return activity;
     }
 
-    public static ActivityTraceId GetTraceId(this IBasicProperties basicProperties)
+    public static ActivityTraceId GetTraceId(this BasicProperties basicProperties)
     {
         ArgumentNullException.ThrowIfNull(basicProperties);
         return basicProperties.Headers != null && basicProperties.Headers.ContainsKey("TraceId")
@@ -31,7 +31,7 @@ public static partial class TelemetryExtensions
             : default;
     }
 
-    public static ActivitySpanId GetSpanId(this IBasicProperties basicProperties)
+    public static ActivitySpanId GetSpanId(this BasicProperties basicProperties)
     {
         ArgumentNullException.ThrowIfNull(basicProperties);
         if (basicProperties.Headers != null && basicProperties.Headers.ContainsKey("SpanId"))
@@ -39,14 +39,14 @@ public static partial class TelemetryExtensions
         return default;
     }
 
-    public static IBasicProperties EnsureHeaders(this IBasicProperties basicProperties)
+    public static BasicProperties EnsureHeaders(this BasicProperties basicProperties)
     {
         ArgumentNullException.ThrowIfNull(basicProperties);
         basicProperties.Headers ??= new Dictionary<string, object>();
         return basicProperties;
     }
 
-    public static IBasicProperties SetTelemetry(this IBasicProperties basicProperties, Activity? activity)
+    public static BasicProperties SetTelemetry(this BasicProperties basicProperties, Activity? activity)
     {
         ArgumentNullException.ThrowIfNull(basicProperties);
         if (activity != null)
@@ -58,7 +58,7 @@ public static partial class TelemetryExtensions
         return basicProperties;
     }
 
-    private static IBasicProperties SetTraceId(this IBasicProperties basicProperties, ActivityTraceId? activityTraceId)
+    private static BasicProperties SetTraceId(this BasicProperties basicProperties, ActivityTraceId? activityTraceId)
     {
         ArgumentNullException.ThrowIfNull(basicProperties);
         if (activityTraceId != null)
@@ -70,7 +70,7 @@ public static partial class TelemetryExtensions
 
 
 
-    private static IBasicProperties SetSpanId(this IBasicProperties basicProperties, ActivitySpanId? activitySpanId)
+    private static BasicProperties SetSpanId(this BasicProperties basicProperties, ActivitySpanId? activitySpanId)
     {
         ArgumentNullException.ThrowIfNull(basicProperties);
         if (activitySpanId != null)

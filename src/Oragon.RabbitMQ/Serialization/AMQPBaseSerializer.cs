@@ -42,7 +42,7 @@ public abstract class AMQPBaseSerializer : IAMQPSerializer
     /// <param name="basicProperties"></param>
     /// <param name="objectToSerialize"></param>
     /// <returns></returns>
-    protected abstract byte[] SerializeInternal<T>(IBasicProperties basicProperties, T objectToSerialize);
+    protected abstract byte[] SerializeInternal<T>(BasicProperties basicProperties, T objectToSerialize);
 
 
     /// <summary>
@@ -68,10 +68,8 @@ public abstract class AMQPBaseSerializer : IAMQPSerializer
     /// <param name="basicProperties"></param>
     /// <param name="message"></param>
     /// <returns></returns>
-    public byte[] Serialize<TMessage>(IBasicProperties basicProperties, TMessage message)
+    public byte[] Serialize<TMessage>(BasicProperties basicProperties, TMessage message)
     {
-        _ = Guard.Argument(basicProperties).NotNull();
-
         var returnValue = SerializeInternal(basicProperties, message); ;
 
         return returnValue;
