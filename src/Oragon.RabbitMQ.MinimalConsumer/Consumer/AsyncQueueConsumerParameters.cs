@@ -49,12 +49,12 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     /// <summary>
     /// Call Adapter, used to adapt message to service method
     /// </summary>
-    public Expression<Func<TService, TRequest, TResponse>>? AdapterExpression { get; private set; }
+    public Expression<Func<TService, TRequest, TResponse>> AdapterExpression { get; private set; }
 
     /// <summary>
     /// Call Adapter, used to adapt message to service method
     /// </summary>
-    public string? AdapterExpressionText { get; private set; }
+    public string AdapterExpressionText { get; private set; }
 
     /// <summary>
     /// Adapter Func, used to adapt message to service method

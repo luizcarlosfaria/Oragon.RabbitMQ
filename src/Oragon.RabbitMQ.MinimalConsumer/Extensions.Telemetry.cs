@@ -46,7 +46,7 @@ public static partial class TelemetryExtensions
         return basicProperties;
     }
 
-    public static BasicProperties SetTelemetry(this BasicProperties basicProperties, Activity? activity)
+    public static BasicProperties SetTelemetry(this BasicProperties basicProperties, Activity activity)
     {
         ArgumentNullException.ThrowIfNull(basicProperties);
         if (activity != null)

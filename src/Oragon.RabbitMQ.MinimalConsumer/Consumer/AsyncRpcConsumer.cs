@@ -1,12 +1,11 @@
-using DotNetAspire.Architecture.Messaging.Consumer.Actions;
 using Dawn;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Diagnostics;
 using Oragon.RabbitMQ;
 using Oragon.RabbitMQ.Consumer.Actions;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Oragon.RabbitMQ.Consumer;
 
@@ -24,6 +23,10 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
         this.parameters.Validate();
     }
 
+    private static readonly Action<ILogger, Exception> s_logErrorOnDispatchWithoutReplyTo= LoggerMessage.Define(LogLevel.Error, new EventId(1, "Message cannot be processed in RPC Flow because original message didn't have a ReplyTo."), "Message cannot be processed in RPC Flow because original message didn't have a ReplyTo.");
+
+
+    [SuppressMessage("Design", "CA1031", Justification = "Tratamento de exceçào global, isolando uma MACRO-operação")]
     protected override async Task<IAMQPResult> DispatchAsync(Activity receiveActivity, BasicDeliverEventArgs receivedItem, TRequest request)
     {
         _ = Guard.Argument(receivedItem).NotNull();
@@ -32,7 +35,7 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
 
         if (receivedItem.BasicProperties.ReplyTo == null)
         {
-            logger.LogWarning("Message cannot be processed in RPC Flow because original message didn't have a ReplyTo.");
+            s_logErrorOnDispatchWithoutReplyTo(logger, null);
 
             return new RejectResult(false);
         }
@@ -47,13 +50,13 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
 
                 if (parameters.DispatchScope == DispatchScope.RootScope)
                 {
-                    responsePayload = await parameters.AdapterFunc(service, request);
+                    responsePayload = await parameters.AdapterFunc(service, request).ConfigureAwait(true);
                 }
                 else if (parameters.DispatchScope == DispatchScope.ChildScope)
                 {
                     using (var scope = parameters.ServiceProvider.CreateScope())
                     {
-                        responsePayload = await parameters.AdapterFunc(service, request);
+                        responsePayload = await parameters.AdapterFunc(service, request).ConfigureAwait(true);
                     }
                 }
             }
@@ -61,7 +64,7 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
             {
                 dispatchActivity?.SetStatus(ActivityStatusCode.Error, exception.ToString());
 
-                SendReply(dispatchActivity, receivedItem, null, exception);
+                await SendReplyAsync(dispatchActivity, receivedItem, null, exception).ConfigureAwait(true);
 
                 return new NackResult(parameters.RequeueOnCrash);
             }
@@ -69,12 +72,12 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
 
         using (var replyActivity = activitySource.StartActivity(parameters.AdapterExpressionText, ActivityKind.Internal, receiveActivity.Context))
         {
-            SendReply(replyActivity, receivedItem, responsePayload);
+            await this.SendReplyAsync(replyActivity, receivedItem, responsePayload).ConfigureAwait(true);
         }
         return new AckResult();
     }
 
-    private void SendReply(Activity activity, BasicDeliverEventArgs receivedItem, TResponse responsePayload = null, Exception exception = null)
+    private async Task SendReplyAsync(Activity activity, BasicDeliverEventArgs receivedItem, TResponse responsePayload = null, Exception exception = null)
     {
         _ = Guard.Argument(receivedItem).NotNull();
         _ = Guard.Argument(responsePayload).NotNull();
@@ -90,13 +93,13 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
         activity?.AddTag("MessageId", responseProperties.MessageId);
         activity?.AddTag("CorrelationId", responseProperties.CorrelationId);
 
-        Model.BasicPublish(string.Empty,
+        await Model.BasicPublishAsync(string.Empty,
             receivedItem.BasicProperties.ReplyTo,
             responseProperties,
             exception != null
                 ? Array.Empty<byte>()
-                : parameters.Serializer.Serialize(basicProperties: responseProperties, objectToSerialize: responsePayload)
-        );
+                : parameters.Serializer.Serialize(basicProperties: responseProperties, message: responsePayload)
+        ).ConfigureAwait(true);
 
         //replyActivity?.SetEndTime(DateTime.UtcNow);
     }

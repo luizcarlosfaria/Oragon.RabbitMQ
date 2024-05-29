@@ -19,7 +19,7 @@ public static partial class RabbitMQExtensions
         return basicProperties;
     }
 
-    public static BasicProperties SetCorrelationId(this BasicProperties basicProperties, BasicProperties originalBasicProperties)
+    public static BasicProperties SetCorrelationId(this BasicProperties basicProperties, IReadOnlyBasicProperties originalBasicProperties)
     {
         ArgumentNullException.ThrowIfNull(basicProperties);
         ArgumentNullException.ThrowIfNull(originalBasicProperties);
