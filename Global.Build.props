@@ -14,7 +14,7 @@
 
   <PropertyGroup>
     <AssetsDir>$(MSBuildThisFileDirectory)/src/Assets/</AssetsDir>
-    <IntegratedTestsSharedDir>$(MSBuildThisFileDirectory)/tests/Shared/</IntegratedTestsSharedDir>
+    <TestsSharedDir>$(MSBuildThisFileDirectory)/tests/Shared/</TestsSharedDir>
     <PackageIconFullPath>$(AssetsDir)Oragon-Architecture-Penknife.export.png</PackageIconFullPath>
     <WarnOnPackingNonPackableProject>false</WarnOnPackingNonPackableProject>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
