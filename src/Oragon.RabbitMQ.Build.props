@@ -4,9 +4,7 @@
 
   <!--Project Settings-->
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
     <Nullable>disable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
     <DebugType>embedded</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <LangVersion>preview</LangVersion>
@@ -15,6 +13,7 @@
   <!--Distribution Settings-->
   <PropertyGroup>
     <RootNamespace>Oragon.RabbitMQ</RootNamespace>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisLevel>latest-all</AnalysisLevel>
   </PropertyGroup>
 
@@ -46,4 +45,9 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4" PrivateAssets="all" />
+  </ItemGroup>
+  
 </Project>

@@ -3,19 +3,30 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client.Events;
 using System.Diagnostics;
-using Oragon.RabbitMQ;
 using Oragon.RabbitMQ.Consumer.Actions;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Oragon.RabbitMQ.Consumer;
 
 
+/// <summary>
+/// A consumer that processes messages in an RPC flow.
+/// </summary>
+/// <typeparam name="TService"></typeparam>
+/// <typeparam name="TRequest"></typeparam>
+/// <typeparam name="TResponse"></typeparam>
 public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsumer<TService, TRequest, Task<TResponse>>
     where TResponse : class
     where TRequest : class
 {
-    private AsyncQueueConsumerParameters<TService, TRequest, Task<TResponse>> parameters;
+    private readonly AsyncQueueConsumerParameters<TService, TRequest, Task<TResponse>> parameters;
 
+    /// <summary>
+    /// Creates a new instance of the <see cref="AsyncRpcConsumer{TService, TRequest, TResponse}"/> class.
+    /// </summary>
+    /// <param name="logger"></param>
+    /// <param name="parameters"></param>
+    /// <param name="serviceProvider"></param>
     public AsyncRpcConsumer(ILogger logger, AsyncQueueConsumerParameters<TService, TRequest, Task<TResponse>> parameters, IServiceProvider serviceProvider)
         : base(logger, parameters, serviceProvider)
     {
@@ -26,6 +37,13 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
     private static readonly Action<ILogger, Exception> s_logErrorOnDispatchWithoutReplyTo= LoggerMessage.Define(LogLevel.Error, new EventId(1, "Message cannot be processed in RPC Flow because original message didn't have a ReplyTo."), "Message cannot be processed in RPC Flow because original message didn't have a ReplyTo.");
 
 
+    /// <summary>
+    /// Dispatches the message to the service.
+    /// </summary>
+    /// <param name="receiveActivity"></param>
+    /// <param name="receivedItem"></param>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [SuppressMessage("Design", "CA1031", Justification = "Tratamento de exceçào global, isolando uma MACRO-operação")]
     protected override async Task<IAMQPResult> DispatchAsync(Activity receiveActivity, BasicDeliverEventArgs receivedItem, TRequest request)
     {
@@ -35,7 +53,7 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
 
         if (receivedItem.BasicProperties.ReplyTo == null)
         {
-            s_logErrorOnDispatchWithoutReplyTo(logger, null);
+            s_logErrorOnDispatchWithoutReplyTo(Logger, null);
 
             return new RejectResult(false);
         }
@@ -83,7 +101,7 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
         _ = Guard.Argument(responsePayload).NotNull();
 
 
-        var responseProperties = Model.CreateBasicProperties()
+        var responseProperties = Channel.CreateBasicProperties()
                                                         .SetMessageId()
                                                         .IfFunction(it => exception != null, it => it.SetException(exception))
                                                         .SetTelemetry(activity)
@@ -93,7 +111,7 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
         activity?.AddTag("MessageId", responseProperties.MessageId);
         activity?.AddTag("CorrelationId", responseProperties.CorrelationId);
 
-        await Model.BasicPublishAsync(string.Empty,
+        await Channel.BasicPublishAsync(string.Empty,
             receivedItem.BasicProperties.ReplyTo,
             responseProperties,
             exception != null

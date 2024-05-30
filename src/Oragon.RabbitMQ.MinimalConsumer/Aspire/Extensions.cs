@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Builder;
+/*using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
-using Oragon.RabbitMQ;
+
 
 namespace Oragon.RabbitMQ.Aspire;
 
@@ -129,3 +129,4 @@ public static class Extensions
             "Microsoft.AspNetCore.Server.Kestrel",
             "System.Net.Http");
 }
+*/

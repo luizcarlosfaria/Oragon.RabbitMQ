@@ -4,9 +4,18 @@ using System.Runtime.CompilerServices;
 
 namespace Oragon.RabbitMQ;
 
+/// <summary>
+/// Extensions for Telemetry
+/// </summary>
 public static partial class TelemetryExtensions
 {
-
+    /// <summary>
+    /// StartActivity with the given name and kind, or return a new Activity with the name prefixed with "?".
+    /// </summary>
+    /// <param name="activitySource"></param>
+    /// <param name="name"></param>
+    /// <param name="kind"></param>
+    /// <returns></returns>
     public static Activity SafeStartActivity(this ActivitySource activitySource, [CallerMemberName] string name = "", ActivityKind kind = ActivityKind.Internal)
     {
         ArgumentNullException.ThrowIfNull(activitySource);
@@ -15,6 +24,14 @@ public static partial class TelemetryExtensions
         return activity;
     }
 
+    /// <summary>
+    /// StartActivity with the given name and kind, or return a new Activity with the name prefixed with "?".
+    /// </summary>
+    /// <param name="activitySource"></param>
+    /// <param name="name"></param>
+    /// <param name="kind"></param>
+    /// <param name="parentContext"></param>
+    /// <returns></returns>
     public static Activity SafeStartActivity(this ActivitySource activitySource, string name, ActivityKind kind, ActivityContext parentContext)
     {
         ArgumentNullException.ThrowIfNull(activitySource);
@@ -23,6 +40,11 @@ public static partial class TelemetryExtensions
         return activity;
     }
 
+    /// <summary>
+    /// Get the TraceId from the BasicProperties
+    /// </summary>
+    /// <param name="basicProperties"></param>
+    /// <returns></returns>
     public static ActivityTraceId GetTraceId(this BasicProperties basicProperties)
     {
         ArgumentNullException.ThrowIfNull(basicProperties);
@@ -31,6 +53,11 @@ public static partial class TelemetryExtensions
             : default;
     }
 
+    /// <summary>
+    /// Get the SpanId from the BasicProperties
+    /// </summary>
+    /// <param name="basicProperties"></param>
+    /// <returns></returns>
     public static ActivitySpanId GetSpanId(this BasicProperties basicProperties)
     {
         ArgumentNullException.ThrowIfNull(basicProperties);
@@ -39,6 +66,11 @@ public static partial class TelemetryExtensions
         return default;
     }
 
+    /// <summary>
+    /// Validate if the BasicProperties has Headers, if not, create a new Dictionary
+    /// </summary>
+    /// <param name="basicProperties"></param>
+    /// <returns></returns>
     public static BasicProperties EnsureHeaders(this BasicProperties basicProperties)
     {
         ArgumentNullException.ThrowIfNull(basicProperties);
@@ -46,6 +78,12 @@ public static partial class TelemetryExtensions
         return basicProperties;
     }
 
+    /// <summary>
+    /// Set the TraceId and SpanId in the BasicProperties
+    /// </summary>
+    /// <param name="basicProperties"></param>
+    /// <param name="activity"></param>
+    /// <returns></returns>
     public static BasicProperties SetTelemetry(this BasicProperties basicProperties, Activity activity)
     {
         ArgumentNullException.ThrowIfNull(basicProperties);
@@ -58,6 +96,12 @@ public static partial class TelemetryExtensions
         return basicProperties;
     }
 
+    /// <summary>
+    /// Set the TraceId in the BasicProperties
+    /// </summary>
+    /// <param name="basicProperties"></param>
+    /// <param name="activityTraceId"></param>
+    /// <returns></returns>
     private static BasicProperties SetTraceId(this BasicProperties basicProperties, ActivityTraceId? activityTraceId)
     {
         ArgumentNullException.ThrowIfNull(basicProperties);
@@ -69,7 +113,12 @@ public static partial class TelemetryExtensions
     }
 
 
-
+    /// <summary>
+    /// set the SpanId in the BasicProperties
+    /// </summary>
+    /// <param name="basicProperties"></param>
+    /// <param name="activitySpanId"></param>
+    /// <returns></returns>
     private static BasicProperties SetSpanId(this BasicProperties basicProperties, ActivitySpanId? activitySpanId)
     {
         ArgumentNullException.ThrowIfNull(basicProperties);

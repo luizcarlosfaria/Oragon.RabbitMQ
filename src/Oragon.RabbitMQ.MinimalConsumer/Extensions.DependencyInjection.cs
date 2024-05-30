@@ -3,12 +3,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
-using System.Diagnostics;
 using Oragon.RabbitMQ.Serialization;
 using Oragon.RabbitMQ.Consumer;
 
 namespace Oragon.RabbitMQ;
 
+/// <summary>
+/// Extensions for Dependency Injection
+/// </summary>
 public static class DependencyInjectionExtensions
 {
 
@@ -16,11 +18,10 @@ public static class DependencyInjectionExtensions
     /// Create a new QueueServiceWorker to bind a queue with an function
     /// </summary>
     /// <typeparam name="TService">Service Type will be used to determine which service will be used to connect on queue</typeparam>
-    /// <typeparam name="TRequest">Type of message sent by publisher to consumer. Must be exactly same Type that functionToExecute parameter requests.</typeparam>
-    /// <typeparam name="TResponse">Type of returned message sent by consumer to publisher. Must be exactly same Type that functionToExecute returns.</typeparam>
-    /// <param name="services">Dependency Injection Service Collection</param>
-    /// <param name="queueName">Name of queue</param>
-    /// <param name="functionToExecute">Function to execute when any message are consumed from queue</param>
+    /// <typeparam name="TRequest">Type of message sent by publisher to Consumer. Must be exactly same Type that functionToExecute parameter requests.</typeparam>
+    /// <typeparam name="TResponse">Type of returned message sent by Consumer to publisher. Must be exactly same Type that functionToExecute returns.</typeparam>
+    /// <param name="services">Services </param>
+    /// <param name="config">Configuration handler</param>
     public static void MapQueueRPC<TService, TRequest, TResponse>(this IServiceCollection services, Action<AsyncQueueConsumerParameters<TService, TRequest, Task<TResponse>>> config)
         where TResponse : class
         where TRequest : class
@@ -53,11 +54,9 @@ public static class DependencyInjectionExtensions
     /// Create a new QueueServiceWorker to bind a queue with an function
     /// </summary>
     /// <typeparam name="TService">Service Type will be used to determine which service will be used to connect on queue</typeparam>
-    /// <typeparam name="TRequest">Type of message sent by publisher to consumer. Must be exactly same Type that functionToExecute parameter requests.</typeparam>
-    /// <typeparam name="TResponse">Type of returned message sent by consumer to publisher. Must be exactly same Type that functionToExecute returns.</typeparam>
+    /// <typeparam name="TRequest">Type of message sent by publisher to Consumer. Must be exactly same Type that functionToExecute parameter requests.</typeparam>    
     /// <param name="services">Dependency Injection Service Collection</param>
-    /// <param name="queueName">Name of queue</param>
-    /// <param name="functionToExecute">Function to execute when any message are consumed from queue</param>
+    /// <param name="config">Configuration handler</param>
     public static void MapQueue<TService, TRequest>(this IServiceCollection services, Action<AsyncQueueConsumerParameters<TService, TRequest, Task>> config)
         where TRequest : class
     {

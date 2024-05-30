@@ -16,7 +16,7 @@ namespace Oragon.RabbitMQ.Consumer;
 
 
 /// <summary>
-/// Represents an asynchronous queue consumer.
+/// Represents an asynchronous queue Consumer.
 /// </summary>
 /// <typeparam name="TService">The type of the service.</typeparam>
 /// <typeparam name="TRequest">The type of the request.</typeparam>
@@ -26,7 +26,7 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
     where TRequest : class
 {
     /// <summary>
-    /// The parameters for the consumer.
+    /// The parameters for the Consumer.
     /// </summary>
     private readonly AsyncQueueConsumerParameters<TService, TRequest, TResponse> parameters;
 
@@ -45,7 +45,7 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
     /// <summary>
     /// Initializes a new instance of the <see cref="AsyncQueueConsumer{TService, TRequest, TResponse}"/> class.
     /// </summary>
-    /// <param name="logger">The logger.</param>
+    /// <param name="logger">The Logger.</param>
     /// <param name="parameters">The parameters.</param>
     /// <param name="serviceProvider">The service provider.</param>
     public AsyncQueueConsumer(ILogger logger, AsyncQueueConsumerParameters<TService, TRequest, TResponse> parameters, IServiceProvider serviceProvider)
@@ -61,9 +61,9 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
     /// <inheritdoc/>
     protected override IBasicConsumer BuildConsumer()
     {
-        _ = Guard.Argument(Model).NotNull();
+        _ = Guard.Argument(Channel).NotNull();
 
-        var consumer = new AsyncEventingBasicConsumer(Model);
+        var consumer = new AsyncEventingBasicConsumer(Channel);
 
         consumer.Received += ReceiveAsync;
 
@@ -99,7 +99,7 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
                             ? await DispatchAsync(receiveActivity, delivery, request).ConfigureAwait(true)
                             : (IAMQPResult)new RejectResult(false);
 
-        await result.ExecuteAsync(Model, delivery).ConfigureAwait(true);
+        await result.ExecuteAsync(Channel, delivery).ConfigureAwait(true);
 
         //receiveActivity?.SetEndTime(DateTime.UtcNow);
     }
@@ -125,7 +125,7 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
         }
         catch (Exception ex)
         {
-            s_logErrorOnExtractTraceContext(logger, ex);
+            s_logErrorOnExtractTraceContext(Logger, ex);
         }
 
         return Enumerable.Empty<string>();
@@ -160,7 +160,7 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
 
             receiveActivity.SetStatus(ActivityStatusCode.Error, exception.ToString());
 
-            s_logErrorOnDesserialize(logger, exception, exception);
+            s_logErrorOnDesserialize(Logger, exception, exception);
         }
 
         return returnValue;
@@ -209,7 +209,7 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
         }
         catch (Exception exception)
         {
-            s_logErrorOnDispatch(logger, parameters.QueueName, exception, exception);
+            s_logErrorOnDispatch(Logger, parameters.QueueName, exception, exception);
 
             returnValue = new NackResult(parameters.RequeueOnCrash);
 

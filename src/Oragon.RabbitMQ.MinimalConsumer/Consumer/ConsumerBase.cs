@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Dawn;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -7,61 +8,97 @@ using RabbitMQ.Client.Exceptions;
 
 namespace Oragon.RabbitMQ.Consumer;
 
+/// <summary>
+/// Base class for consumers.
+/// </summary>
+[SuppressMessage("Performance", "CA1848", Justification = "Use the LoggerMessage delegates")]
+[SuppressMessage("Performance", "CA2254", Justification = "Template should be a static expression")]
 public abstract class ConsumerBase : BackgroundService
 {
+    /// <summary>
+    /// The logger.
+    /// </summary>
+    protected ILogger Logger { get; private set; }
 
-    protected readonly ILogger logger;
     private readonly IServiceProvider serviceProvider;
-    protected IConnection connection;
-    protected IBasicConsumer consumer;
+
+    /// <summary>
+    /// The connection to RabbitMQ.
+    /// </summary>
+    protected IConnection Connection { get; private set; }
+
+    /// <summary>
+    /// The consumer instance.
+    /// </summary>
+    protected IBasicConsumer Consumer { get; private set; }
+
     private string consumerTag;
-    private ConsumerBaseParameters parameters;
 
-    protected IChannel Model { get; private set; }
+    private readonly ConsumerBaseParameters parameters;
 
+    /// <summary>
+    /// The channel for communication with RabbitMQ.
+    /// </summary>
+    protected IChannel Channel { get; private set; }
 
-    #region Constructors 
+    #region Constructors
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ConsumerBase"/> class.
+    /// </summary>
+    /// <param name="logger">The logger.</param>
+    /// <param name="parameters">The consumer base parameters.</param>
+    /// <param name="serviceProvider">The service provider.</param>
     protected ConsumerBase(ILogger logger, ConsumerBaseParameters parameters, IServiceProvider serviceProvider)
     {
-        this.logger = Guard.Argument(logger).NotNull().Value;
+        this.Logger = Guard.Argument(logger).NotNull().Value;
         this.parameters = Guard.Argument(parameters).NotNull().Value;
         this.parameters.Validate();
         this.serviceProvider = serviceProvider;
+        this.consumerTag = $"{this.parameters.QueueName}-{Guid.NewGuid().ToString("D").Split("-").Last()}";
     }
-
 
     #endregion
 
+    /// <summary>
+    /// Executes the consumer asynchronously.
+    /// </summary>
+    /// <param name="stoppingToken">The stopping token.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        connection = parameters.ConnectionFactoryFunc(serviceProvider);
+        Connection = parameters.ConnectionFactoryFunc(serviceProvider);
 
         if (parameters.Configurer != null)
         {
-            using var tmpModel = connection.CreateModel();
+            using var tmpModel = await this.Connection.CreateChannelAsync(stoppingToken).ConfigureAwait(true);
             parameters.Configurer(serviceProvider, tmpModel);
         }
 
-        await WaitQueueCreationAsync();
+        await this.WaitQueueCreationAsync().ConfigureAwait(true);
 
-        Model = connection.CreateModel();
+        this.Channel = await this.Connection.CreateChannelAsync(stoppingToken).ConfigureAwait(true);
 
-        Model.BasicQos(0, parameters.PrefetchCount, false);
+        await this.Channel.BasicQosAsync(0, parameters.PrefetchCount, false, stoppingToken).ConfigureAwait(true);
 
-        consumer = BuildConsumer();
+        this.Consumer = BuildConsumer();
 
         var startTime = DateTimeOffset.UtcNow;
 
-        logger.LogInformation($"Consuming Queue {parameters.QueueName} since: {startTime}");
+        Logger.LogInformation($"Consuming Queue {parameters.QueueName} since: {startTime}");
 
-        consumerTag = Model.BasicConsume(
-                         queue: parameters.QueueName,
-                         autoAck: false,
-                         consumer: consumer);
+        this.consumerTag = await this.Channel.BasicConsumeAsync(
+            queue: parameters.QueueName,
+            autoAck: false,
+            consumer: this.Consumer,
+            consumerTag: this.consumerTag,
+            arguments: null,
+            exclusive: false,
+            noLocal: true,
+            cancellationToken: stoppingToken)
+            .ConfigureAwait(true);
 
         var timeToDisplay = (int)parameters.DisplayLoopInConsoleEvery.TotalSeconds;
-
 
         long loopCount = 0;
         while (!stoppingToken.IsCancellationRequested)
@@ -70,45 +107,68 @@ public abstract class ConsumerBase : BackgroundService
             var logMessage = $"Consuming Queue {parameters.QueueName} since: {startTime} uptime: {DateTimeOffset.Now - startTime}";
 
             if (loopCount % timeToDisplay == 0)
-                logger.LogInformation(logMessage);
+                Logger.LogInformation(logMessage);
             else
-                logger.LogTrace(logMessage);
+                Logger.LogTrace(logMessage);
 
-            await Task.Delay(1000, stoppingToken);
+            await Task.Delay(1000, stoppingToken).ConfigureAwait(true);
         }
     }
 
+    /// <summary>
+    /// Waits for the queue creation asynchronously.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     protected virtual async Task WaitQueueCreationAsync()
     {
         await Policy
-        .Handle<OperationInterruptedException>()
+            .Handle<OperationInterruptedException>()
             .WaitAndRetryAsync(parameters.TestQueueRetryCount, retryAttempt =>
             {
                 var timeToWait = TimeSpan.FromSeconds(Math.Pow(2, retryAttempt));
-                logger.LogWarning("Queue {queueName} not found... We will try in {tempo}.", parameters.QueueName, timeToWait);
+                Logger.LogWarning("Queue {QueueName} not found... We will try in {Tempo}.", parameters.QueueName, timeToWait);
                 return timeToWait;
             })
-            .ExecuteAsync(() =>
+            .ExecuteAsync(async () =>
             {
-                using IChannel testModel = connection.CreateModel();
-                testModel.QueueDeclarePassive(parameters.QueueName);
+                using IChannel testModel = await Connection.CreateChannelAsync().ConfigureAwait(true);
+                await testModel.QueueDeclarePassiveAsync(parameters.QueueName).ConfigureAwait(true);
                 return Task.CompletedTask;
-            });
+            }).ConfigureAwait(true);
     }
 
+    /// <summary>
+    /// Builds the consumer.
+    /// </summary>
+    /// <returns>The built <see cref="IBasicConsumer"/>.</returns>
     protected abstract IBasicConsumer BuildConsumer();
 
+
+    /// <summary>
+    /// Disposes the consumer.
+    /// </summary>
     public override void Dispose()
     {
-        if (Model != null && !string.IsNullOrWhiteSpace(consumerTag))
-            Model.BasicCancelNoWait(consumerTag);
-        if (Model != null)
-        {
-            Model.Dispose();
-            Model = null;
-        }
+        GC.SuppressFinalize(this);
+
+        this.DisposeAsync()
+            .GetAwaiter()
+            .GetResult();
 
         base.Dispose();
     }
 
+    
+    private async Task DisposeAsync()
+    {
+        if (this.Channel != null && !string.IsNullOrWhiteSpace(consumerTag))
+        {
+            await this.Channel.BasicCancelAsync(consumerTag, true).ConfigureAwait(false);
+        }
+        if (this.Channel != null)
+        {
+            this.Channel.Dispose();
+            this.Channel = null;
+        }
+    }
 }

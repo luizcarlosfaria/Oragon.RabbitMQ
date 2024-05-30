@@ -9,6 +9,11 @@ namespace Oragon.RabbitMQ.Consumer.Actions;
 /// </summary>
 public class AckResult : IAMQPResult
 {
+    /// <summary>
+    /// Create a instance of AckResult
+    /// </summary>
+    public AckResult() { }
+
 
     /// <summary>
     /// Perform ack on channel
