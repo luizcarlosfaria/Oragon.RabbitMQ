@@ -1,26 +1,22 @@
-# ASPIRE / RabbitMQ Minimal API's 
-## Demos
+# Oragon.RabbitMQ 
 
-Demonstração do uso do ASPIRE em ambiente de desenvolvimento.
+An opinionated and simplest minimal APIs for consuming messages from RabbitMQ, without hidden important configurations.
 
+## What is Oragon.RabbitMQ?
+Oragon.RabbitMQ delivery anything that you need to create resilient RabbitMQ Consumers without need to understand or read many books and posts, or add unknown risks to your environment.
 
-# RabbitMQ Minimal API's
-
-Uma vez que temos uma classe de negócio assim:
+### If you have a service like this
 ```cs
 public class BusinessService
 {
     public async Task DoSomethingAsync(BusinessCommandOrEvent commandOrEvent)
     {
-        Console.WriteLine($"Consumer Recebeu | {commandOrEvent.ItemId}");
-
-        await Task.Delay(5000);
+        ... business core ...
     }
 }
 ```
 
-podemos conectar um método à uma fila assim:
-
+### You will create a RabbitMQ Consumers with this
 ```cs
 builder.Services.AddSingleton<BusinessService>();
 
@@ -35,16 +31,20 @@ builder.Services.MapQueue<BusinessService, BusinessCommandOrEvent>(config => con
 
 ```
 
-Essa é uma abordagem projetada para desacoplar o consumidor do RabbitMQ do código de negócio, forçando com que o código de negócio não saiba que está em um contexto de consumo de filas.
+# Concepts
+This is an approach designed to decouple the RabbitMQ consumer from the business code, forcing the business code to not know that it is in a queue consumption context.
 
-Essa abordagem intensionalmente remove a capacidade de utilização de notification pattern para a rejeição de mensagens, fazendo com que necessariamente seja lançada uma exceção, de tal forma que permita ao administrador da infraestrutura de observabilidade, ser notificado claramente quando os processos falham, permitindo assim a criação de issues para correção no código, ao invés de omitir e suprimir erros.
+The result is absurdly simple, decoupled, agnostic, more reusable and highly testable code.
 
-O resultado é um código absurdamente simples, desacoplado, agnóstico, mais reaproveitável e altamente testável.
 
 # RabbitMQ Tracing com OpenTelemetry
 
-Suporte completo para OpenTelemetry na **publicação** e no **consumo** de mensagens do RabbitMQ.
+Full support for OpenTelemetry on **publishing** or **consuming** RabbitMQ messages.
+
 
 <img src="./docs/playground.gif">
 
+# Others
+
+Refactored to use RabbitMQ.Client 7x (with IChannel instead IModel)
 

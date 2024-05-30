@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="./../../../Oragon.RabbitMQ.Build.props" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsAspireHost>true</IsAspireHost>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotNetAspire.Architecture\DotNetAspire.Architecture.csproj" />
+    <ProjectReference Include="..\DotNetAspire.BackendHost\DotNetAspire.BackendHost.csproj" />
+    <ProjectReference Include="..\DotNetAspire.AppInit\DotNetAspire.AppInit.csproj" />
+    <ProjectReference Include="..\DotNetAspire.FrontEndHost\DotNetAspire.FrontEndHost.csproj" />
+  </ItemGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+        <NoWarn>1701;1702;IDE0058</NoWarn>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+        <NoWarn>1701;1702;IDE0058</NoWarn>
+    </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting" Version="8.0.0-preview.1.23557.2" />
+  </ItemGroup>
+
+</Project>

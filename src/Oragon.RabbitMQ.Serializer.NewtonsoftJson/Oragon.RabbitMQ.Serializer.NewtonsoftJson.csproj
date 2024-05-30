@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<Import Project="./../Oragon.RabbitMQ.Build.props" />
+
+	<ItemGroup>
+		<ProjectReference Include="..\Oragon.RabbitMQ.Abstractions\Oragon.RabbitMQ.Abstractions.csproj" />
+		<ProjectReference Include="..\Oragon.RabbitMQ\Oragon.RabbitMQ.csproj" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	</ItemGroup>
+</Project>

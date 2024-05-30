@@ -1,0 +1,46 @@
+<Project>
+
+  
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PackageVersion>0.0.1-alpha</PackageVersion>
+  </PropertyGroup>
+
+
+  <PropertyGroup>
+    <AssetsDir>$(MSBuildThisFileDirectory)/src/Assets/</AssetsDir>
+    <TestsSharedDir>$(MSBuildThisFileDirectory)/tests/Shared/</TestsSharedDir>
+    <PackageIconFullPath>$(AssetsDir)Oragon.RabbitMQ.png</PackageIconFullPath>
+    <WarnOnPackingNonPackableProject>false</WarnOnPackingNonPackableProject>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
+    <StrongNameKeyId>Open</StrongNameKeyId>
+    <!-- Redirect test logs into a subfolder -->
+    <TestResultsLogDir>$([MSBuild]::NormalizeDirectory('$(ArtifactsLogDir)', 'TestLogs'))</TestResultsLogDir>
+    <!-- We don't want to use the workload for AppHost projects in this repo --><!--
+    <SkipAspireWorkloadManifest>true</SkipAspireWorkloadManifest>
+    <DashboardPublishedArtifactsOutputDir>$([MSBuild]::NormalizeDirectory('$(ArtifactsDir)', 'DashboardArtifacts', '$(Configuration)'))</DashboardPublishedArtifactsOutputDir>
+    <WorkloadsPackageSource>$(ArtifactsShippingPackagesDir)</WorkloadsPackageSource>-->
+  </PropertyGroup>
+
+  <!-- OS/Architecture properties for local development resources -->
+  <PropertyGroup>
+    <BuildOs Condition="$([MSBuild]::IsOsPlatform('Linux'))">linux</BuildOs>
+    <BuildOs Condition=" '$(BuildOs)' == '' ">windows</BuildOs>
+    <BuildArch Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'X86' ">386</BuildArch>
+    <BuildArch Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'Arm64' ">arm64</BuildArch>
+    <BuildArch Condition=" '$(BuildArch)' == '' ">amd64</BuildArch>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AddPublicApiAnalyzers>true</AddPublicApiAnalyzers>
+  </PropertyGroup>
+
+</Project>
