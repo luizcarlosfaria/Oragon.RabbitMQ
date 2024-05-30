@@ -80,7 +80,7 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
             }
             catch (Exception exception)
             {
-                dispatchActivity?.SetStatus(ActivityStatusCode.Error, exception.ToString());
+                _ = (dispatchActivity?.SetStatus(ActivityStatusCode.Error, exception.ToString()));
 
                 await SendReplyAsync(dispatchActivity, receivedItem, null, exception).ConfigureAwait(true);
 
@@ -107,9 +107,9 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
                                                         .SetTelemetry(activity)
                                                         .SetCorrelationId(receivedItem.BasicProperties);
 
-        activity?.AddTag("Queue", receivedItem.BasicProperties.ReplyTo);
-        activity?.AddTag("MessageId", responseProperties.MessageId);
-        activity?.AddTag("CorrelationId", responseProperties.CorrelationId);
+        _ = (activity?.AddTag("Queue", receivedItem.BasicProperties.ReplyTo));
+        _ = (activity?.AddTag("MessageId", responseProperties.MessageId));
+        _ = (activity?.AddTag("CorrelationId", responseProperties.CorrelationId));
 
         await Channel.BasicPublishAsync(string.Empty,
             receivedItem.BasicProperties.ReplyTo,

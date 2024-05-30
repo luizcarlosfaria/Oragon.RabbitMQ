@@ -20,7 +20,7 @@ public static partial class TelemetryExtensions
     {
         ArgumentNullException.ThrowIfNull(activitySource);
         var activity = activitySource.StartActivity(name, kind) ?? new Activity("?" + name);
-        activity.SetStartTime(DateTime.UtcNow);
+        _ = activity.SetStartTime(DateTime.UtcNow);
         return activity;
     }
 
@@ -36,7 +36,7 @@ public static partial class TelemetryExtensions
     {
         ArgumentNullException.ThrowIfNull(activitySource);
         var activity = activitySource.StartActivity(name, kind, parentContext) ?? new Activity("?" + name);
-        activity.SetStartTime(DateTime.UtcNow);
+        _ = activity.SetStartTime(DateTime.UtcNow);
         return activity;
     }
 
@@ -89,7 +89,7 @@ public static partial class TelemetryExtensions
         ArgumentNullException.ThrowIfNull(basicProperties);
         if (activity != null)
         {
-            basicProperties
+            _ = basicProperties
                 .SetSpanId(activity.SpanId)
                 .SetTraceId(activity.TraceId);
         }

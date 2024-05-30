@@ -121,7 +121,7 @@ public abstract class ConsumerBase : BackgroundService
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     protected virtual async Task WaitQueueCreationAsync()
     {
-        await Policy
+        _ = await Policy
             .Handle<OperationInterruptedException>()
             .WaitAndRetryAsync(parameters.TestQueueRetryCount, retryAttempt =>
             {
@@ -132,7 +132,7 @@ public abstract class ConsumerBase : BackgroundService
             .ExecuteAsync(async () =>
             {
                 using IChannel testModel = await Connection.CreateChannelAsync().ConfigureAwait(true);
-                await testModel.QueueDeclarePassiveAsync(parameters.QueueName).ConfigureAwait(true);
+                _ = await testModel.QueueDeclarePassiveAsync(parameters.QueueName).ConfigureAwait(true);
                 return Task.CompletedTask;
             }).ConfigureAwait(true);
     }

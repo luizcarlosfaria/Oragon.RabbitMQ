@@ -42,7 +42,7 @@ public static class MessagingTelemetryNames
 
         foreach (var name in names)
         {
-            tracerProviderBuilder.AddSource(name);
+            _ = tracerProviderBuilder.AddSource(name);
         }
         return tracerProviderBuilder;
     }

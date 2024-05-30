@@ -42,7 +42,7 @@ public static partial class RabbitMQExtensions
     /// <returns></returns>
     public static BasicProperties SetCorrelationId(this BasicProperties basicProperties, IReadOnlyBasicProperties originalBasicProperties)
     {
-        Guard.Argument(originalBasicProperties).NotNull().NotSame(basicProperties);
+        _ = Guard.Argument(originalBasicProperties).NotNull().NotSame(basicProperties);
         return basicProperties.SetCorrelationId(originalBasicProperties.MessageId);
     }
     

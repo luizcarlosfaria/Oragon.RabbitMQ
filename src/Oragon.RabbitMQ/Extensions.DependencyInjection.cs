@@ -30,15 +30,15 @@ public static class DependencyInjectionExtensions
         _ = Guard.Argument(config).NotNull();
 
 
-        services.AddSingleton<IHostedService>(sp =>
+        _ = services.AddSingleton<IHostedService>(sp =>
             {
                 var parameters = new AsyncQueueConsumerParameters<TService, TRequest, Task<TResponse>>();
-                parameters.WithServiceProvider(sp);
-                parameters.WithDisplayLoopInConsoleEvery(TimeSpan.FromMinutes(1));
-                parameters.WithTestQueueRetryCount(5);
-                parameters.WithConnectionFactoryFunc((sp) => sp.GetRequiredService<IConnection>());
-                parameters.WithDispatchInRootScope();
-                parameters.WithSerializer(sp.GetRequiredService<IAMQPSerializer>());
+                _ = parameters.WithServiceProvider(sp);
+                _ = parameters.WithDisplayLoopInConsoleEvery(TimeSpan.FromMinutes(1));
+                _ = parameters.WithTestQueueRetryCount(5);
+                _ = parameters.WithConnectionFactoryFunc((sp) => sp.GetRequiredService<IConnection>());
+                _ = parameters.WithDispatchInRootScope();
+                _ = parameters.WithSerializer(sp.GetRequiredService<IAMQPSerializer>());
 
                 config(parameters);
 
@@ -64,16 +64,16 @@ public static class DependencyInjectionExtensions
         _ = Guard.Argument(config).NotNull();
 
 
-        services.AddSingleton<IHostedService>(sp =>
+        _ = services.AddSingleton<IHostedService>(sp =>
         {
 
             var parameters = new AsyncQueueConsumerParameters<TService, TRequest, Task>();
-            parameters.WithServiceProvider(sp);
-            parameters.WithDisplayLoopInConsoleEvery(TimeSpan.FromMinutes(1));
-            parameters.WithTestQueueRetryCount(5);
-            parameters.WithConnectionFactoryFunc((sp) => sp.GetRequiredService<IConnection>());
-            parameters.WithDispatchInRootScope();
-            parameters.WithSerializer(sp.GetRequiredService<IAMQPSerializer>());
+            _ = parameters.WithServiceProvider(sp);
+            _ = parameters.WithDisplayLoopInConsoleEvery(TimeSpan.FromMinutes(1));
+            _ = parameters.WithTestQueueRetryCount(5);
+            _ = parameters.WithConnectionFactoryFunc((sp) => sp.GetRequiredService<IConnection>());
+            _ = parameters.WithDispatchInRootScope();
+            _ = parameters.WithSerializer(sp.GetRequiredService<IAMQPSerializer>());
 
             config(parameters);
 

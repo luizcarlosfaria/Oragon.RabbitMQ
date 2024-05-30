@@ -86,14 +86,14 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
 
         using var receiveActivity = activitySource.StartActivity("AsyncQueueConsumer.ReceiveAsync", ActivityKind.Consumer, parentContext.ActivityContext) ?? new Activity("?AsyncQueueConsumer.ReceiveAsync");
 
-        receiveActivity.AddTag("Queue", parameters.QueueName);
-        receiveActivity.AddTag("MessageId", delivery.BasicProperties.MessageId);
-        receiveActivity.AddTag("CorrelationId", delivery.BasicProperties.CorrelationId);
+        _ = receiveActivity.AddTag("Queue", parameters.QueueName);
+        _ = receiveActivity.AddTag("MessageId", delivery.BasicProperties.MessageId);
+        _ = receiveActivity.AddTag("CorrelationId", delivery.BasicProperties.CorrelationId);
 
-        receiveActivity.SetTag("messaging.system", "rabbitmq");
-        receiveActivity.SetTag("messaging.destination_kind", "queue");
-        receiveActivity.SetTag("messaging.destination", delivery.Exchange);
-        receiveActivity.SetTag("messaging.rabbitmq.routing_key", delivery.RoutingKey);
+        _ = receiveActivity.SetTag("messaging.system", "rabbitmq");
+        _ = receiveActivity.SetTag("messaging.destination_kind", "queue");
+        _ = receiveActivity.SetTag("messaging.destination", delivery.Exchange);
+        _ = receiveActivity.SetTag("messaging.rabbitmq.routing_key", delivery.RoutingKey);
 
         IAMQPResult result = TryDeserialize(receiveActivity, delivery, out var request)
                             ? await DispatchAsync(receiveActivity, delivery, request).ConfigureAwait(true)
@@ -158,7 +158,7 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
         {
             returnValue = false;
 
-            receiveActivity.SetStatus(ActivityStatusCode.Error, exception.ToString());
+            _ = receiveActivity.SetStatus(ActivityStatusCode.Error, exception.ToString());
 
             s_logErrorOnDesserialize(Logger, exception, exception);
         }
@@ -213,7 +213,7 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
 
             returnValue = new NackResult(parameters.RequeueOnCrash);
 
-            dispatchActivity?.SetStatus(ActivityStatusCode.Error, exception.ToString());
+            _ = (dispatchActivity?.SetStatus(ActivityStatusCode.Error, exception.ToString()));
         }
         //}
 
