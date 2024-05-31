@@ -5,6 +5,7 @@ using RabbitMQ.Client.Events;
 using System.Diagnostics;
 using Oragon.RabbitMQ.Consumer.Actions;
 using System.Diagnostics.CodeAnalysis;
+using RabbitMQ.Client;
 
 namespace Oragon.RabbitMQ.Consumer;
 
@@ -53,28 +54,30 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
 
         if (receivedItem.BasicProperties.ReplyTo == null)
         {
-            s_logErrorOnDispatchWithoutReplyTo(Logger, null);
+            s_logErrorOnDispatchWithoutReplyTo(this.Logger, null);
 
             return new RejectResult(false);
         }
 
         TResponse responsePayload = default;
 
-        using (var dispatchActivity = activitySource.StartActivity(parameters.AdapterExpressionText, ActivityKind.Internal, receiveActivity.Context))
+        using (var dispatchActivity = activitySource.StartActivity(this.parameters.AdapterExpressionText, ActivityKind.Internal, receiveActivity.Context))
         {
             try
             {
-                var service = parameters.ServiceProvider.GetRequiredService<TService>();
+                if (this.parameters.DispatchScope == DispatchScope.RootScope)
+                {
+                    var service = this.parameters.ServiceProvider.GetRequiredService<TService>();
 
-                if (parameters.DispatchScope == DispatchScope.RootScope)
-                {
-                    responsePayload = await parameters.AdapterFunc(service, request).ConfigureAwait(true);
+                    responsePayload = await this.parameters.AdapterFunc(service, request).ConfigureAwait(true);
                 }
-                else if (parameters.DispatchScope == DispatchScope.ChildScope)
+                else if (this.parameters.DispatchScope == DispatchScope.ChildScope)
                 {
-                    using (var scope = parameters.ServiceProvider.CreateScope())
+                    using (var scope = this.parameters.ServiceProvider.CreateScope())
                     {
-                        responsePayload = await parameters.AdapterFunc(service, request).ConfigureAwait(true);
+                        var service = scope.ServiceProvider.GetRequiredService<TService>();
+
+                        responsePayload = await this.parameters.AdapterFunc(service, request).ConfigureAwait(true);
                     }
                 }
             }
@@ -82,13 +85,13 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
             {
                 _ = (dispatchActivity?.SetStatus(ActivityStatusCode.Error, exception.ToString()));
 
-                await SendReplyAsync(dispatchActivity, receivedItem, null, exception).ConfigureAwait(true);
+                await this.SendReplyAsync(dispatchActivity, receivedItem, null, exception).ConfigureAwait(true);
 
-                return new NackResult(parameters.RequeueOnCrash);
+                return new NackResult(this.parameters.RequeueOnCrash);
             }
         }
 
-        using (var replyActivity = activitySource.StartActivity(parameters.AdapterExpressionText, ActivityKind.Internal, receiveActivity.Context))
+        using (var replyActivity = activitySource.StartActivity(this.parameters.AdapterExpressionText, ActivityKind.Internal, receiveActivity.Context))
         {
             await this.SendReplyAsync(replyActivity, receivedItem, responsePayload).ConfigureAwait(true);
         }
@@ -98,12 +101,13 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
     private async Task SendReplyAsync(Activity activity, BasicDeliverEventArgs receivedItem, TResponse responsePayload = null, Exception exception = null)
     {
         _ = Guard.Argument(receivedItem).NotNull();
+        _ = Guard.Argument((IReadOnlyBasicProperties)receivedItem.BasicProperties).NotNull();
         _ = Guard.Argument(responsePayload).NotNull();
 
 
-        var responseProperties = Channel.CreateBasicProperties()
+        var responseProperties = this.Channel.CreateBasicProperties()
                                                         .SetMessageId()
-                                                        .IfFunction(it => exception != null, it => it.SetException(exception))
+                                                        .IfFunction(_ => exception != null, it => it.SetException(exception))
                                                         .SetTelemetry(activity)
                                                         .SetCorrelationId(receivedItem.BasicProperties);
 
@@ -111,15 +115,16 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
         _ = (activity?.AddTag("MessageId", responseProperties.MessageId));
         _ = (activity?.AddTag("CorrelationId", responseProperties.CorrelationId));
 
-        await Channel.BasicPublishAsync(string.Empty,
+        await this.Channel.BasicPublishAsync(string.Empty,
             receivedItem.BasicProperties.ReplyTo,
             responseProperties,
             exception != null
                 ? Array.Empty<byte>()
-                : parameters.Serializer.Serialize(basicProperties: responseProperties, message: responsePayload)
+                : this.parameters.Serializer.Serialize(basicProperties: responseProperties, message: responsePayload)
         ).ConfigureAwait(true);
 
         //replyActivity?.SetEndTime(DateTime.UtcNow);
     }
 
 }
+

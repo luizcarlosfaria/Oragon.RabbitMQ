@@ -22,10 +22,10 @@ spelling_exclusion_path = spelling.dic
 
 [*.cs]
 # gago - rules - begin
-dotnet_style_qualification_for_field = true:Error
-dotnet_style_qualification_for_property = true:Error
-dotnet_style_qualification_for_method = true:Error
-dotnet_style_qualification_for_event = true:Error
+dotnet_style_qualification_for_field = true:warning
+dotnet_style_qualification_for_property = true:warning
+dotnet_style_qualification_for_method = true:warning
+dotnet_style_qualification_for_event = true:warning
 
 dotnet_code_quality.null_check_validation_methods = Dawn.Guard.Argument(ParamType).NotNull() | Argument | NotNull
 

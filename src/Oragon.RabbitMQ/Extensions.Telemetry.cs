@@ -7,7 +7,7 @@ namespace Oragon.RabbitMQ;
 /// <summary>
 /// Extensions for Telemetry
 /// </summary>
-public static partial class TelemetryExtensions
+public static class TelemetryExtensions
 {
     /// <summary>
     /// StartActivity with the given name and kind, or return a new Activity with the name prefixed with "?".
@@ -107,7 +107,7 @@ public static partial class TelemetryExtensions
         ArgumentNullException.ThrowIfNull(basicProperties);
         if (activityTraceId != null)
         {
-            basicProperties.EnsureHeaders().Headers["TraceId"] = activityTraceId.ToString();
+            basicProperties.EnsureHeaders().Headers!["TraceId"] = activityTraceId.ToString();
         }
         return basicProperties;
     }
@@ -124,7 +124,7 @@ public static partial class TelemetryExtensions
         ArgumentNullException.ThrowIfNull(basicProperties);
         if (activitySpanId != null)
         {
-            basicProperties.EnsureHeaders().Headers["SpanId"] = activitySpanId.ToString();
+            basicProperties.EnsureHeaders().Headers!["SpanId"] = activitySpanId.ToString();
         }
         return basicProperties;
     }

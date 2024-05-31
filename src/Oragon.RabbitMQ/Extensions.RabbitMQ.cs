@@ -7,7 +7,7 @@ namespace Oragon.RabbitMQ;
 /// <summary>
 /// Extensiosn for RabbitMQ
 /// </summary>
-public static partial class RabbitMQExtensions
+public static class RabbitMQExtensions
 {
 
     /// <summary>
@@ -45,7 +45,7 @@ public static partial class RabbitMQExtensions
         _ = Guard.Argument(originalBasicProperties).NotNull().NotSame(basicProperties);
         return basicProperties.SetCorrelationId(originalBasicProperties.MessageId);
     }
-    
+
     /// <summary>
     /// Set CorrelationId
     /// </summary>
@@ -194,7 +194,7 @@ public static partial class RabbitMQExtensions
     /// </summary>
     /// <param name="connectionFactory"></param>
     /// <returns></returns>
-    public static ConnectionFactory Unbox(this global::RabbitMQ.Client.IConnectionFactory connectionFactory) 
+    public static ConnectionFactory Unbox(this IConnectionFactory connectionFactory)
         => (ConnectionFactory)connectionFactory;
 
 
@@ -238,16 +238,14 @@ public static partial class RabbitMQExtensions
         _ = Guard.Argument(condition, nameof(condition)).NotNull();
         _ = Guard.Argument(actionWhenTrue, nameof(actionWhenTrue)).NotNull();
 
-        if (target == null)
-            return target;
-
-        var conditionResult = condition(target);
-
-        if (conditionResult)
-            target = actionWhenTrue(target);
-        else if (actionWhenFalse != null)
-            target = actionWhenFalse(target);
-
+        if (target != null)
+        {
+            var conditionResult = condition(target);
+            if (conditionResult)
+                target = actionWhenTrue(target);
+            else if (actionWhenFalse != null)
+                target = actionWhenFalse(target);
+        }
         return target;
     }
 
@@ -265,15 +263,15 @@ public static partial class RabbitMQExtensions
         _ = Guard.Argument(condition, nameof(condition)).NotNull();
         _ = Guard.Argument(actionWhenTrue, nameof(actionWhenTrue)).NotNull();
 
-        if (target == null)
-            return target;
+        if (target != null)
+        {
+            var conditionResult = condition(target);
+            if (conditionResult)
+                actionWhenTrue?.Invoke(target);
+            else 
+                actionWhenFalse?.Invoke(target);
 
-        var conditionResult = condition(target);
-
-        if (conditionResult)
-            actionWhenTrue(target);
-        else actionWhenFalse?.Invoke(target);
-
+        }
         return target;
     }
 

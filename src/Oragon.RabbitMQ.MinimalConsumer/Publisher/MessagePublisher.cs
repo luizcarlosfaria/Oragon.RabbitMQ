@@ -38,16 +38,16 @@ public class MessagePublisher(IConnection connection, IAMQPSerializer serializer
     {
         using Activity publisherActivity = s_activitySource.StartActivity("MessagePublisher.SendAsync", ActivityKind.Producer) ?? throw new NullReferenceException(nameof(publisherActivity));
 
-        using IChannel model = await connection.CreateChannelAsync().ConfigureAwait(true);
+        using IChannel model = await this.connection.CreateChannelAsync().ConfigureAwait(true);
 
         var properties = model.CreateBasicProperties().EnsureHeaders().SetDurable(true);
 
         var contextToInject = GetActivityContext(publisherActivity);
 
         // Inject the ActivityContext into the message headers to propagate trace context to the receiving service.
-        s_propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), properties, InjectTraceContextIntoBasicProperties);
+        s_propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), properties, this.InjectTraceContextIntoBasicProperties);
 
-        var body = serializer.Serialize(basicProperties: properties, message: message);
+        var body = this.serializer.Serialize(basicProperties: properties, message: message);
 
         await model.BasicPublishAsync(exchange, routingKey, properties, body).ConfigureAwait(true);
 
@@ -81,7 +81,7 @@ public class MessagePublisher(IConnection connection, IAMQPSerializer serializer
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to inject trace context.");
+            this.logger.LogError(ex, "Failed to inject trace context.");
         }
     }
 }

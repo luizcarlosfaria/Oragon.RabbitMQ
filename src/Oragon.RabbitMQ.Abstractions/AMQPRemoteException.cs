@@ -41,6 +41,6 @@ public class AMQPRemoteException : Exception
     /// <summary>
     /// Gets the string representation of the frames on the call stack at the time the current exception was thrown.
     /// </summary>
-    public override string StackTrace => remoteStackTrace;
+    public override string StackTrace => this.remoteStackTrace;
 
 }

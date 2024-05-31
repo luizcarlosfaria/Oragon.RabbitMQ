@@ -26,7 +26,7 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     /// <returns></returns>
     public AsyncQueueConsumerParameters<TService, TRequest, TResponse> WithServiceProvider(IServiceProvider serviceProvider)
     {
-        ServiceProvider = serviceProvider;
+        this.ServiceProvider = serviceProvider;
         return this;
     }
 
@@ -42,7 +42,7 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     /// <returns></returns>
     public AsyncQueueConsumerParameters<TService, TRequest, TResponse> WithSerializer(IAMQPSerializer serializer)
     {
-        Serializer = serializer;
+        this.Serializer = serializer;
         return this;
     }
 
@@ -70,9 +70,9 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     {
         _ = Guard.Argument(adapterExpression).NotNull();
 
-        AdapterExpression = adapterExpression;
-        AdapterFunc = adapterExpression.Compile();
-        AdapterExpressionText = adapterExpression.ToString();
+        this.AdapterExpression = adapterExpression;
+        this.AdapterFunc = adapterExpression.Compile();
+        this.AdapterExpressionText = adapterExpression.ToString();
         return this;
     }
 
@@ -106,7 +106,7 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     /// <returns></returns>
     public AsyncQueueConsumerParameters<TService, TRequest, TResponse> WithDispatchScope(DispatchScope dispatchScope)
     {
-        DispatchScope = dispatchScope;
+        this.DispatchScope = dispatchScope;
         return this;
     }
 
@@ -122,7 +122,7 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     /// <returns></returns>
     public AsyncQueueConsumerParameters<TService, TRequest, TResponse> WithRequeueOnCrash(bool requeueOnCrash = true)
     {
-        RequeueOnCrash = requeueOnCrash;
+        this.RequeueOnCrash = requeueOnCrash;
         return this;
     }
 
@@ -132,14 +132,14 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     /// </summary>
     /// <returns></returns>
     public AsyncQueueConsumerParameters<TService, TRequest, TResponse> WithDispatchInRootScope()
-        => WithDispatchScope(DispatchScope.RootScope);
+        => this.WithDispatchScope(DispatchScope.RootScope);
 
     /// <summary>
     /// Set dispatch in child scope
     /// </summary>
     /// <returns></returns>
     public AsyncQueueConsumerParameters<TService, TRequest, TResponse> WithDispatchInChildScope()
-        => WithDispatchScope(DispatchScope.ChildScope);
+        => this.WithDispatchScope(DispatchScope.ChildScope);
 
 
     /// <summary>
@@ -149,10 +149,10 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     {
         base.Validate();
 
-        _ = Guard.Argument(ServiceProvider).NotNull();
-        _ = Guard.Argument(Serializer).NotNull();
-        _ = Guard.Argument(AdapterFunc).NotNull();
-        _ = Guard.Argument(DispatchScope).NotIn(DispatchScope.None);
+        _ = Guard.Argument(this.ServiceProvider).NotNull();
+        _ = Guard.Argument(this.Serializer).NotNull();
+        _ = Guard.Argument(this.AdapterFunc).NotNull();
+        _ = Guard.Argument(this.DispatchScope).NotIn(DispatchScope.None);
     }
 
 }

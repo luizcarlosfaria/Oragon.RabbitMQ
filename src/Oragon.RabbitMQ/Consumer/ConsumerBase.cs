@@ -67,28 +67,28 @@ public abstract class ConsumerBase : BackgroundService
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        Connection = parameters.ConnectionFactoryFunc(serviceProvider);
+        this.Connection = this.parameters.ConnectionFactoryFunc(this.serviceProvider);
 
-        if (parameters.Configurer != null)
+        if (this.parameters.Configurer != null)
         {
             using var tmpModel = await this.Connection.CreateChannelAsync(stoppingToken).ConfigureAwait(true);
-            parameters.Configurer(serviceProvider, tmpModel);
+            this.parameters.Configurer(this.serviceProvider, tmpModel);
         }
 
         await this.WaitQueueCreationAsync().ConfigureAwait(true);
 
         this.Channel = await this.Connection.CreateChannelAsync(stoppingToken).ConfigureAwait(true);
 
-        await this.Channel.BasicQosAsync(0, parameters.PrefetchCount, false, stoppingToken).ConfigureAwait(true);
+        await this.Channel.BasicQosAsync(0, this.parameters.PrefetchCount, false, stoppingToken).ConfigureAwait(true);
 
-        this.Consumer = BuildConsumer();
+        this.Consumer = this.BuildConsumer();
 
         var startTime = DateTimeOffset.UtcNow;
 
-        Logger.LogInformation($"Consuming Queue {parameters.QueueName} since: {startTime}");
+        this.Logger.LogInformation($"Consuming Queue {this.parameters.QueueName} since: {startTime}");
 
         this.consumerTag = await this.Channel.BasicConsumeAsync(
-            queue: parameters.QueueName,
+            queue: this.parameters.QueueName,
             autoAck: false,
             consumer: this.Consumer,
             consumerTag: this.consumerTag,
@@ -98,18 +98,18 @@ public abstract class ConsumerBase : BackgroundService
             cancellationToken: stoppingToken)
             .ConfigureAwait(true);
 
-        var timeToDisplay = (int)parameters.DisplayLoopInConsoleEvery.TotalSeconds;
+        var timeToDisplay = (int)this.parameters.DisplayLoopInConsoleEvery.TotalSeconds;
 
         long loopCount = 0;
         while (!stoppingToken.IsCancellationRequested)
         {
             loopCount++;
-            var logMessage = $"Consuming Queue {parameters.QueueName} since: {startTime} uptime: {DateTimeOffset.Now - startTime}";
+            var logMessage = $"Consuming Queue {this.parameters.QueueName} since: {startTime} uptime: {DateTimeOffset.Now - startTime}";
 
             if (loopCount % timeToDisplay == 0)
-                Logger.LogInformation(logMessage);
+                this.Logger.LogInformation(logMessage);
             else
-                Logger.LogTrace(logMessage);
+                this.Logger.LogTrace(logMessage);
 
             await Task.Delay(1000, stoppingToken).ConfigureAwait(true);
         }
@@ -123,16 +123,16 @@ public abstract class ConsumerBase : BackgroundService
     {
         _ = await Policy
             .Handle<OperationInterruptedException>()
-            .WaitAndRetryAsync(parameters.TestQueueRetryCount, retryAttempt =>
+            .WaitAndRetryAsync(this.parameters.TestQueueRetryCount, retryAttempt =>
             {
                 var timeToWait = TimeSpan.FromSeconds(Math.Pow(2, retryAttempt));
-                Logger.LogWarning("Queue {QueueName} not found... We will try in {Tempo}.", parameters.QueueName, timeToWait);
+                this.Logger.LogWarning("Queue {QueueName} not found... We will try in {Tempo}.", this.parameters.QueueName, timeToWait);
                 return timeToWait;
             })
             .ExecuteAsync(async () =>
             {
-                using IChannel testModel = await Connection.CreateChannelAsync().ConfigureAwait(true);
-                _ = await testModel.QueueDeclarePassiveAsync(parameters.QueueName).ConfigureAwait(true);
+                using IChannel testModel = await this.Connection.CreateChannelAsync().ConfigureAwait(true);
+                _ = await testModel.QueueDeclarePassiveAsync(this.parameters.QueueName).ConfigureAwait(true);
                 return Task.CompletedTask;
             }).ConfigureAwait(true);
     }
@@ -161,9 +161,9 @@ public abstract class ConsumerBase : BackgroundService
     
     private async Task DisposeAsync()
     {
-        if (this.Channel != null && !string.IsNullOrWhiteSpace(consumerTag))
+        if (this.Channel != null && !string.IsNullOrWhiteSpace(this.consumerTag))
         {
-            await this.Channel.BasicCancelAsync(consumerTag, true).ConfigureAwait(false);
+            await this.Channel.BasicCancelAsync(this.consumerTag, true).ConfigureAwait(false);
         }
         if (this.Channel != null)
         {

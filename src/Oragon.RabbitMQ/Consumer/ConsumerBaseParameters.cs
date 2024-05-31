@@ -20,7 +20,7 @@ public class ConsumerBaseParameters
     /// <returns>The updated instance of <see cref="ConsumerBaseParameters"/>.</returns>
     public ConsumerBaseParameters WithQueueName(string queueName)
     {
-        QueueName = queueName;
+        this.QueueName = queueName;
         return this;
     }
 
@@ -36,7 +36,7 @@ public class ConsumerBaseParameters
     /// <returns>The updated instance of <see cref="ConsumerBaseParameters"/>.</returns>
     public ConsumerBaseParameters WithTopology(Action<IServiceProvider, IChannel> configurer)
     {
-        Configurer = configurer;
+        this.Configurer = configurer;
         return this;
     }
 
@@ -52,7 +52,7 @@ public class ConsumerBaseParameters
     /// <returns>The updated instance of <see cref="ConsumerBaseParameters"/>.</returns>
     public ConsumerBaseParameters WithPrefetchCount(ushort prefetchCount)
     {
-        PrefetchCount = prefetchCount;
+        this.PrefetchCount = prefetchCount;
         return this;
     }
 
@@ -68,7 +68,7 @@ public class ConsumerBaseParameters
     /// <returns>The updated instance of <see cref="ConsumerBaseParameters"/>.</returns>
     public ConsumerBaseParameters WithConnectionFactoryFunc(Func<IServiceProvider, IConnection> connectionFactoryFunc)
     {
-        ConnectionFactoryFunc = connectionFactoryFunc;
+        this.ConnectionFactoryFunc = connectionFactoryFunc;
         return this;
     }
 
@@ -84,7 +84,7 @@ public class ConsumerBaseParameters
     /// <returns>The updated instance of <see cref="ConsumerBaseParameters"/>.</returns>
     public ConsumerBaseParameters WithTestQueueRetryCount(int testQueueRetryCount)
     {
-        TestQueueRetryCount = testQueueRetryCount;
+        this.TestQueueRetryCount = testQueueRetryCount;
         return this;
     }
 
@@ -100,7 +100,7 @@ public class ConsumerBaseParameters
     /// <returns>The updated instance of <see cref="ConsumerBaseParameters"/>.</returns>
     public ConsumerBaseParameters WithDisplayLoopInConsoleEvery(TimeSpan timeToDisplay)
     {
-        DisplayLoopInConsoleEvery = timeToDisplay;
+        this.DisplayLoopInConsoleEvery = timeToDisplay;
         return this;
     }
 
@@ -109,9 +109,9 @@ public class ConsumerBaseParameters
     /// </summary>
     public virtual void Validate()
     {
-        _ = Guard.Argument(QueueName).NotNull().NotEmpty().NotWhiteSpace();
-        _ = Guard.Argument(PrefetchCount).NotZero().NotNegative();
-        _ = Guard.Argument(TestQueueRetryCount).NotNegative();
-        _ = Guard.Argument(ConnectionFactoryFunc).NotNull();
+        _ = Guard.Argument(this.QueueName).NotNull().NotEmpty().NotWhiteSpace();
+        _ = Guard.Argument(this.PrefetchCount).NotZero().NotNegative();
+        _ = Guard.Argument(this.TestQueueRetryCount).NotNegative();
+        _ = Guard.Argument(this.ConnectionFactoryFunc).NotNull();
     }
 }

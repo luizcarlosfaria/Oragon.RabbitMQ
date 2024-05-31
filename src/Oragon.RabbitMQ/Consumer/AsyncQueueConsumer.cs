@@ -61,11 +61,11 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
     /// <inheritdoc/>
     protected override IBasicConsumer BuildConsumer()
     {
-        _ = Guard.Argument(Channel).NotNull();
+        _ = Guard.Argument(this.Channel).NotNull();
 
-        var consumer = new AsyncEventingBasicConsumer(Channel);
+        var consumer = new AsyncEventingBasicConsumer(this.Channel);
 
-        consumer.Received += ReceiveAsync;
+        consumer.Received += this.ReceiveAsync;
 
         return consumer;
     }
@@ -86,20 +86,20 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
 
         using var receiveActivity = activitySource.StartActivity("AsyncQueueConsumer.ReceiveAsync", ActivityKind.Consumer, parentContext.ActivityContext) ?? new Activity("?AsyncQueueConsumer.ReceiveAsync");
 
-        _ = receiveActivity.AddTag("Queue", parameters.QueueName);
-        _ = receiveActivity.AddTag("MessageId", delivery.BasicProperties.MessageId);
-        _ = receiveActivity.AddTag("CorrelationId", delivery.BasicProperties.CorrelationId);
+        _ = receiveActivity
+            .AddTag("Queue", this.parameters.QueueName)
+            .AddTag("MessageId", delivery.BasicProperties.MessageId)
+            .AddTag("CorrelationId", delivery.BasicProperties.CorrelationId)
+            .SetTag("messaging.system", "rabbitmq")
+            .SetTag("messaging.destination_kind", "queue")
+            .SetTag("messaging.destination", delivery.Exchange)
+            .SetTag("messaging.rabbitmq.routing_key", delivery.RoutingKey);
 
-        _ = receiveActivity.SetTag("messaging.system", "rabbitmq");
-        _ = receiveActivity.SetTag("messaging.destination_kind", "queue");
-        _ = receiveActivity.SetTag("messaging.destination", delivery.Exchange);
-        _ = receiveActivity.SetTag("messaging.rabbitmq.routing_key", delivery.RoutingKey);
+        IAMQPResult result = this.TryDeserialize(receiveActivity, delivery, out var request)
+                            ? await this.DispatchAsync(receiveActivity, delivery, request).ConfigureAwait(true)
+                            : new RejectResult(false);
 
-        IAMQPResult result = TryDeserialize(receiveActivity, delivery, out var request)
-                            ? await DispatchAsync(receiveActivity, delivery, request).ConfigureAwait(true)
-                            : (IAMQPResult)new RejectResult(false);
-
-        await result.ExecuteAsync(Channel, delivery).ConfigureAwait(true);
+        await result.ExecuteAsync(this.Channel, delivery).ConfigureAwait(true);
 
         //receiveActivity?.SetEndTime(DateTime.UtcNow);
     }
@@ -117,24 +117,23 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
     {
         try
         {
-            if (props.Headers.TryGetValue(key, out var value))
+            if (props.Headers != null && props.Headers.TryGetValue(key, out var value) && (value is byte[] bytes))
             {
-                var bytes = value as byte[];
-                return new[] { Encoding.UTF8.GetString(bytes) };
+                return [Encoding.UTF8.GetString(bytes)];
             }
         }
         catch (Exception ex)
         {
-            s_logErrorOnExtractTraceContext(Logger, ex);
+            s_logErrorOnExtractTraceContext(this.Logger, ex);
         }
 
-        return Enumerable.Empty<string>();
+        return [];
     }
 
 
     private static readonly Action<ILogger, Exception, Exception> s_logErrorOnDesserialize = LoggerMessage.Define<Exception>(LogLevel.Error, new EventId(1, "Message rejected during deserialization"), "Message rejected during deserialization {ExceptionDetails}");
 
-    
+
     /// <summary>
     /// Tries to deserialize the received item.
     /// </summary>
@@ -152,7 +151,7 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
         request = default;
         try
         {
-            request = parameters.Serializer.Deserialize<TRequest>(eventArgs: receivedItem);
+            request = this.parameters.Serializer.Deserialize<TRequest>(eventArgs: receivedItem);
         }
         catch (Exception exception)
         {
@@ -160,7 +159,7 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
 
             _ = receiveActivity.SetStatus(ActivityStatusCode.Error, exception.ToString());
 
-            s_logErrorOnDesserialize(Logger, exception, exception);
+            s_logErrorOnDesserialize(this.Logger, exception, exception);
         }
 
         return returnValue;
@@ -186,32 +185,34 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
 
         IAMQPResult returnValue;
 
-        using var dispatchActivity = activitySource.StartActivity(parameters.AdapterExpressionText, ActivityKind.Internal, receiveActivity.Context);
+        using var dispatchActivity = activitySource.StartActivity(this.parameters.AdapterExpressionText, ActivityKind.Internal, receiveActivity.Context);
 
         //using (var logContext = new EnterpriseApplicationLogContext())
         //{
         try
         {
-            var service = parameters.ServiceProvider.GetRequiredService<TService>();
+            if (this.parameters.DispatchScope == DispatchScope.RootScope)
+            {
+                var service = this.parameters.ServiceProvider.GetRequiredService<TService>();
 
-            if (parameters.DispatchScope == DispatchScope.RootScope)
-            {
-                await parameters.AdapterFunc(service, request);
+                await this.parameters.AdapterFunc(service, request).ConfigureAwait(true);
             }
-            else if (parameters.DispatchScope == DispatchScope.ChildScope)
+            else if (this.parameters.DispatchScope == DispatchScope.ChildScope)
             {
-                using (var scope = parameters.ServiceProvider.CreateScope())
+                using (var scope = this.parameters.ServiceProvider.CreateScope())
                 {
-                    await parameters.AdapterFunc(service, request);
+                    var service = scope.ServiceProvider.GetRequiredService<TService>();
+
+                    await this.parameters.AdapterFunc(service, request).ConfigureAwait(true);
                 }
             }
             returnValue = new AckResult();
         }
         catch (Exception exception)
         {
-            s_logErrorOnDispatch(Logger, parameters.QueueName, exception, exception);
+            s_logErrorOnDispatch(this.Logger, this.parameters.QueueName, exception, exception);
 
-            returnValue = new NackResult(parameters.RequeueOnCrash);
+            returnValue = new NackResult(this.parameters.RequeueOnCrash);
 
             _ = (dispatchActivity?.SetStatus(ActivityStatusCode.Error, exception.ToString()));
         }

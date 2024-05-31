@@ -70,7 +70,7 @@ public abstract class AMQPBaseSerializer : IAMQPSerializer
     /// <returns></returns>
     public byte[] Serialize<TMessage>(BasicProperties basicProperties, TMessage message)
     {
-        var returnValue = SerializeInternal(basicProperties, message); ;
+        var returnValue = this.SerializeInternal(basicProperties, message); ;
 
         return returnValue;
     }
