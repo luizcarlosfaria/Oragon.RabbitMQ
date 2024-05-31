@@ -8,6 +8,7 @@
     <DebugType>embedded</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <LangVersion>preview</LangVersion>
+    <PackageVersion>0.0.1-alpha</PackageVersion>
   </PropertyGroup>
 
   <!--Distribution Settings-->
@@ -34,6 +35,26 @@
     <PackageType>Library</PackageType>
   </PropertyGroup>
 
+
+  <PropertyGroup>
+    <AssetsDir>$(MSBuildThisFileDirectory)/src/Assets/</AssetsDir>
+    <TestsSharedDir>$(MSBuildThisFileDirectory)/tests/Shared/</TestsSharedDir>
+    <PackageIconFullPath>$(AssetsDir)Oragon.RabbitMQ.png</PackageIconFullPath>
+    <WarnOnPackingNonPackableProject>false</WarnOnPackingNonPackableProject>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
+    <StrongNameKeyId>Open</StrongNameKeyId>
+    <!-- Redirect test logs into a subfolder -->
+    <TestResultsLogDir>$([MSBuild]::NormalizeDirectory('$(ArtifactsLogDir)', 'TestLogs'))</TestResultsLogDir>
+    <!-- We don't want to use the workload for AppHost projects in this repo -->
+    <!--
+    <SkipAspireWorkloadManifest>true</SkipAspireWorkloadManifest>
+    <DashboardPublishedArtifactsOutputDir>$([MSBuild]::NormalizeDirectory('$(ArtifactsDir)', 'DashboardArtifacts', '$(Configuration)'))</DashboardPublishedArtifactsOutputDir>
+    <WorkloadsPackageSource>$(ArtifactsShippingPackagesDir)</WorkloadsPackageSource>-->
+  </PropertyGroup>
+
   <ItemGroup>
     <None Include="..\..\README.md">
       <Pack>True</Pack>
@@ -49,5 +70,10 @@
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4" PrivateAssets="all" />
   </ItemGroup>
+
+
+  <PropertyGroup>
+    <AddPublicApiAnalyzers>true</AddPublicApiAnalyzers>
+  </PropertyGroup>
   
 </Project>
