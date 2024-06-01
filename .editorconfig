@@ -339,7 +339,7 @@ dotnet_diagnostic.CA2249.severity = warning
 dotnet_diagnostic.IDE0005.severity = warning
 
 # IDE0011: Curly braces to surround blocks of code
-dotnet_diagnostic.IDE0011.severity = warning
+dotnet_diagnostic.IDE0011.severity = suggestion
 
 # IDE0020: Use pattern matching to avoid is check followed by a cast (with variable)
 dotnet_diagnostic.IDE0020.severity = warning
@@ -400,7 +400,7 @@ dotnet_diagnostic.IDE0200.severity = warning
 
 # IDE2000: Disallow multiple blank lines
 dotnet_style_allow_multiple_blank_lines_experimental = false:silent
-dotnet_diagnostic.IDE2000.severity = warning
+dotnet_diagnostic.IDE2000.severity = suggestion
 
 [{eng/tools/**.cs,**/{test,testassets,samples,Samples,perf,benchmarkapps,scripts,stress}/**.cs,src/Hosting/Server.IntegrationTesting/**.cs,src/Servers/IIS/IntegrationTesting.IIS/**.cs,src/Shared/Http2cat/**.cs,src/Testing/**.cs}]
 # CA1018: Mark attributes with AttributeUsageAttribute

@@ -34,7 +34,8 @@ public class AMQPRemoteException : Exception
     /// <param name="message">The error message that explains the reason for the exception.</param>
     /// <param name="remoteStackTrace">The remote stack trace.</param>
     /// <param name="inner">The exception that is the cause of the current exception, or a null reference if no inner exception is specified.</param>
-    public AMQPRemoteException(string message, string remoteStackTrace, Exception inner) : base(message, inner) {
+    public AMQPRemoteException(string message, string remoteStackTrace, Exception inner) : base(message, inner)
+    {
         this.remoteStackTrace = remoteStackTrace;
     }
 
