@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="./../../Global.Build.props" />
+
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Oragon.RabbitMQ.Abstractions\Oragon.RabbitMQ.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\Oragon.RabbitMQ.MinimalConsumer\Oragon.RabbitMQ.MinimalConsumer.csproj" />
+    <ProjectReference Include="..\..\src\Oragon.RabbitMQ.Serializer.NewtonsoftJson\Oragon.RabbitMQ.Serializer.NewtonsoftJson.csproj" />
+    <ProjectReference Include="..\..\src\Oragon.RabbitMQ.Serializer.SystemTextJson\Oragon.RabbitMQ.Serializer.SystemTextJson.csproj" />
+    <ProjectReference Include="..\..\src\Oragon.RabbitMQ\Oragon.RabbitMQ.csproj" />
+  </ItemGroup>
+
+  
+</Project>

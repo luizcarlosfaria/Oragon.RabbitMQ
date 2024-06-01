@@ -3,10 +3,6 @@
   <Import Project="./../../Global.Build.props" />
   
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
@@ -17,6 +13,9 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
+    <PackageReference Include="Testcontainers" Version="3.8.0" />
+    <PackageReference Include="Testcontainers.RabbitMq" Version="3.8.0" />
+    <PackageReference Include="Testcontainers.Redis" Version="3.8.0" />
     <PackageReference Include="xunit" Version="2.8.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.1">
       <PrivateAssets>all</PrivateAssets>
@@ -30,6 +29,7 @@
     <ProjectReference Include="..\..\src\Oragon.RabbitMQ.Serializer.NewtonsoftJson\Oragon.RabbitMQ.Serializer.NewtonsoftJson.csproj" />
     <ProjectReference Include="..\..\src\Oragon.RabbitMQ.Serializer.SystemTextJson\Oragon.RabbitMQ.Serializer.SystemTextJson.csproj" />
     <ProjectReference Include="..\..\src\Oragon.RabbitMQ\Oragon.RabbitMQ.csproj" />
+    <ProjectReference Include="..\Oragon.RabbitMQ.TestsExtensions\Oragon.RabbitMQ.TestsExtensions.csproj" />
   </ItemGroup>
 
   <ItemGroup>

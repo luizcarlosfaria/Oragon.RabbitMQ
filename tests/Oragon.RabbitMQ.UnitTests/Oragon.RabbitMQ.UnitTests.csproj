@@ -2,11 +2,7 @@
 
   <Import Project="./../../Global.Build.props" />
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-
+  <PropertyGroup>    
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
@@ -30,10 +26,16 @@
     <ProjectReference Include="..\..\src\Oragon.RabbitMQ.Serializer.NewtonsoftJson\Oragon.RabbitMQ.Serializer.NewtonsoftJson.csproj" />
     <ProjectReference Include="..\..\src\Oragon.RabbitMQ.Serializer.SystemTextJson\Oragon.RabbitMQ.Serializer.SystemTextJson.csproj" />
     <ProjectReference Include="..\..\src\Oragon.RabbitMQ\Oragon.RabbitMQ.csproj" />
+    <ProjectReference Include="..\Oragon.RabbitMQ.IntegratedTests\Oragon.RabbitMQ.IntegratedTests.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Oragon_RabbitMQ\" />
+    <Folder Include="Oragon_RabbitMQ_Abstractions\" />
   </ItemGroup>
 
 </Project>
