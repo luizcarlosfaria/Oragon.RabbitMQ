@@ -10,9 +10,9 @@ RUN dotnet tool install --global dotnet-coverage
 # Default to UTF-8 file.encoding
 ENV LANG C.UTF-8
 
-ENV JAVA_HOME /usr/local/openjdk-17
+#ENV JAVA_HOME /usr/local/openjdk-17
 
-ENV PATH $JAVA_HOME/bin:$PATH
+#ENV PATH $JAVA_HOME/bin:$PATH
 
 RUN apt-get update && \
 apt-get install -y --no-install-recommends openjdk-17-jdk
