@@ -339,7 +339,7 @@ dotnet_diagnostic.CA2249.severity = warning
 dotnet_diagnostic.IDE0005.severity = warning
 
 # IDE0011: Curly braces to surround blocks of code
-dotnet_diagnostic.IDE0011.severity = sugestion
+dotnet_diagnostic.IDE0011.severity = suggestion
 
 # IDE0020: Use pattern matching to avoid is check followed by a cast (with variable)
 dotnet_diagnostic.IDE0020.severity = warning

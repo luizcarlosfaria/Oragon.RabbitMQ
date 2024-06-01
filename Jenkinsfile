@@ -53,7 +53,7 @@ pipeline {
                         dotnet-coverage collect "dotnet test" -f xml -o "/output-coverage/coverage.xml"
 
                         dotnet sonarscanner end /d:sonar.token="$SONARQUBE_KEY"
-                        
+
                         '''
 
                 }
@@ -145,19 +145,18 @@ pipeline {
             }
         }
     }
-    post {
+    /*post {
 
         always {
             node('master'){
                 
                 sh  '''
                 
-                #docker-compose down -v
 
                 '''
 
 
             }
         }
-    }
+    }*/
 }
