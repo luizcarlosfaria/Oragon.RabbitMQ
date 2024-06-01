@@ -399,8 +399,8 @@ dotnet_diagnostic.IDE0161.severity = warning
 dotnet_diagnostic.IDE0200.severity = warning
 
 # IDE2000: Disallow multiple blank lines
-dotnet_style_allow_multiple_blank_lines_experimental = false:silent
-dotnet_diagnostic.IDE2000.severity = suggestion
+dotnet_style_allow_multiple_blank_lines_experimental = false:none
+dotnet_diagnostic.IDE2000.severity = none
 
 [{eng/tools/**.cs,**/{test,testassets,samples,Samples,perf,benchmarkapps,scripts,stress}/**.cs,src/Hosting/Server.IntegrationTesting/**.cs,src/Servers/IIS/IntegrationTesting.IIS/**.cs,src/Shared/Http2cat/**.cs,src/Testing/**.cs}]
 # CA1018: Mark attributes with AttributeUsageAttribute
