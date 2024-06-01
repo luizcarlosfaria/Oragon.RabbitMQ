@@ -36,51 +36,55 @@ pipeline {
 
             steps {
 
-                 withCredentials([usernamePassword(credentialsId: 'SonarQube', passwordVariable: 'SONARQUBE_KEY', usernameVariable: 'DUMMY' )]) {
+                withCredentials([usernamePassword(credentialsId: 'SonarQube', passwordVariable: 'SONARQUBE_KEY', usernameVariable: 'DUMMY' )]) 
+                {
 
-                     if ((env.BRANCH_NAME == "develop") || (env.BRANCH_NAME == "master")) {
+                    script 
+                    {
+                        if ((env.BRANCH_NAME == "develop") || (env.BRANCH_NAME == "master")) {
 
-                        sh  '''
+                            sh  '''
 
-                            export PATH="$PATH:/root/.dotnet/tools"
+                                export PATH="$PATH:/root/.dotnet/tools"
 
-                            dotnet sonarscanner begin \
-                                /k:"Oragon.RabbitMQ" \
-                                /o:luizcarlosfaria \
-                                /d:sonar.token="$SONARQUBE_KEY" \
-                                /d:sonar.host.url="https://sonarcloud.io" \
-                                /d:sonar.cs.vscoveragexml.reportsPaths=/output-coverage/coverage.xml
+                                dotnet sonarscanner begin \
+                                    /k:"Oragon.RabbitMQ" \
+                                    /o:luizcarlosfaria \
+                                    /d:sonar.token="$SONARQUBE_KEY" \
+                                    /d:sonar.host.url="https://sonarcloud.io" \
+                                    /d:sonar.cs.vscoveragexml.reportsPaths=/output-coverage/coverage.xml
 
-                            dotnet build --no-incremental ./Oragon.RabbitMQ.sln
+                                dotnet build --no-incremental ./Oragon.RabbitMQ.sln
 
-                            dotnet-coverage collect "dotnet test" -f xml -o "/output-coverage/coverage.xml"
+                                dotnet-coverage collect "dotnet test" -f xml -o "/output-coverage/coverage.xml"
 
-                            dotnet sonarscanner end /d:sonar.token="$SONARQUBE_KEY"
+                                dotnet sonarscanner end /d:sonar.token="$SONARQUBE_KEY"
 
-                        '''
+                            '''
 
-                    } else {
-                         
-                        sh  '''
+                        } else {
+                            
+                            sh  '''
 
-                            export PATH="$PATH:/root/.dotnet/tools"
+                                export PATH="$PATH:/root/.dotnet/tools"
 
-                            dotnet sonarscanner begin \
-                                /k:"Oragon.RabbitMQ" \
-                                /o:luizcarlosfaria \
-                                /d:sonar.token="$SONARQUBE_KEY" \
-                                /d:sonar.branch.name="$BRANCH_NAME" \
-                                /d:sonar.branch.target=master \
-                                /d:sonar.host.url="https://sonarcloud.io" \
-                                /d:sonar.cs.vscoveragexml.reportsPaths=/output-coverage/coverage.xml
+                                dotnet sonarscanner begin \
+                                    /k:"Oragon.RabbitMQ" \
+                                    /o:luizcarlosfaria \
+                                    /d:sonar.token="$SONARQUBE_KEY" \
+                                    /d:sonar.branch.name="$BRANCH_NAME" \
+                                    /d:sonar.branch.target=master \
+                                    /d:sonar.host.url="https://sonarcloud.io" \
+                                    /d:sonar.cs.vscoveragexml.reportsPaths=/output-coverage/coverage.xml
 
-                            dotnet build --no-incremental ./Oragon.RabbitMQ.sln
+                                dotnet build --no-incremental ./Oragon.RabbitMQ.sln
 
-                            dotnet-coverage collect "dotnet test" -f xml -o "/output-coverage/coverage.xml"
+                                dotnet-coverage collect "dotnet test" -f xml -o "/output-coverage/coverage.xml"
 
-                            dotnet sonarscanner end /d:sonar.token="$SONARQUBE_KEY"
+                                dotnet sonarscanner end /d:sonar.token="$SONARQUBE_KEY"
 
-                        '''
+                            '''
+                        }
                     }
                 }
                 
