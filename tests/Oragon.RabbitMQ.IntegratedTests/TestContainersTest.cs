@@ -31,8 +31,7 @@ public class TestContainersTest: IAsyncLifetime
 
         string? actualMessage = null;
 
-        // Signal the completion of message reception.
-        EventWaitHandle waitHandle = new ManualResetEvent(false);
+       
 
         // Create and establish a connection.
         var connectionFactory = new ConnectionFactory
@@ -45,6 +44,9 @@ public class TestContainersTest: IAsyncLifetime
         using var channel = await connection.CreateChannelAsync();
         _ = await channel.QueueDeclareAsync(queue, false, false, false, null);
         await channel.BasicPublishAsync(string.Empty, queue, Encoding.Default.GetBytes(message), false);
+
+        // Signal the completion of message reception.
+        EventWaitHandle waitHandle = new ManualResetEvent(false);
 
         // Consume a message from the channel.
         var consumer = new EventingBasicConsumer(channel);

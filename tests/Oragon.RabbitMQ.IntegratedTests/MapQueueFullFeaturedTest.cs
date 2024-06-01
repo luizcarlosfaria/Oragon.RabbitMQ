@@ -15,7 +15,7 @@ using System;
 
 namespace Oragon.RabbitMQ.IntegratedTests;
 
-public class FullFeaturedTest : IAsyncLifetime
+public class MapQueueFullFeaturedTest : IAsyncLifetime
 {
     public class ExampleMessage
     {
@@ -84,7 +84,7 @@ public class FullFeaturedTest : IAsyncLifetime
 
 
     [Fact]
-    public async Task ConsumeUsingMinimalApi()
+    public async Task MapQueueTest()
     {
         const string queue = "hello";
 

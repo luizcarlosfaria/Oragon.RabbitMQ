@@ -55,8 +55,7 @@ public static class RabbitMQExtensions
     /// <exception cref="ArgumentException"></exception>
     public static BasicProperties SetCorrelationId(this BasicProperties basicProperties, string correlationId)
     {
-        if (string.IsNullOrEmpty(correlationId)) throw new ArgumentException($"'{nameof(correlationId)}' cannot be null or empty.", nameof(correlationId));
-
+        _ = Guard.Argument(correlationId).NotNull($"'{nameof(correlationId)}' cannot be null or empty.").NotEmpty($"'{nameof(correlationId)}' cannot be null or empty.").NotWhiteSpace($"'{nameof(correlationId)}' cannot be null or empty.");
         basicProperties.CorrelationId = correlationId;
         return basicProperties;
     }
