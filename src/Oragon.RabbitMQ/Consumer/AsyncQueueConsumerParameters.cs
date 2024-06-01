@@ -149,9 +149,9 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     {
         base.Validate();
 
-        _ = Guard.Argument(this.ServiceProvider).NotNull();
-        _ = Guard.Argument(this.Serializer).NotNull();
-        _ = Guard.Argument(this.AdapterFunc).NotNull();
+        _ = Guard.Argument(this.ServiceProvider).NotNull("ServiceProvider can't be null");
+        _ = Guard.Argument(this.Serializer).NotNull("Serializer can't be null");
+        _ = Guard.Argument(this.AdapterFunc).NotNull("AdapterFunc can't be null");
         _ = Guard.Argument(this.DispatchScope).NotIn(DispatchScope.None);
     }
 

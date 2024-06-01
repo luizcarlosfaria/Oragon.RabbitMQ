@@ -109,9 +109,9 @@ public class ConsumerBaseParameters
     /// </summary>
     public virtual void Validate()
     {
-        _ = Guard.Argument(this.QueueName).NotNull().NotEmpty().NotWhiteSpace();
-        _ = Guard.Argument(this.PrefetchCount).NotZero().NotNegative();
-        _ = Guard.Argument(this.TestQueueRetryCount).NotNegative();
-        _ = Guard.Argument(this.ConnectionFactoryFunc).NotNull();
+        _ = Guard.Argument(this.QueueName).NotNull("QueueName can't be null").NotEmpty("QueueName can't be empty").NotWhiteSpace("QueueName can't be whitespaces");
+        _ = Guard.Argument(this.PrefetchCount).NotZero("PrefetchCount must be greater than zero").NotNegative((_) => "PrefetchCount must be greater than zero");
+        _ = Guard.Argument(this.TestQueueRetryCount).NotNegative((_) =>"TestQueueRetryCount must be greater than zero");
+        _ = Guard.Argument(this.ConnectionFactoryFunc).NotNull("ConnectionFactoryFunc can't be null");
     }
 }
