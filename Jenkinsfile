@@ -48,10 +48,9 @@ pipeline {
                             /d:sonar.token="$SONARQUBE_KEY" \
                             /d:sonar.branch.name="$BRANCH_NAME" \
                             /d:sonar.branch.target="$BRANCH_NAME" \
-                            /d:sonar.host.url="https://sonarcloud.io" \
-                            
+                            /d:sonar.host.url="https://sonarcloud.io" \                            
                             /d:sonar.cs.vscoveragexml.reportsPaths=/output-coverage/coverage.xml
-                                                
+
                         dotnet build --no-incremental ./Oragon.RabbitMQ.sln
 
                         dotnet-coverage collect "dotnet test" -f xml -o "/output-coverage/coverage.xml"
