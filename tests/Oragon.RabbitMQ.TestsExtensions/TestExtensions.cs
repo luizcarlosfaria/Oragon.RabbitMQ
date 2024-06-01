@@ -1,7 +1,9 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 
@@ -10,7 +12,7 @@ public static class TestExtensions
 {
     public static ReadOnlyBasicProperties ToReadOnly(this BasicProperties basicProperties)
     {
-        var bytesSpan = new Span<byte>(new byte[int.MaxValue/4]);
+        var bytesSpan = new Span<byte>(new byte[int.MaxValue / 4]);
 
         IAmqpWriteable amqpWriteable = basicProperties;
 
@@ -29,4 +31,6 @@ public static class TestExtensions
 
         return returnValue;
     }
+
+
 }
