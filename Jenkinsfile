@@ -42,7 +42,7 @@ pipeline {
 
                         export PATH="$PATH:/root/.dotnet/tools"
 
-                        dotnet sonarscanner begin /k:"Oragon.RabbitMQ" \
+                        dotnet sonarscanner begin /k:"luizcarlosfaria_Oragon.RabbitMQ" \
                             /d:sonar.token="$SONARQUBE_KEY" \
                             /d:sonar.host.url="https://sonarcloud.io" \
                             /o:luizcarlosfaria\
