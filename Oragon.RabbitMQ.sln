@@ -22,14 +22,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Oragon.RabbitMQ.IntegratedTests", "tests\Oragon.RabbitMQ.IntegratedTests\Oragon.RabbitMQ.IntegratedTests.csproj", "{593BE77F-37B8-43EB-99C8-C37FF20AA111}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_", "_", "{7F63D8A9-AB50-4B01-914F-E2B1563249DA}"
-	ProjectSection(SolutionItems) = preProject
-		.editorconfig = .editorconfig
-		.gitattributes = .gitattributes
-		.gitignore = .gitignore
-		Global.Build.props = Global.Build.props
-		nuget.config = nuget.config
-		README.md = README.md
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Oragon.RabbitMQ.Serializer.NewtonsoftJson", "src\Oragon.RabbitMQ.Serializer.NewtonsoftJson\Oragon.RabbitMQ.Serializer.NewtonsoftJson.csproj", "{539B433C-3A59-4035-ACEC-81124E60FA69}"
 EndProject
@@ -39,7 +31,23 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Serializers", "Serializers"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Aspire", "Aspire", "{6ACA43BC-6784-47C9-8497-4D46A8761B6B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Oragon.RabbitMQ.TestsExtensions", "tests\Oragon.RabbitMQ.TestsExtensions\Oragon.RabbitMQ.TestsExtensions.csproj", "{B47F1D31-826C-419B-80ED-269B33CCDE0C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Oragon.RabbitMQ.TestsExtensions", "tests\Oragon.RabbitMQ.TestsExtensions\Oragon.RabbitMQ.TestsExtensions.csproj", "{B47F1D31-826C-419B-80ED-269B33CCDE0C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_CI-CD", "_CI-CD", "{3EA62AA0-AAA4-4C5A-99B6-C4E33FDB44C6}"
+	ProjectSection(SolutionItems) = preProject
+		Dockerfile = Dockerfile
+		Jenkinsfile = Jenkinsfile
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_dev", "_dev", "{0AAB133F-D71A-4D18-91A2-B0CB93A75C6D}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
+		Global.Build.props = Global.Build.props
+		nuget.config = nuget.config
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -94,6 +102,8 @@ Global
 		{34C26882-DAE9-4D04-8EAD-506ED87BCFE7} = {1E36D008-C06F-4C9A-9712-6F2B3C34B2E6}
 		{6ACA43BC-6784-47C9-8497-4D46A8761B6B} = {6AAFD3EC-83DD-4D06-AD71-535673D08885}
 		{B47F1D31-826C-419B-80ED-269B33CCDE0C} = {BA980939-3879-4FB5-98E8-563D3DFE0F45}
+		{3EA62AA0-AAA4-4C5A-99B6-C4E33FDB44C6} = {7F63D8A9-AB50-4B01-914F-E2B1563249DA}
+		{0AAB133F-D71A-4D18-91A2-B0CB93A75C6D} = {7F63D8A9-AB50-4B01-914F-E2B1563249DA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {15BFB62B-2566-4748-95BA-300E2503F5B5}
