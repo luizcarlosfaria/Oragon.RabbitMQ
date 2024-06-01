@@ -44,6 +44,8 @@ pipeline {
 
                         dotnet sonarscanner begin /k:"luizcarlosfaria_Oragon.RabbitMQ" \
                             /d:sonar.token="$SONARQUBE_KEY" \
+                            /d:sonar.branch.name="$BRANCH_NAME" \
+                            /d:sonar.branch.target="$BRANCH_NAME" \
                             /d:sonar.host.url="https://sonarcloud.io" \
                             /o:luizcarlosfaria\
                             /d:sonar.cs.vscoveragexml.reportsPaths=/output-coverage/coverage.xml
