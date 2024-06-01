@@ -46,8 +46,7 @@ pipeline {
                             /k:"Oragon.RabbitMQ" \
                             /o:luizcarlosfaria \
                             /d:sonar.token="$SONARQUBE_KEY" \
-                            /d:sonar.branch.name="$BRANCH_NAME" \
-                            /d:sonar.branch.target="$BRANCH_NAME" \
+                            /d:sonar.branch.name="$BRANCH_NAME"
                             /d:sonar.host.url="https://sonarcloud.io" \
                             /d:sonar.cs.vscoveragexml.reportsPaths=/output-coverage/coverage.xml
 
