@@ -55,7 +55,7 @@ pipeline {
                         {
                            // reservado nesses nesses casos não é necessário
 
-                        } else if (env.BRANCH_NAME == "develop")) 
+                        } else if (env.BRANCH_NAME == "develop")
                         {
                             sonarParams << '/d:sonar.branch.target=master'                            
 
