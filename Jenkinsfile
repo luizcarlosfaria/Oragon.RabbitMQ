@@ -79,22 +79,22 @@ pipeline {
 
                         }
 
-                            def sonarParamsText = sonarParams.join(' \\\r                            ')
+                        def sonarParamsText = sonarParams.join(' \\\r                            ')
 
-                            sh  """
+                        sh  """
 
-                                export PATH="\$PATH:/root/.dotnet/tools"
+                            export PATH="\$PATH:/root/.dotnet/tools"
 
-                                dotnet sonarscanner begin 
-                                    ${sonarParamsText}
+                            dotnet sonarscanner begin 
+                                ${sonarParamsText}
 
-                                dotnet build --no-incremental ./Oragon.RabbitMQ.sln
+                            dotnet build --no-incremental ./Oragon.RabbitMQ.sln
 
-                                dotnet-coverage collect "dotnet test" -f xml -o "/output-coverage/coverage.xml"
+                            dotnet-coverage collect "dotnet test" -f xml -o "/output-coverage/coverage.xml"
 
-                                dotnet sonarscanner end /d:sonar.token="\$SONARQUBE_KEY"
+                            dotnet sonarscanner end /d:sonar.token="\$SONARQUBE_KEY"
 
-                            """
+                        """
 
                     }
                 }
