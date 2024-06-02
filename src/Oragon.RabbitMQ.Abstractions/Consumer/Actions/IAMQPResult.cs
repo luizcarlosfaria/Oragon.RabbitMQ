@@ -1,5 +1,6 @@
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Oragon.RabbitMQ.Consumer.Actions;
 
