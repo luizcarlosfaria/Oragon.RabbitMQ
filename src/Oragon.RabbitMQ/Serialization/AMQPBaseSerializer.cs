@@ -38,11 +38,11 @@ public abstract class AMQPBaseSerializer : IAMQPSerializer
     /// <summary>
     /// Enable extension to serialize the message
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="TMessage"></typeparam>
     /// <param name="basicProperties"></param>
-    /// <param name="objectToSerialize"></param>
+    /// <param name="message"></param>
     /// <returns></returns>
-    protected abstract byte[] SerializeInternal<T>(BasicProperties basicProperties, T objectToSerialize);
+    protected abstract byte[] SerializeInternal<TMessage>(BasicProperties basicProperties, TMessage message);
 
 
     /// <summary>
@@ -70,7 +70,7 @@ public abstract class AMQPBaseSerializer : IAMQPSerializer
     /// <returns></returns>
     public byte[] Serialize<TMessage>(BasicProperties basicProperties, TMessage message)
     {
-        var returnValue = this.SerializeInternal(basicProperties, message); ;
+        var returnValue = this.SerializeInternal(basicProperties, message);
 
         return returnValue;
     }
