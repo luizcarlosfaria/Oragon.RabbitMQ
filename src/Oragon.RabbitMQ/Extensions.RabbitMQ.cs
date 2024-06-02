@@ -167,7 +167,7 @@ public static class RabbitMQExtensions
     {
         if (exception != null)
         {
-            _ = basicProperties.SetException(exception);
+            basicProperties = basicProperties.SetException(exception);
         }
         return basicProperties;
     }
