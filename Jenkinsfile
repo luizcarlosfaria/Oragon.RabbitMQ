@@ -40,15 +40,13 @@ pipeline {
                 {
                     script 
                     {
-
-                        sonarParams << '/d:sonar.branch.name="$BRANCH_NAME"'
-
                         def sonarParams = [
                             '/k:"Oragon.RabbitMQ"',
                             '/o:luizcarlosfaria',
                             '/d:sonar.token="$SONARQUBE_KEY"',
                             '/d:sonar.host.url="https://sonarcloud.io"',
-                            '/d:sonar.cs.vscoveragexml.reportsPaths=/output-coverage/coverage.xml'                            
+                            '/d:sonar.cs.vscoveragexml.reportsPaths=/output-coverage/coverage.xml',
+                            '/d:sonar.branch.name="$BRANCH_NAME"'
                         ]
 
                         if (env.BRANCH_NAME == "master")
