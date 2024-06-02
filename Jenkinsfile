@@ -44,51 +44,55 @@ pipeline {
 
                         // sonarcloud issue | https://community.sonarsource.com/t/could-not-find-ref-refs-heads-master-in-refs-heads-refs-remotes-upstream-or-refs-remotes-origin/37016/5
                         sh ''' git fetch origin master:master  '''
+                        sh ''' git fetch origin develop:develop  '''
+
+                        def sonarParams = [
+                            '/k:"Oragon.RabbitMQ"',
+                            '/o:luizcarlosfaria',
+                            '/d:sonar.token="$SONARQUBE_KEY"',
+                            '/d:sonar.host.url="https://sonarcloud.io"',
+                            '/d:sonar.cs.vscoveragexml.reportsPaths=/output-coverage/coverage.xml'                            
+                        ]
 
                         if ((env.BRANCH_NAME == "develop") || (env.BRANCH_NAME == "master")) {
+                    
+                            // reservado nesses nesses casos não é necessário
 
-                            sh  '''
+                        } else if (env.BRANCH_NAME.startsWith('feature/')) {
+                            
+                            sonarParams << '/d:sonar.branch.name="$BRANCH_NAME"'
+                            sonarParams << '/d:sonar.branch.target=develop'
 
-                                export PATH="$PATH:/root/.dotnet/tools"
+                        } else if (env.BRANCH_NAME.startsWith('hotfix/')) {
 
-                                dotnet sonarscanner begin \
-                                    /k:"Oragon.RabbitMQ" \
-                                    /o:luizcarlosfaria \
-                                    /d:sonar.token="$SONARQUBE_KEY" \
-                                    /d:sonar.host.url="https://sonarcloud.io" \
-                                    /d:sonar.cs.vscoveragexml.reportsPaths=/output-coverage/coverage.xml
+                            sonarParams << '/d:sonar.branch.name="$BRANCH_NAME"'
+                            sonarParams << '/d:sonar.branch.target=master'
 
-                                dotnet build --no-incremental ./Oragon.RabbitMQ.sln
+                        } else if (env.BRANCH_NAME.startsWith('release/')) {
 
-                                dotnet-coverage collect "dotnet test" -f xml -o "/output-coverage/coverage.xml"
-
-                                dotnet sonarscanner end /d:sonar.token="$SONARQUBE_KEY"
-
-                            '''
+                            sonarParams << '/d:sonar.branch.name="$BRANCH_NAME"'
+                            sonarParams << '/d:sonar.branch.target=master'
 
                         } else {
                             
-                            sh  '''
+                            // Não sabemos o que fazer
+
+                        }
+
+                            sh  """
 
                                 export PATH="$PATH:/root/.dotnet/tools"
 
-                                dotnet sonarscanner begin \
-                                    /k:"Oragon.RabbitMQ" \
-                                    /o:luizcarlosfaria \
-                                    /d:sonar.token="$SONARQUBE_KEY" \
-                                    /d:sonar.branch.name="$BRANCH_NAME" \
-                                    /d:sonar.branch.target=master \
-                                    /d:sonar.host.url="https://sonarcloud.io" \
-                                    /d:sonar.cs.vscoveragexml.reportsPaths=/output-coverage/coverage.xml
+                                dotnet sonarscanner begin ${sonarParams.join(' ')}                               
 
                                 dotnet build --no-incremental ./Oragon.RabbitMQ.sln
 
                                 dotnet-coverage collect "dotnet test" -f xml -o "/output-coverage/coverage.xml"
 
-                                dotnet sonarscanner end /d:sonar.token="$SONARQUBE_KEY"
+                                dotnet sonarscanner end /d:sonar.token="$$SONARQUBE_KEY"
 
-                            '''
-                        }
+                            """
+
                     }
                 }
                 
