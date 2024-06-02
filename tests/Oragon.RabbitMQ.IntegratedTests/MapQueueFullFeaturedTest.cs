@@ -1,7 +1,6 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using RabbitMQ.Client.Events;
 using RabbitMQ.Client;
 using System.Text;
 using Testcontainers.RabbitMq;
@@ -10,8 +9,6 @@ using Oragon.RabbitMQ.Serialization;
 using Microsoft.Extensions.Hosting;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualBasic;
-using System;
 
 namespace Oragon.RabbitMQ.IntegratedTests;
 
@@ -89,7 +86,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
         const string queue = "hello";
 
         ExampleMessage originalMessage = new ExampleMessage() { Name = $"Teste - {Guid.NewGuid().ToString("D")}", Age = 8 };
-        ExampleMessage receivedMessage = default;
+        ExampleMessage? receivedMessage = default;
 
         // Create and establish a connection.
         using var connection = await this.CreateConnectionAsync().ConfigureAwait(true);

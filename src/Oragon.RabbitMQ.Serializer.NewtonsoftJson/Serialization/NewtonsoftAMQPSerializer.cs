@@ -1,6 +1,5 @@
 using Dawn;
 using RabbitMQ.Client;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
@@ -10,14 +9,14 @@ namespace Oragon.RabbitMQ.Serialization;
 /// Implements serialization using Newtonsoft.Json
 /// </summary>
 [SuppressMessage("Sonar", "S100", Justification = "AMQP is a acronym for Advanced Message Queuing Protocol, so it's a name.")]
+[SuppressMessage("Sonar", "S101", Justification = "AMQP is a acronym for Advanced Message Queuing Protocol, so it's a name.")]
 public class NewtonsoftAMQPSerializer : AMQPBaseSerializer
 {
 
     /// <summary>
     /// Create a instance of NewtonsoftAMQPSerializer
-    /// </summary>
-    /// <param name="activitySource"></param>
-    public NewtonsoftAMQPSerializer(ActivitySource activitySource) : base(activitySource, nameof(NewtonsoftAMQPSerializer)) { }
+    /// </summary>    
+    public NewtonsoftAMQPSerializer() : base() { }
 
     /// <summary>
     /// Implement deserialization using Newtonsoft.Json

@@ -1,12 +1,8 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Oragon.RabbitMQ.Serialization;
 using Oragon.RabbitMQ.TestsExtensions;
 using RabbitMQ.Client;
@@ -17,9 +13,9 @@ public class NewtonsoftAMQPSerializerTests
 {
     private class Teste
     {
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
-        public int Age { get; set; }
+        public required int Age { get; set; }
     }
 
     [Fact]
@@ -31,7 +27,7 @@ public class NewtonsoftAMQPSerializerTests
 
         var sourceObject = new Teste() { Name = "Oragon.RabbitMQ", Age = 2 };
 
-        var serializer = new NewtonsoftAMQPSerializer(activitySource);
+        var serializer = new NewtonsoftAMQPSerializer();
 
         byte[] serializerOutput = serializer.Serialize(targetBasicProperties, sourceObject);
 
@@ -52,7 +48,7 @@ public class NewtonsoftAMQPSerializerTests
 
         byte[] reference = Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(sourceObject));
 
-        var serializer = new NewtonsoftAMQPSerializer(activitySource);
+        var serializer = new NewtonsoftAMQPSerializer();
 
         var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
@@ -79,7 +75,7 @@ public class NewtonsoftAMQPSerializerTests
 
         byte[] reference = [];
 
-        var serializer = new NewtonsoftAMQPSerializer(activitySource);
+        var serializer = new NewtonsoftAMQPSerializer();
 
         var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
@@ -104,7 +100,7 @@ public class NewtonsoftAMQPSerializerTests
 
         byte[] reference = Encoding.UTF8.GetBytes("");
 
-        var serializer = new NewtonsoftAMQPSerializer(activitySource);
+        var serializer = new NewtonsoftAMQPSerializer();
 
         var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
@@ -130,7 +126,7 @@ public class NewtonsoftAMQPSerializerTests
 
         byte[] reference = Encoding.UTF8.GetBytes(" ");
 
-        var serializer = new NewtonsoftAMQPSerializer(activitySource);
+        var serializer = new NewtonsoftAMQPSerializer();
 
         var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
