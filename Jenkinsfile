@@ -79,12 +79,14 @@ pipeline {
 
                         }
 
+                            def sonarParamsText = sonarParams.join(' \\\r                            ')
+
                             sh  """
 
                                 export PATH="\$PATH:/root/.dotnet/tools"
 
                                 dotnet sonarscanner begin 
-                                    ${sonarParams.join(' \\\r                                    ')}
+                                    ${sonarParamsText}
 
                                 dotnet build --no-incremental ./Oragon.RabbitMQ.sln
 
