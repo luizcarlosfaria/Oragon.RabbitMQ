@@ -107,7 +107,7 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
 
         var responseProperties = this.Channel.CreateBasicProperties()
                                                         .SetMessageId()
-                                                        .IfFunction(_ => exception != null, it => it.SetException(exception))
+                                                        .TrySetException(exception)
                                                         .SetTelemetry(activity)
                                                         .SetCorrelationId(receivedItem.BasicProperties);
 

@@ -157,6 +157,21 @@ public static class RabbitMQExtensions
         return basicProperties;
     }
 
+    /// <summary>
+    /// Try set Exception on BasicProperties
+    /// </summary>
+    /// <param name="basicProperties"></param>
+    /// <param name="exception"></param>
+    /// <returns></returns>
+    public static BasicProperties TrySetException(this BasicProperties basicProperties, Exception exception)
+    {
+        if (exception != null)
+        {
+            _ = basicProperties.SetException(exception);
+        }
+        return basicProperties;
+    }
+
 
     //public static bool TryReconstructException(this BasicProperties basicProperties, out AMQPRemoteException remoteException)
     //{
@@ -223,89 +238,4 @@ public static class RabbitMQExtensions
     //    return (long)xdeath["count"];
     //}
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="target"></param>
-    /// <param name="condition"></param>
-    /// <param name="actionWhenTrue"></param>
-    /// <param name="actionWhenFalse"></param>
-    /// <returns></returns>
-    public static T IfFunction<T>(this T target, Func<T, bool> condition, Func<T, T> actionWhenTrue, Func<T, T> actionWhenFalse = null)
-    {
-        _ = Guard.Argument(condition, nameof(condition)).NotNull();
-        _ = Guard.Argument(actionWhenTrue, nameof(actionWhenTrue)).NotNull();
-
-        if (target != null)
-        {
-            var conditionResult = condition(target);
-            if (conditionResult)
-                target = actionWhenTrue(target);
-            else if (actionWhenFalse != null)
-                target = actionWhenFalse(target);
-        }
-        return target;
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="target"></param>
-    /// <param name="condition"></param>
-    /// <param name="actionWhenTrue"></param>
-    /// <param name="actionWhenFalse"></param>
-    /// <returns></returns>
-    public static T IfAction<T>(this T target, Func<T, bool> condition, Action<T> actionWhenTrue, Action<T> actionWhenFalse = null)
-    {
-        _ = Guard.Argument(condition, nameof(condition)).NotNull();
-        _ = Guard.Argument(actionWhenTrue, nameof(actionWhenTrue)).NotNull();
-
-        if (target != null)
-        {
-            var conditionResult = condition(target);
-            if (conditionResult)
-                actionWhenTrue?.Invoke(target);
-            else 
-                actionWhenFalse?.Invoke(target);
-
-        }
-        return target;
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="target"></param>
-    /// <param name="action"></param>
-    /// <returns></returns>
-    public static T Fluent<T>(this T target, Action action)
-        where T : class
-    {
-        _ = Guard.Argument(target, nameof(target)).NotNull();
-        _ = Guard.Argument(action, nameof(action)).NotNull();
-
-        action();
-
-        return target;
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="target"></param>
-    /// <param name="func"></param>
-    /// <returns></returns>
-    public static T Fluent<T>(this T target, Func<T> func)
-        where T : class
-    {
-        _ = Guard.Argument(target, nameof(target)).NotNull();
-        _ = Guard.Argument(func, nameof(func)).NotNull();
-
-        return func();
-
-    }
 }
