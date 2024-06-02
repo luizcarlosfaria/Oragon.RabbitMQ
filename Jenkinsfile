@@ -38,13 +38,8 @@ pipeline {
 
                 withCredentials([usernamePassword(credentialsId: 'SonarQube', passwordVariable: 'SONARQUBE_KEY', usernameVariable: 'DUMMY' )]) 
                 {
-
                     script 
                     {
-
-                        // sonarcloud issue | https://community.sonarsource.com/t/could-not-find-ref-refs-heads-master-in-refs-heads-refs-remotes-upstream-or-refs-remotes-origin/37016/5
-                        sh ''' git fetch origin master:master  '''
-                        sh ''' git fetch origin develop:develop  '''
 
                         def sonarParams = [
                             '/k:"Oragon.RabbitMQ"',
@@ -79,9 +74,15 @@ pipeline {
 
                         }
 
-                        def sonarParamsText = sonarParams.join('\\'.concat("\r").concat("                            "))
+                        def sonarParamsText = sonarParams.join(' \\'.concat("\r").concat("                            "))
 
+                        // sonarcloud issue | https://community.sonarsource.com/t/could-not-find-ref-refs-heads-master-in-refs-heads-refs-remotes-upstream-or-refs-remotes-origin/37016/5
+                        // git fetch origin master:master | git fetch origin develop:develop
                         sh  """
+
+                            git fetch origin master:master
+
+                            git fetch origin develop:develop
 
                             export PATH="\$PATH:/root/.dotnet/tools"
 
