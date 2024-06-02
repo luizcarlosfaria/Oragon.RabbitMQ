@@ -61,9 +61,9 @@ public static class TelemetryExtensions
     public static ActivitySpanId GetSpanId(this BasicProperties basicProperties)
     {
         ArgumentNullException.ThrowIfNull(basicProperties);
-        if (basicProperties.Headers != null && basicProperties.Headers.ContainsKey("SpanId"))
-            return ActivitySpanId.CreateFromString(basicProperties.Headers.AsString("SpanId"));
-        return default;
+        return basicProperties.Headers != null && basicProperties.Headers.ContainsKey("SpanId")
+            ? ActivitySpanId.CreateFromString(basicProperties.Headers.AsString("SpanId"))
+            : default;
     }
 
     /// <summary>

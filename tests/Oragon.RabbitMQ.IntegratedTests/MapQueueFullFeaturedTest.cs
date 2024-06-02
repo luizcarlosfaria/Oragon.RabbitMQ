@@ -20,23 +20,18 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
         public int Age { get; set; }
     }
 
-    public class ExampleService
+    public class ExampleService(EventWaitHandle waitHandle, Action<MapQueueFullFeaturedTest.ExampleMessage> callbackToTests)
     {
-        public ExampleService(EventWaitHandle waitHandle, Action<ExampleMessage> callbackToTests)
-        {
-            this.WaitHandle = waitHandle;
-            this.CallbackToTests = callbackToTests;
-        }
 
         /// <summary>
         /// Only for test purposes
         /// </summary>
-        public EventWaitHandle WaitHandle { get; }
+        public EventWaitHandle WaitHandle { get; } = waitHandle;
 
         /// <summary>
         /// Only for test purposes
         /// </summary>
-        public Action<ExampleMessage> CallbackToTests { get; }
+        public Action<ExampleMessage> CallbackToTests { get; } = callbackToTests;
 
         public Task TestAsync(ExampleMessage message)
         {
@@ -85,7 +80,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
     {
         const string queue = "hello";
 
-        ExampleMessage originalMessage = new ExampleMessage() { Name = $"Teste - {Guid.NewGuid().ToString("D")}", Age = 8 };
+        var originalMessage = new ExampleMessage() { Name = $"Teste - {Guid.NewGuid():D}", Age = 8 };
         ExampleMessage? receivedMessage = default;
 
         // Create and establish a connection.
@@ -95,10 +90,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
         EventWaitHandle waitHandle = new ManualResetEvent(false);
 
         ServiceCollection services = new();
-        services.AddLogging(loggingBuilder =>
-           {
-               loggingBuilder.AddConsole();
-           });
+        services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
 
         // Singleton dependencies
         services.AddSingleton(new ActivitySource("test"));
@@ -127,7 +119,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
 
         var sp = services.BuildServiceProvider();
 
-        IHostedService hostedService = sp.GetRequiredService<IHostedService>();
+        var hostedService = sp.GetRequiredService<IHostedService>();
 
         await hostedService.StartAsync(CancellationToken.None);
 
