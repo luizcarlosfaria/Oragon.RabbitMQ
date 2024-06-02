@@ -95,7 +95,7 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
             .SetTag("messaging.destination", delivery.Exchange)
             .SetTag("messaging.rabbitmq.routing_key", delivery.RoutingKey);
 
-        IAMQPResult result = this.TryDeserialize(receiveActivity, delivery, out var request)
+        var result = this.TryDeserialize(receiveActivity, delivery, out var request)
                             ? await this.DispatchAsync(receiveActivity, delivery, request).ConfigureAwait(true)
                             : new RejectResult(false);
 

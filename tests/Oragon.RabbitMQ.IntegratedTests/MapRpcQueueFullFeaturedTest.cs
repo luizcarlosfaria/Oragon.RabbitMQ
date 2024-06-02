@@ -78,7 +78,7 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
     {
         const string serverQueue = "rpc-server-example";
 
-        RequestMessage originalMessage = new RequestMessage()
+        var originalMessage = new RequestMessage()
         {
             Num1 = Random.Shared.Next(10),
             Num2 = Random.Shared.Next(10)
@@ -90,10 +90,7 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
 
 
         ServiceCollection services = new();
-        services.AddLogging(loggingBuilder =>
-           {
-               loggingBuilder.AddConsole();
-           });
+        services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
 
         // Singleton dependencies
         services.AddSingleton(new ActivitySource("test"));
@@ -117,7 +114,7 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
         _ = await channel.QueueDeclareAsync(serverQueue, false, false, false, null);
         var replyQueue = await channel.QueueDeclareAsync(queue: string.Empty, exclusive: true, autoDelete: true);
 
-        BasicProperties basicProperties = channel.CreateBasicProperties();
+        var basicProperties = channel.CreateBasicProperties();
         basicProperties.ReplyTo = replyQueue.QueueName;
         basicProperties.MessageId = Guid.NewGuid().ToString("D");
 
@@ -126,7 +123,7 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
 
         var sp = services.BuildServiceProvider();
 
-        IHostedService hostedService = sp.GetRequiredService<IHostedService>();
+        var hostedService = sp.GetRequiredService<IHostedService>();
 
         await hostedService.StartAsync(CancellationToken.None);
 
@@ -143,7 +140,7 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
             return Task.CompletedTask;
         };
 
-        string consumerTag = await channel.BasicConsumeAsync(replyQueue.QueueName, true, consumer);
+        var consumerTag = await channel.BasicConsumeAsync(replyQueue.QueueName, true, consumer);
 
         _ = waitHandle.WaitOne(
            Debugger.IsAttached

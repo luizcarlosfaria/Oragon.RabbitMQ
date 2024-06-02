@@ -8,10 +8,10 @@ using Oragon.RabbitMQ.TestsExtensions;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
-namespace Oragon.RabbitMQ.UnitTests.Oragon_RabbitMQ_Serializer_NewtonsoftJson;
+namespace Oragon.RabbitMQ.UnitTests.Oragon_RabbitMQ_Serializers;
 public class NewtonsoftAMQPSerializerTests
 {
-    private class Teste
+    private sealed class Teste
     {
         public required string Name { get; set; }
 
@@ -29,9 +29,9 @@ public class NewtonsoftAMQPSerializerTests
 
         var serializer = new NewtonsoftAMQPSerializer();
 
-        byte[] serializerOutput = serializer.Serialize(targetBasicProperties, sourceObject);
+        var serializerOutput = serializer.Serialize(targetBasicProperties, sourceObject);
 
-        byte[] reference = Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(sourceObject));
+        var reference = Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(sourceObject));
 
         Assert.Equal(reference, serializerOutput);
 
@@ -46,7 +46,7 @@ public class NewtonsoftAMQPSerializerTests
 
         var sourceObject = new Teste() { Name = "Oragon.RabbitMQ", Age = 2 };
 
-        byte[] reference = Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(sourceObject));
+        var reference = Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(sourceObject));
 
         var serializer = new NewtonsoftAMQPSerializer();
 
@@ -98,7 +98,7 @@ public class NewtonsoftAMQPSerializerTests
 
         var basicProperties = new BasicProperties();
 
-        byte[] reference = Encoding.UTF8.GetBytes("");
+        var reference = Encoding.UTF8.GetBytes("");
 
         var serializer = new NewtonsoftAMQPSerializer();
 
@@ -124,7 +124,7 @@ public class NewtonsoftAMQPSerializerTests
 
         var basicProperties = new BasicProperties();
 
-        byte[] reference = Encoding.UTF8.GetBytes(" ");
+        var reference = Encoding.UTF8.GetBytes(" ");
 
         var serializer = new NewtonsoftAMQPSerializer();
 

@@ -5,23 +5,15 @@ using RabbitMQ.Client;
 namespace Oragon.RabbitMQ.Consumer.Actions;
 
 /// <summary>
-/// 
+/// Create a instance of RejectResult that will reject the message
 /// </summary>
-public class RejectResult : IAMQPResult
+/// <param name="requeue"></param>
+public class RejectResult(bool requeue) : IAMQPResult
 {
     /// <summary>
-    /// 
+    /// Define if the message should be requeued
     /// </summary>
-    public bool Requeue { get; }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="requeue"></param>
-    public RejectResult(bool requeue)
-    {
-        this.Requeue = requeue;
-    }
+    public bool Requeue { get; } = requeue;
 
     /// <summary>
     /// Perform reject on channel

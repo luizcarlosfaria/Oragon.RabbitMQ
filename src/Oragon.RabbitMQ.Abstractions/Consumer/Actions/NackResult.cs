@@ -7,22 +7,17 @@ namespace Oragon.RabbitMQ.Consumer.Actions;
 /// <summary>
 /// Nack the message
 /// </summary>
-public class NackResult : IAMQPResult
+/// <remarks>
+/// Creates a new instance of <see cref="NackResult"/>
+/// </remarks>
+/// <param name="requeue"></param>
+public class NackResult(bool requeue) : IAMQPResult
 {
 
     /// <summary>
     /// Indicates if the message should be requeued
     /// </summary>
-    public bool Requeue { get; }
-
-    /// <summary>
-    /// Creates a new instance of <see cref="NackResult"/>
-    /// </summary>
-    /// <param name="requeue"></param>
-    public NackResult(bool requeue)
-    {
-        this.Requeue = requeue;
-    }
+    public bool Requeue { get; } = requeue;
 
     /// <summary>
     /// Perform nack on channel
