@@ -41,6 +41,8 @@ pipeline {
                     script 
                     {
 
+                        sonarParams << '/d:sonar.branch.name="$BRANCH_NAME"'
+
                         def sonarParams = [
                             '/k:"Oragon.RabbitMQ"',
                             '/o:luizcarlosfaria',
@@ -49,23 +51,24 @@ pipeline {
                             '/d:sonar.cs.vscoveragexml.reportsPaths=/output-coverage/coverage.xml'                            
                         ]
 
-                        if ((env.BRANCH_NAME == "develop") || (env.BRANCH_NAME == "master")) {
-                    
-                            // reservado nesses nesses casos não é necessário
+                        if (env.BRANCH_NAME == "master")
+                        {
+                           // reservado nesses nesses casos não é necessário
+
+                        } else if (env.BRANCH_NAME == "develop")) 
+                        {
+                            sonarParams << '/d:sonar.branch.target=master'                            
 
                         } else if (env.BRANCH_NAME.startsWith('feature/')) {
                             
-                            sonarParams << '/d:sonar.branch.name="$BRANCH_NAME"'
                             sonarParams << '/d:sonar.branch.target=develop'
 
                         } else if (env.BRANCH_NAME.startsWith('hotfix/')) {
 
-                            sonarParams << '/d:sonar.branch.name="$BRANCH_NAME"'
                             sonarParams << '/d:sonar.branch.target=master'
 
                         } else if (env.BRANCH_NAME.startsWith('release/')) {
 
-                            sonarParams << '/d:sonar.branch.name="$BRANCH_NAME"'
                             sonarParams << '/d:sonar.branch.target=master'
 
                         } else {
