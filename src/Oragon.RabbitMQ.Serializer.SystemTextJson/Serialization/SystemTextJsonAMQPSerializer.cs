@@ -1,5 +1,4 @@
 using RabbitMQ.Client;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
@@ -16,9 +15,8 @@ public class SystemTextJsonAMQPSerializer : AMQPBaseSerializer
 
     /// <summary>
     /// Create a instance of SystemTextJsonAMQPSerializer
-    /// </summary>
-    /// <param name="activitySource"></param>
-    public SystemTextJsonAMQPSerializer(ActivitySource activitySource) : base(activitySource, nameof(SystemTextJsonAMQPSerializer)) { }
+    /// </summary>    
+    public SystemTextJsonAMQPSerializer() : base() { }
 
 
     /// <summary>

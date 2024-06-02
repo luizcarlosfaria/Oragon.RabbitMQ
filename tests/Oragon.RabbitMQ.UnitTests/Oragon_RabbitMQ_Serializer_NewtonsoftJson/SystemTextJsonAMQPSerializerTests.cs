@@ -1,13 +1,9 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Oragon.RabbitMQ.Serialization;
 using Oragon.RabbitMQ.TestsExtensions;
 using RabbitMQ.Client;
@@ -19,9 +15,9 @@ public class SystemTextJsonAMQPSerializerTests
 {
     private class Teste
     {
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
-        public int Age { get; set; }
+        public required int Age { get; set; }
     }
 
     [Fact]
@@ -33,7 +29,7 @@ public class SystemTextJsonAMQPSerializerTests
 
         var sourceObject = new Teste() { Name = "Oragon.RabbitMQ", Age = 2 };
 
-        var serializer = new SystemTextJsonAMQPSerializer(activitySource);
+        var serializer = new SystemTextJsonAMQPSerializer();
 
         byte[] serializerOutput = serializer.Serialize(targetBasicProperties, sourceObject);
 
@@ -54,7 +50,7 @@ public class SystemTextJsonAMQPSerializerTests
 
         byte[] reference = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(sourceObject));
 
-        var serializer = new SystemTextJsonAMQPSerializer(activitySource);
+        var serializer = new SystemTextJsonAMQPSerializer();
 
         var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
@@ -81,7 +77,7 @@ public class SystemTextJsonAMQPSerializerTests
 
         byte[] reference = [];
 
-        var serializer = new SystemTextJsonAMQPSerializer(activitySource);
+        var serializer = new SystemTextJsonAMQPSerializer();
 
         var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
@@ -106,7 +102,7 @@ public class SystemTextJsonAMQPSerializerTests
 
         byte[] reference = Encoding.UTF8.GetBytes("");
 
-        var serializer = new SystemTextJsonAMQPSerializer(activitySource);
+        var serializer = new SystemTextJsonAMQPSerializer();
 
         var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
@@ -132,7 +128,7 @@ public class SystemTextJsonAMQPSerializerTests
 
         byte[] reference = Encoding.UTF8.GetBytes(" ");
 
-        var serializer = new SystemTextJsonAMQPSerializer(activitySource);
+        var serializer = new SystemTextJsonAMQPSerializer();
 
         var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",

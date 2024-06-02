@@ -1,7 +1,6 @@
 using Dawn;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Oragon.RabbitMQ.Serialization;
@@ -13,19 +12,11 @@ namespace Oragon.RabbitMQ.Serialization;
 [SuppressMessage("Sonar", "S101", Justification = "AMQP is a acronym for Advanced Message Queuing Protocol, so it's a name.")]
 public abstract class AMQPBaseSerializer : IAMQPSerializer
 {
-    private readonly ActivitySource activitySource;
-    private readonly string name;
-
-
     /// <summary>
     /// Create a new instance of AMQPBaseSerializer
-    /// </summary>
-    /// <param name="activitySource"></param>
-    /// <param name="name"></param>
-    protected AMQPBaseSerializer(ActivitySource activitySource, string name)
+    /// </summary>    
+    protected AMQPBaseSerializer()
     {
-        this.activitySource = activitySource;
-        this.name = name;
     }
 
     /// <summary>

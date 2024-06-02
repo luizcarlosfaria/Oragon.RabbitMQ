@@ -10,8 +10,6 @@ using Oragon.RabbitMQ.Serialization;
 using Microsoft.Extensions.Hosting;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualBasic;
-using System;
 
 namespace Oragon.RabbitMQ.IntegratedTests;
 
@@ -85,7 +83,7 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
             Num1 = Random.Shared.Next(10),
             Num2 = Random.Shared.Next(10)
         };
-        ResponseMessage receivedMessage = default;
+        ResponseMessage? receivedMessage = default;
 
         // Create and establish a connection.
         using var connection = await this.CreateConnectionAsync().ConfigureAwait(true);

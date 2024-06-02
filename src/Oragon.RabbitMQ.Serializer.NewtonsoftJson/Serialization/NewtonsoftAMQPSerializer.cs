@@ -1,6 +1,5 @@
 using Dawn;
 using RabbitMQ.Client;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
@@ -16,9 +15,8 @@ public class NewtonsoftAMQPSerializer : AMQPBaseSerializer
 
     /// <summary>
     /// Create a instance of NewtonsoftAMQPSerializer
-    /// </summary>
-    /// <param name="activitySource"></param>
-    public NewtonsoftAMQPSerializer(ActivitySource activitySource) : base(activitySource, nameof(NewtonsoftAMQPSerializer)) { }
+    /// </summary>    
+    public NewtonsoftAMQPSerializer() : base() { }
 
     /// <summary>
     /// Implement deserialization using Newtonsoft.Json
