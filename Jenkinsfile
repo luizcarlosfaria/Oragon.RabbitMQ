@@ -81,15 +81,16 @@ pipeline {
 
                             sh  """
 
-                                export PATH="$PATH:/root/.dotnet/tools"
+                                export PATH="\$PATH:/root/.dotnet/tools"
 
-                                dotnet sonarscanner begin ${sonarParams.join(' ')}                               
+                                dotnet sonarscanner begin 
+                                    ${sonarParams.join(' \\\r                                    ')}
 
                                 dotnet build --no-incremental ./Oragon.RabbitMQ.sln
 
                                 dotnet-coverage collect "dotnet test" -f xml -o "/output-coverage/coverage.xml"
 
-                                dotnet sonarscanner end /d:sonar.token="$$SONARQUBE_KEY"
+                                dotnet sonarscanner end /d:sonar.token="\$SONARQUBE_KEY"
 
                             """
 
