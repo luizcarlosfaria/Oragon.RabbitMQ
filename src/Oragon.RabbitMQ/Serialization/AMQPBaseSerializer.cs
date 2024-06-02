@@ -10,6 +10,7 @@ namespace Oragon.RabbitMQ.Serialization;
 /// Base serializer for AMQP implementation with OpenTelemetry support
 /// </summary>
 [SuppressMessage("Sonar", "S100", Justification = "AMQP is a acronym for Advanced Message Queuing Protocol, so it's a name.")]
+[SuppressMessage("Sonar", "S101", Justification = "AMQP is a acronym for Advanced Message Queuing Protocol, so it's a name.")]
 public abstract class AMQPBaseSerializer : IAMQPSerializer
 {
     private readonly ActivitySource activitySource;
