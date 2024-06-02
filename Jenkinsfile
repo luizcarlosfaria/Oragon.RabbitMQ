@@ -79,7 +79,7 @@ pipeline {
 
                         }
 
-                        def sonarParamsText = sonarParams.join(' \\\r                            ')
+                        def sonarParamsText = sonarParams.join("\\".concat("\r").concat("                            "))
 
                         sh  """
 
