@@ -2,12 +2,14 @@ using Dawn;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Oragon.RabbitMQ.Serialization;
 
 /// <summary>
 /// Base serializer for AMQP implementation with OpenTelemetry support
 /// </summary>
+[SuppressMessage("Sonar", "S100", Justification = "AMQP is a acronym for Advanced Message Queuing Protocol, so it's a name.")]
 public abstract class AMQPBaseSerializer : IAMQPSerializer
 {
     private readonly ActivitySource activitySource;

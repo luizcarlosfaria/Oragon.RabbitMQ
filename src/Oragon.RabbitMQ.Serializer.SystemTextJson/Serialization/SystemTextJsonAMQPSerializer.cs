@@ -1,5 +1,6 @@
 using RabbitMQ.Client;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace Oragon.RabbitMQ.Serialization;
@@ -8,6 +9,7 @@ namespace Oragon.RabbitMQ.Serialization;
 /// <summary>
 /// Implements serialization using System.Text.Json
 /// </summary>
+[SuppressMessage("Sonar", "S100", Justification = "AMQP is a acronym for Advanced Message Queuing Protocol, so it's a name.")]
 public class SystemTextJsonAMQPSerializer : AMQPBaseSerializer
 {
 

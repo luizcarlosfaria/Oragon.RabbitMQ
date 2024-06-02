@@ -14,6 +14,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 namespace Oragon.RabbitMQ.UnitTests.Oragon_RabbitMQ_Serializer_NewtonsoftJson;
+
 public class SystemTextJsonAMQPSerializerTests
 {
     private class Teste
