@@ -1,6 +1,7 @@
 using Dawn;
 using RabbitMQ.Client;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace Oragon.RabbitMQ.Serialization;
@@ -8,6 +9,7 @@ namespace Oragon.RabbitMQ.Serialization;
 /// <summary>
 /// Implements serialization using Newtonsoft.Json
 /// </summary>
+[SuppressMessage("Sonar", "S100", Justification = "AMQP is a acronym for Advanced Message Queuing Protocol, so it's a name.")]
 public class NewtonsoftAMQPSerializer : AMQPBaseSerializer
 {
 
@@ -43,12 +45,12 @@ public class NewtonsoftAMQPSerializer : AMQPBaseSerializer
     /// <summary>
     /// Implement Serialization with Newtonsoft.Json
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="TMessage"></typeparam>
     /// <param name="basicProperties"></param>
-    /// <param name="objectToSerialize"></param>
+    /// <param name="message"></param>
     /// <returns></returns>
-    protected override byte[] SerializeInternal<T>(BasicProperties basicProperties, T objectToSerialize)
+    protected override byte[] SerializeInternal<TMessage>(BasicProperties basicProperties, TMessage message)
     {
-        return Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(objectToSerialize));
+        return Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(message));
     }
 }

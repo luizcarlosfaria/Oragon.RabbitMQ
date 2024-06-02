@@ -16,7 +16,7 @@ public static class TelemetryExtensions
     /// <param name="name"></param>
     /// <param name="kind"></param>
     /// <returns></returns>
-    public static Activity SafeStartActivity(this ActivitySource activitySource, [CallerMemberName] string name = "", ActivityKind kind = ActivityKind.Internal)
+    public static Activity SafeStartActivity(this ActivitySource activitySource, ActivityKind kind = ActivityKind.Internal, [CallerMemberName] string name = "")
     {
         ArgumentNullException.ThrowIfNull(activitySource);
         var activity = activitySource.StartActivity(name, kind) ?? new Activity("?" + name);
@@ -32,7 +32,7 @@ public static class TelemetryExtensions
     /// <param name="kind"></param>
     /// <param name="parentContext"></param>
     /// <returns></returns>
-    public static Activity SafeStartActivity(this ActivitySource activitySource, string name, ActivityKind kind, ActivityContext parentContext)
+    public static Activity SafeStartActivity(this ActivitySource activitySource, ActivityKind kind, ActivityContext parentContext, [CallerMemberName] string name = "")
     {
         ArgumentNullException.ThrowIfNull(activitySource);
         var activity = activitySource.StartActivity(name, kind, parentContext) ?? new Activity("?" + name);

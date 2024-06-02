@@ -2,12 +2,14 @@ using Dawn;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Oragon.RabbitMQ.Serialization;
 
 /// <summary>
 /// Base serializer for AMQP implementation with OpenTelemetry support
 /// </summary>
+[SuppressMessage("Sonar", "S100", Justification = "AMQP is a acronym for Advanced Message Queuing Protocol, so it's a name.")]
 public abstract class AMQPBaseSerializer : IAMQPSerializer
 {
     private readonly ActivitySource activitySource;
@@ -38,11 +40,11 @@ public abstract class AMQPBaseSerializer : IAMQPSerializer
     /// <summary>
     /// Enable extension to serialize the message
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="TMessage"></typeparam>
     /// <param name="basicProperties"></param>
-    /// <param name="objectToSerialize"></param>
+    /// <param name="message"></param>
     /// <returns></returns>
-    protected abstract byte[] SerializeInternal<T>(BasicProperties basicProperties, T objectToSerialize);
+    protected abstract byte[] SerializeInternal<TMessage>(BasicProperties basicProperties, TMessage message);
 
 
     /// <summary>
@@ -70,7 +72,7 @@ public abstract class AMQPBaseSerializer : IAMQPSerializer
     /// <returns></returns>
     public byte[] Serialize<TMessage>(BasicProperties basicProperties, TMessage message)
     {
-        var returnValue = this.SerializeInternal(basicProperties, message); ;
+        var returnValue = this.SerializeInternal(basicProperties, message);
 
         return returnValue;
     }
