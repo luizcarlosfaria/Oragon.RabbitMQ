@@ -36,12 +36,14 @@ public class MessagePublisher(IConnection connection, IAMQPSerializer serializer
     [SuppressMessage("Usage", "CA2201", Justification = "Do not raise reserved exception types")]
     public async Task SendAsync<T>(string exchange, string routingKey, T message)
     {
-        using Activity publisherActivity = s_activitySource.StartActivity("MessagePublisher.SendAsync", ActivityKind.Producer) ?? throw new NullReferenceException(nameof(publisherActivity));
+        //TODO: Rever
+        using Activity publisherActivity = s_activitySource.StartActivity("MessagePublisher.SendAsync", ActivityKind.Producer) ?? throw new InvalidOperationException("s_activitySource.StartActivity produces null");
 
         using IChannel model = await this.connection.CreateChannelAsync().ConfigureAwait(true);
 
         var properties = model.CreateBasicProperties().EnsureHeaders().SetDurable(true);
 
+        //TODO: Rever
         var contextToInject = GetActivityContext(publisherActivity);
 
         // Inject the ActivityContext into the message headers to propagate trace context to the receiving service.
