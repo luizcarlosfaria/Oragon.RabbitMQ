@@ -43,7 +43,8 @@ pipeline {
                     {
 
                         // sonarcloud issue | https://community.sonarsource.com/t/could-not-find-ref-refs-heads-master-in-refs-heads-refs-remotes-upstream-or-refs-remotes-origin/37016/5
-                        sh ''' git fetch --unshallow  '''
+                        sh ''' git fetch origin master:master  '''
+                        sh ''' git fetch origin develop:develop  '''
 
                         def sonarParams = [
                             '/k:"Oragon.RabbitMQ"',
