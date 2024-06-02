@@ -85,8 +85,7 @@ pipeline {
 
                             export PATH="\$PATH:/root/.dotnet/tools"
 
-                            dotnet sonarscanner begin 
-                                ${sonarParamsText}
+                            dotnet sonarscanner begin ${sonarParamsText}
 
                             dotnet build --no-incremental ./Oragon.RabbitMQ.sln
 
