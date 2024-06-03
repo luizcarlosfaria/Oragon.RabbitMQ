@@ -122,14 +122,22 @@ public static class RabbitMQExtensions
     /// <returns></returns>
     public static string AsString(this IDictionary<string, object> dic, string key)
     {
-        var content = dic?[key];
-        return content != null
-            ? content is byte[] contentInBytes
-                ? Encoding.UTF8.GetString(contentInBytes)
-                : content is string contentInString
-                    ? contentInString
-                    : null
-                    : null;
+        var content = dic?[key] ?? null;
+
+        if (content != null)
+        {
+            if (content is byte[] contentInBytes)
+            {
+                return Encoding.UTF8.GetString(contentInBytes);
+            }
+
+            if (content is string contentInString)
+            {
+                return contentInString;
+            }
+        }
+
+        return null;
     }
 
     //public static List<string> AsStringList(this object objectToConvert)
