@@ -123,7 +123,13 @@ public static class RabbitMQExtensions
     public static string AsString(this IDictionary<string, object> dic, string key)
     {
         var content = dic?[key];
-        return content != null ? Encoding.UTF8.GetString((byte[])content) : null;
+        return content != null
+            ? content is byte[] contentInBytes
+                ? Encoding.UTF8.GetString(contentInBytes)
+                : content is string contentInString
+                    ? contentInString
+                    : null
+                    : null;
     }
 
     //public static List<string> AsStringList(this object objectToConvert)

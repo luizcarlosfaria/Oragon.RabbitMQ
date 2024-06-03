@@ -19,7 +19,7 @@ public static class TelemetryExtensions
     public static Activity SafeStartActivity(this ActivitySource activitySource, ActivityKind kind = ActivityKind.Internal, [CallerMemberName] string name = "")
     {
         ArgumentNullException.ThrowIfNull(activitySource);
-        var activity = activitySource.StartActivity(name, kind) ?? new Activity("?" + name);
+        var activity = activitySource.StartActivity(name, kind) ?? new Activity(name);
         _ = activity.SetStartTime(DateTime.UtcNow);
         return activity;
     }
@@ -35,7 +35,7 @@ public static class TelemetryExtensions
     public static Activity SafeStartActivity(this ActivitySource activitySource, ActivityKind kind, ActivityContext parentContext, [CallerMemberName] string name = "")
     {
         ArgumentNullException.ThrowIfNull(activitySource);
-        var activity = activitySource.StartActivity(name, kind, parentContext) ?? new Activity("?" + name);
+        var activity = activitySource.StartActivity(name, kind, parentContext) ?? new Activity(name);
         _ = activity.SetStartTime(DateTime.UtcNow);
         return activity;
     }
@@ -87,14 +87,25 @@ public static class TelemetryExtensions
     public static BasicProperties SetTelemetry(this BasicProperties basicProperties, Activity activity)
     {
         ArgumentNullException.ThrowIfNull(basicProperties);
-        if (activity != null)
-        {
-            _ = basicProperties
+
+        return (activity != null)
+            ? basicProperties
                 .SetSpanId(activity.SpanId)
-                .SetTraceId(activity.TraceId);
-        }
+                .SetTraceId(activity.TraceId)
+            : basicProperties;
+    }
+
+    private static BasicProperties SetHeader(this BasicProperties basicProperties, string key, object value)
+    {
+        ArgumentNullException.ThrowIfNull(basicProperties);
+
+        basicProperties = basicProperties.EnsureHeaders();
+
+        basicProperties.Headers![key] = value;
+        
         return basicProperties;
     }
+
 
     /// <summary>
     /// Set the TraceId in the BasicProperties
@@ -105,11 +116,10 @@ public static class TelemetryExtensions
     private static BasicProperties SetTraceId(this BasicProperties basicProperties, ActivityTraceId? activityTraceId)
     {
         ArgumentNullException.ThrowIfNull(basicProperties);
-        if (activityTraceId != null)
-        {
-            basicProperties.EnsureHeaders().Headers!["TraceId"] = activityTraceId.ToString();
-        }
-        return basicProperties;
+
+        return(activityTraceId != null)
+            ? basicProperties.SetHeader("TraceId", activityTraceId.ToString())
+            : basicProperties;
     }
 
 
@@ -122,11 +132,9 @@ public static class TelemetryExtensions
     private static BasicProperties SetSpanId(this BasicProperties basicProperties, ActivitySpanId? activitySpanId)
     {
         ArgumentNullException.ThrowIfNull(basicProperties);
-        if (activitySpanId != null)
-        {
-            basicProperties.EnsureHeaders().Headers!["SpanId"] = activitySpanId.ToString();
-        }
-        return basicProperties;
+        return (activitySpanId != null)
+            ? basicProperties.SetHeader("SpanId", activitySpanId.ToString())
+            : basicProperties;
     }
 
 }
