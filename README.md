@@ -81,7 +81,7 @@ builder.Services.MapQueue<BusinessService, BusinessCommandOrEvent>(config => con
     .WithDispatchInChildScope()
     .WithKeyedService("key-of-service-1") 
     .WithAdapter((svc, msg) => svc.DoSomethingAsync(msg))
-    .WithQueueName("events")
+    .WithQueueName("events1")
     .WithPrefetchCount(1)
 );
 
@@ -89,7 +89,7 @@ builder.Services.MapQueue<BusinessService, BusinessCommandOrEvent>(config => con
     .WithDispatchInChildScope()
     .WithKeyedService("key-of-service-2") 
     .WithAdapter((svc, msg) => svc.DoSomethingAsync(msg))
-    .WithQueueName("events")
+    .WithQueueName("events2")
     .WithPrefetchCount(1)
 );
 
