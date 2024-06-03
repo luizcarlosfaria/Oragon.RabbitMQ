@@ -89,14 +89,14 @@ public class MultipleConsumersTest : IAsyncLifetime
     [Fact]
     public async Task MultipleQueuesTest()
     {
-        Pack pack1 = null;
+        Pack? pack1 = null;
         pack1 = new Pack(
             "queue1",
             new ExampleMessage() { Name = $"Teste - {Guid.NewGuid():D}", Age = 3 },
             (msg) => pack1!.MessagReceived = msg
             );
 
-        Pack pack2 = null;
+        Pack? pack2 = null;
         pack2 = new Pack(
            "queue2",
            new ExampleMessage() { Name = $"Teste - {Guid.NewGuid():D}", Age = 2 },
@@ -155,9 +155,7 @@ public class MultipleConsumersTest : IAsyncLifetime
             await hostedService.StartAsync(CancellationToken.None);
         }
 
-
-
-        Task.WaitAll(
+        await Task.WhenAll(
                 packs.
                     Select(p => Task.Run(() =>
                         p.WaitHandle.WaitOne(
