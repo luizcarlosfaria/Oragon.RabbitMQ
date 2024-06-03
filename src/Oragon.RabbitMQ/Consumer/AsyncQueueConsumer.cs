@@ -11,6 +11,7 @@ using Oragon.RabbitMQ.Consumer.Actions;
 using System.Diagnostics.CodeAnalysis;
 
 
+
 namespace Oragon.RabbitMQ.Consumer;
 
 
@@ -193,7 +194,7 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
         {
             if (this.parameters.DispatchScope == DispatchScope.RootScope)
             {
-                var service = this.parameters.ServiceProvider.GetRequiredService<TService>();
+                var service = this.GetService<TService>(this.parameters.ServiceProvider);
 
                 await this.parameters.AdapterFunc(service, request).ConfigureAwait(true);
             }
@@ -201,7 +202,7 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
             {
                 using (var scope = this.parameters.ServiceProvider.CreateScope())
                 {
-                    var service = scope.ServiceProvider.GetRequiredService<TService>();
+                    var service = this.GetService<TService>(scope.ServiceProvider);
 
                     await this.parameters.AdapterFunc(service, request).ConfigureAwait(true);
                 }
@@ -219,5 +220,12 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
         //}
 
         return returnValue;
+    }
+
+    private T GetService<T>(IServiceProvider serviceProvider)
+    {
+        return this.parameters.IsKeyedService
+            ? serviceProvider.GetRequiredKeyedService<T>(this.parameters.KeyOfService)
+            : serviceProvider.GetRequiredService<T>();
     }
 }

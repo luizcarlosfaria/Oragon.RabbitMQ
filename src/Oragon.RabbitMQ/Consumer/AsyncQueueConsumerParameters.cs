@@ -62,6 +62,21 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     public Func<TService, TRequest, TResponse> AdapterFunc { get; private set; }
 
     /// <summary>
+    /// Requeue On Crash
+    /// </summary>
+    public bool RequeueOnCrash { get; private set; }
+
+    /// <summary>
+    /// KeyOfService on Keyed Services
+    /// </summary>
+    public string KeyOfService { get; private set; }
+
+    /// <summary>
+    /// Validate service is Keyed Service
+    /// </summary>
+    public bool IsKeyedService => !string.IsNullOrEmpty(this.KeyOfService);
+
+    /// <summary>
     /// Set an Adapter Func
     /// </summary>
     /// <param name="adapterExpression"></param>
@@ -110,10 +125,7 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
         return this;
     }
 
-    /// <summary>
-    /// Requeue On Crash
-    /// </summary>
-    public bool RequeueOnCrash { get; private set; }
+
 
     /// <summary>
     /// Set Requeue On Crash
@@ -140,6 +152,18 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     /// <returns></returns>
     public AsyncQueueConsumerParameters<TService, TRequest, TResponse> WithDispatchInChildScope()
         => this.WithDispatchScope(DispatchScope.ChildScope);
+
+
+    /// <summary>
+    /// KeyOfService to retrieve service Keyed Services
+    /// </summary>
+    /// <param name="key"></param>
+    /// <returns></returns>
+    public AsyncQueueConsumerParameters<TService, TRequest, TResponse> WithKeyedService(string key)
+    {
+        this.KeyOfService = key;
+        return this;
+    }
 
 
     /// <summary>

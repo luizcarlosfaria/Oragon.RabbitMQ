@@ -67,7 +67,7 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
             {
                 if (this.parameters.DispatchScope == DispatchScope.RootScope)
                 {
-                    var service = this.parameters.ServiceProvider.GetRequiredService<TService>();
+                    var service = this.GetService<TService>(this.parameters.ServiceProvider);
 
                     responsePayload = await this.parameters.AdapterFunc(service, request).ConfigureAwait(true);
                 }
@@ -75,7 +75,7 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
                 {
                     using (var scope = this.parameters.ServiceProvider.CreateScope())
                     {
-                        var service = scope.ServiceProvider.GetRequiredService<TService>();
+                        var service = this.GetService<TService>(scope.ServiceProvider);
 
                         responsePayload = await this.parameters.AdapterFunc(service, request).ConfigureAwait(true);
                     }
@@ -126,5 +126,11 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
         //replyActivity?.SetEndTime(DateTime.UtcNow);
     }
 
+    private T GetService<T>(IServiceProvider serviceProvider)
+    {
+        return this.parameters.IsKeyedService
+            ? serviceProvider.GetRequiredKeyedService<T>(this.parameters.KeyOfService)
+            : serviceProvider.GetRequiredService<T>();
+    }
 }
 
