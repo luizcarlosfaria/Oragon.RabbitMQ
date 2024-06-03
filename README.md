@@ -1,9 +1,11 @@
+
 # Oragon.RabbitMQ 
 
-An opinionated and simplest minimal APIs for consuming messages from RabbitMQ, without hidden important configurations.
+Opinionated and Simplified Minimal APIs for Consuming Messages from RabbitMQ, Ensuring No Crucial Configurations Are Hidden.
 
 ## What is Oragon.RabbitMQ?
-Oragon.RabbitMQ delivery anything that you need to create resilient RabbitMQ Consumers without need to understand or read many books and posts, or add unknown risks to your environment.
+
+Oragon.RabbitMQ provides everything you need to create resilient RabbitMQ consumers without the need to study numerous books and articles or introduce unknown risks to your environment.
 
 ### If you have a service like this
 ```cs
@@ -32,15 +34,25 @@ builder.Services.MapQueue<BusinessService, BusinessCommandOrEvent>(config => con
 ```
 
 # Concepts
-This is an approach designed to decouple the RabbitMQ consumer from the business code, forcing the business code to not know that it is in a queue consumption context.
 
-The result is absurdly simple, decoupled, agnostic, more reusable and highly testable code.
+## Decoupling Business Logic from Infrastructure
 
+This approach is designed to decouple RabbitMQ consumers from business logic, ensuring that business code remains unaware of the queue consumption context.
+
+The result is incredibly simple, decoupled, agnostic, more reusable, and highly testable code.
+
+## Opinionated Design: Why?
+
+This consumer is focused on creating a resilient consumer using manual acknowledgments.
+
+-   The flow produces a `BasicReject` without requeue for serialization failures (e.g., incorrectly formatted messages),  you will use dead-lettering to ensure these messages are not lost.
+-  The flow produces a `BasicNack` with requeue for processing failures, allowing for message reprocessing.
+- Minimal API design style made without reflection
+- Extensible with support for custom serializers and encoders
 
 # RabbitMQ Tracing com OpenTelemetry
 
 Full support for OpenTelemetry on **publishing** or **consuming** RabbitMQ messages.
-
 
 <img src="./docs/playground.gif">
 
