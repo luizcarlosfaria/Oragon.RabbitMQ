@@ -35,7 +35,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Oragon_RabbitMQ\" />
     <Folder Include="Oragon_RabbitMQ_Abstractions\" />
   </ItemGroup>
 

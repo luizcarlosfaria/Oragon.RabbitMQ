@@ -1,14 +1,17 @@
+// Licensed to LuizCarlosFaria, gaGO.io, Mensageria .NET, Cloud Native .NET and ACADEMIA.DEV under one or more agreements.
+// The ACADEMIA.DEV licenses this file to you under the MIT license.
+
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using Dawn;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry;
+using OpenTelemetry.Context.Propagation;
+using Oragon.RabbitMQ.Consumer.Actions;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using System.Diagnostics;
-using OpenTelemetry.Context.Propagation;
-using OpenTelemetry;
-using System.Text;
-using Oragon.RabbitMQ.Consumer.Actions;
-using System.Diagnostics.CodeAnalysis;
 
 
 

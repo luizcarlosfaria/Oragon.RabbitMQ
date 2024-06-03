@@ -1,11 +1,14 @@
+// Licensed to LuizCarlosFaria, gaGO.io, Mensageria .NET, Cloud Native .NET and ACADEMIA.DEV under one or more agreements.
+// The ACADEMIA.DEV licenses this file to you under the MIT license.
+
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Dawn;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using RabbitMQ.Client.Events;
-using System.Diagnostics;
 using Oragon.RabbitMQ.Consumer.Actions;
-using System.Diagnostics.CodeAnalysis;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
 namespace Oragon.RabbitMQ.Consumer;
 
@@ -35,7 +38,7 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
         this.parameters.Validate();
     }
 
-    private static readonly Action<ILogger, Exception> s_logErrorOnDispatchWithoutReplyTo= LoggerMessage.Define(LogLevel.Error, new EventId(1, "Message cannot be processed in RPC Flow because original message didn't have a ReplyTo."), "Message cannot be processed in RPC Flow because original message didn't have a ReplyTo.");
+    private static readonly Action<ILogger, Exception> s_logErrorOnDispatchWithoutReplyTo = LoggerMessage.Define(LogLevel.Error, new EventId(1, "Message cannot be processed in RPC Flow because original message didn't have a ReplyTo."), "Message cannot be processed in RPC Flow because original message didn't have a ReplyTo.");
 
 
     /// <summary>

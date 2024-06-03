@@ -1,3 +1,6 @@
+// Licensed to LuizCarlosFaria, gaGO.io, Mensageria .NET, Cloud Native .NET and ACADEMIA.DEV under one or more agreements.
+// The ACADEMIA.DEV licenses this file to you under the MIT license.
+
 using System.Diagnostics.CodeAnalysis;
 using Dawn;
 using Microsoft.Extensions.Hosting;
@@ -158,7 +161,7 @@ public abstract class ConsumerBase : BackgroundService
         base.Dispose();
     }
 
-    
+
     private async Task DisposeAsync()
     {
         if (this.Channel != null && !string.IsNullOrWhiteSpace(this.consumerTag))

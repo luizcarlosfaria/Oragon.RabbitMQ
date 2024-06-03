@@ -387,7 +387,8 @@ dotnet_diagnostic.IDE0062.severity = warning
 
 # IDE0073: File header
 dotnet_diagnostic.IDE0073.severity = warning
-file_header_template = Licensed to the .NET Foundation under one or more agreements.\nThe .NET Foundation licenses this file to you under the MIT license.
+#file_header_template = Licensed to the .NET Foundation under one or more agreements.\nThe .NET Foundation licenses this file to you under the MIT license.
+file_header_template = Licensed to LuizCarlosFaria, gaGO.io, Mensageria .NET, Cloud Native .NET and ACADEMIA.DEV under one or more agreements.\nThe ACADEMIA.DEV licenses this file to you under the MIT license.
 
 # IDE1006: Required naming style
 dotnet_diagnostic.IDE1006.severity = suggestion

@@ -1,10 +1,13 @@
+// Licensed to LuizCarlosFaria, gaGO.io, Mensageria .NET, Cloud Native .NET and ACADEMIA.DEV under one or more agreements.
+// The ACADEMIA.DEV licenses this file to you under the MIT license.
+
 using Dawn;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using RabbitMQ.Client;
-using Oragon.RabbitMQ.Serialization;
 using Oragon.RabbitMQ.Consumer;
+using Oragon.RabbitMQ.Serialization;
+using RabbitMQ.Client;
 
 namespace Oragon.RabbitMQ;
 

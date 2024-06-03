@@ -1,3 +1,6 @@
+// Licensed to LuizCarlosFaria, gaGO.io, Mensageria .NET, Cloud Native .NET and ACADEMIA.DEV under one or more agreements.
+// The ACADEMIA.DEV licenses this file to you under the MIT license.
+
 using Dawn;
 using RabbitMQ.Client;
 
@@ -111,7 +114,7 @@ public class ConsumerBaseParameters
     {
         _ = Guard.Argument(this.QueueName).NotNull("QueueName can't be null").NotEmpty("QueueName can't be empty").NotWhiteSpace("QueueName can't be whitespaces");
         _ = Guard.Argument(this.PrefetchCount).NotZero("PrefetchCount must be greater than zero").NotNegative((_) => "PrefetchCount must be greater than zero");
-        _ = Guard.Argument(this.TestQueueRetryCount).NotNegative((_) =>"TestQueueRetryCount must be greater than zero");
+        _ = Guard.Argument(this.TestQueueRetryCount).NotNegative((_) => "TestQueueRetryCount must be greater than zero");
         _ = Guard.Argument(this.ConnectionFactoryFunc).NotNull("ConnectionFactoryFunc can't be null");
     }
 }
