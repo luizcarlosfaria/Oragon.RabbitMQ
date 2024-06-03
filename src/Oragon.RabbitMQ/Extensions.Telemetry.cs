@@ -102,7 +102,7 @@ public static class TelemetryExtensions
         basicProperties = basicProperties.EnsureHeaders();
 
         basicProperties.Headers![key] = value;
-        
+
         return basicProperties;
     }
 
@@ -117,7 +117,7 @@ public static class TelemetryExtensions
     {
         ArgumentNullException.ThrowIfNull(basicProperties);
 
-        return(activityTraceId != null)
+        return (activityTraceId != null)
             ? basicProperties.SetHeader("TraceId", activityTraceId.ToString())
             : basicProperties;
     }
