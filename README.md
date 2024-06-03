@@ -39,6 +39,8 @@ public class BusinessService
 ```
 
 ### You will create a RabbitMQ Consumers with this
+
+#### Singleton
 ```cs
 builder.Services.AddSingleton<BusinessService>();
 
@@ -46,6 +48,39 @@ builder.Services.AddSingleton<IAMQPSerializer, SystemTextJsonAMQPSerializer>();
 
 builder.Services.MapQueue<BusinessService, BusinessCommandOrEvent>(config => config
     .WithDispatchInRootScope()    
+    .WithAdapter((svc, msg) => svc.DoSomethingAsync(msg))
+    .WithQueueName("events")
+    .WithPrefetchCount(1)
+);
+
+```
+
+#### Scoped
+```cs
+builder.Services.AddScoped<BusinessService>();
+
+builder.Services.AddSingleton<IAMQPSerializer, SystemTextJsonAMQPSerializer>();
+
+builder.Services.MapQueue<BusinessService, BusinessCommandOrEvent>(config => config
+    .WithDispatchInChildScope()    
+    .WithAdapter((svc, msg) => svc.DoSomethingAsync(msg))
+    .WithQueueName("events")
+    .WithPrefetchCount(1)
+);
+
+```
+
+#### Scoped and Keyed Services
+```cs
+builder.Services.AddKeyedScoped<BusinessService>("key-of-service");
+// or 
+builder.Services.AddKeyedScoped("key-of-service", (sp, key) => new BusinessService(... custom dependencies ...));
+
+builder.Services.AddSingleton<IAMQPSerializer, SystemTextJsonAMQPSerializer>();
+
+builder.Services.MapQueue<BusinessService, BusinessCommandOrEvent>(config => config
+    .WithDispatchInChildScope()
+    .WithKeyedService("key-of-service")
     .WithAdapter((svc, msg) => svc.DoSomethingAsync(msg))
     .WithQueueName("events")
     .WithPrefetchCount(1)
