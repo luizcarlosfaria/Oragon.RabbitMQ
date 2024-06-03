@@ -72,15 +72,14 @@ builder.Services.MapQueue<BusinessService, BusinessCommandOrEvent>(config => con
 
 #### Scoped and Keyed Services
 ```cs
-builder.Services.AddKeyedScoped<BusinessService>("key-of-service");
-// or 
-builder.Services.AddKeyedScoped("key-of-service", (sp, key) => new BusinessService(... custom dependencies ...));
+builder.Services.AddKeyedScoped<BusinessService>("key-of-service-1");
+builder.Services.AddKeyedScoped("key-of-service-2", (sp, key) => new BusinessService(... custom dependencies ...));
 
 builder.Services.AddSingleton<IAMQPSerializer, SystemTextJsonAMQPSerializer>();
 
 builder.Services.MapQueue<BusinessService, BusinessCommandOrEvent>(config => config
     .WithDispatchInChildScope()
-    .WithKeyedService("key-of-service")
+    .WithKeyedService("key-of-service-1") // or "key-of-service-2"
     .WithAdapter((svc, msg) => svc.DoSomethingAsync(msg))
     .WithQueueName("events")
     .WithPrefetchCount(1)
