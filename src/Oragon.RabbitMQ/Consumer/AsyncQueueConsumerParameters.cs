@@ -3,6 +3,7 @@
 
 using System.Linq.Expressions;
 using Dawn;
+using Microsoft.Extensions.DependencyInjection;
 using Oragon.RabbitMQ.Serialization;
 
 namespace Oragon.RabbitMQ.Consumer;
@@ -29,6 +30,8 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     /// <returns></returns>
     public AsyncQueueConsumerParameters<TService, TRequest, TResponse> WithServiceProvider(IServiceProvider serviceProvider)
     {
+        _ = Guard.Argument(serviceProvider).NotNull();
+
         this.ServiceProvider = serviceProvider;
         return this;
     }
@@ -45,6 +48,8 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     /// <returns></returns>
     public AsyncQueueConsumerParameters<TService, TRequest, TResponse> WithSerializer(IAMQPSerializer serializer)
     {
+        _ = Guard.Argument(serializer).NotNull();
+
         this.Serializer = serializer;
         return this;
     }
@@ -124,7 +129,10 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     /// <returns></returns>
     public AsyncQueueConsumerParameters<TService, TRequest, TResponse> WithDispatchScope(DispatchScope dispatchScope)
     {
+        _ = Guard.Argument(dispatchScope).NotIn(DispatchScope.None);
+
         this.DispatchScope = dispatchScope;
+
         return this;
     }
 
@@ -164,6 +172,7 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     /// <returns></returns>
     public AsyncQueueConsumerParameters<TService, TRequest, TResponse> WithKeyedService(string key)
     {
+        _ = Guard.Argument(key).NotNull().NotEmpty().NotWhiteSpace();
         this.KeyOfService = key;
         return this;
     }

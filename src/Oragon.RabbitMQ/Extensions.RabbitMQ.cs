@@ -93,8 +93,9 @@ public static class RabbitMQExtensions
     public static BasicProperties SetReplyTo(this BasicProperties basicProperties, string replyTo = null)
     {
         if (!string.IsNullOrEmpty(replyTo))
+        {
             basicProperties.ReplyTo = replyTo;
-
+        }
         return basicProperties;
     }
 
@@ -107,8 +108,9 @@ public static class RabbitMQExtensions
     public static BasicProperties SetAppId(this BasicProperties basicProperties, string appId = null)
     {
         if (!string.IsNullOrEmpty(appId))
+        {
             basicProperties.AppId = appId;
-
+        }
         return basicProperties;
     }
 

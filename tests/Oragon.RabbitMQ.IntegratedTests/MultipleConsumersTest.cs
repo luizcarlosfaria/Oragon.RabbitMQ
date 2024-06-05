@@ -123,7 +123,9 @@ public class MultipleConsumersTest : IAsyncLifetime
         {
             using var channel = await connection.CreateChannelAsync();
 
-            services.AddKeyedScoped(pack.QueueName, (sp, obj) => new ExampleService(pack.WaitHandle, pack.CallBack));
+            services.AddKeyedScoped(pack.QueueName, (sp, key) => new ExampleService(pack.WaitHandle, pack.CallBack));
+
+            services.AddKeyedScoped()
 
             services.MapQueue<ExampleService, ExampleMessage>((config) =>
                 config
