@@ -81,7 +81,7 @@ pipeline {
                         // git fetch origin master:master | git fetch origin develop:develop
                         sh  """
                             exit 0
-                            
+
                             git fetch origin master:master
 
                             git fetch origin develop:develop
@@ -136,13 +136,15 @@ pipeline {
                     } else if (env.BRANCH_NAME.endsWith("-beta")) {
 
                         for (int i = 0; i < projetcs.size(); ++i) {
-                            sh "dotnet pack ./src/${projetcs[i]}/${projetcs[i]}.csproj --configuration Release -p:PackageVersion=${BRANCH_NAME} --output ./output-packages"                        
+                            sh "dotnet build ./src/${projetcs[i]}/${projetcs[i]}.csproj --configuration Release "
+                            sh "dotnet pack  ./src/${projetcs[i]}/${projetcs[i]}.csproj --configuration Release -p:PackageVersion=${BRANCH_NAME} --output ./output-packages"                        
                         }
 
                     } else {
 
                         for (int i = 0; i < projetcs.size(); ++i) {
-                            sh "dotnet pack ./src/${projetcs[i]}/${projetcs[i]}.csproj --configuration Release -p:PackageVersion=${BRANCH_NAME} --output ./output-packages"                        
+                            sh "dotnet build ./src/${projetcs[i]}/${projetcs[i]}.csproj --configuration Release "
+                            sh "dotnet pack  ./src/${projetcs[i]}/${projetcs[i]}.csproj --configuration Release -p:PackageVersion=${BRANCH_NAME} --output ./output-packages"                        
                         }
 
                     }
