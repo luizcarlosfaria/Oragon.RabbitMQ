@@ -129,19 +129,19 @@ pipeline {
                     if (env.BRANCH_NAME.endsWith("-alpha")) {
 
                         for (int i = 0; i < projetcs.size(); ++i) {
-                            sh "dotnet pack ./src/${projetcs[i]}/${projetcs[i]}.csproj --configuration Debug /p:PackageVersion=${BRANCH_NAME} --include-source --include-symbols --output ./output-packages"
+                            sh "dotnet pack ./src/${projetcs[i]}/${projetcs[i]}.csproj --configuration Debug -p:PackageVersion=${BRANCH_NAME} -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg --output ./output-packages"
                         }
 
                     } else if (env.BRANCH_NAME.endsWith("-beta")) {
 
                         for (int i = 0; i < projetcs.size(); ++i) {
-                            sh "dotnet pack ./src/${projetcs[i]}/${projetcs[i]}.csproj --configuration Release /p:PackageVersion=${BRANCH_NAME} --output ./output-packages"                        
+                            sh "dotnet pack ./src/${projetcs[i]}/${projetcs[i]}.csproj --configuration Release -p:PackageVersion=${BRANCH_NAME} --output ./output-packages"                        
                         }
 
                     } else {
 
                         for (int i = 0; i < projetcs.size(); ++i) {
-                            sh "dotnet pack ./src/${projetcs[i]}/${projetcs[i]}.csproj --configuration Release /p:PackageVersion=${BRANCH_NAME} --output ./output-packages"                        
+                            sh "dotnet pack ./src/${projetcs[i]}/${projetcs[i]}.csproj --configuration Release -p:PackageVersion=${BRANCH_NAME} --output ./output-packages"                        
                         }
 
                     }
@@ -170,7 +170,9 @@ pipeline {
                         
                         withCredentials([usernamePassword(credentialsId: 'myget-oragon', passwordVariable: 'MYGET_KEY', usernameVariable: 'DUMMY' )]) {
 
-                        sh 'for pkg in ./output-packages/*.nupkg ; do dotnet nuget push "$pkg" -k "$MYGET_KEY" -s https://www.myget.org/F/oragon/api/v3/index.json -ss https://www.myget.org/F/oragon/symbols/api/v2/package ; done'
+                        sh 'for pkg in ./output-packages/*.nupkg ; do dotnet nuget push "$pkg" -k "$MYGET_KEY" -Source https://www.myget.org/F/oragon/api/v2/package ; done'
+                        
+                        sh 'for pkg in ./output-packages/*.snupkg ; do dotnet nuget push "$pkg" -k "$MYGET_KEY" -Source https://www.myget.org/F/oragon/api/v3/index.json ; done'
 						
                         }
 
@@ -178,7 +180,7 @@ pipeline {
 
                         withCredentials([usernamePassword(credentialsId: 'nuget-luizcarlosfaria', passwordVariable: 'NUGET_KEY', usernameVariable: 'DUMMY')]) {
 
-                            sh 'for pkg in ./output-packages/*.nupkg ; do dotnet nuget push "$pkg" -k "$NUGET_KEY" -s https://api.nuget.org/v3/index.json ; done'
+                            sh 'for pkg in ./output-packages/*.nupkg ; do dotnet nuget push "$pkg" -k "$NUGET_KEY" -Source https://api.nuget.org/v3/index.json ; done'
 
                         }
 
