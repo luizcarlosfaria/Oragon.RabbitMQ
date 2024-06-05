@@ -170,12 +170,17 @@ pipeline {
                 script {
                     
                     def publishOnNuGet = ( env.BRANCH_NAME.endsWith("-alpha") == false );
+                    def hasSource = ( env.BRANCH_NAME.endsWith("-alpha") );
                         
                         withCredentials([usernamePassword(credentialsId: 'myget-oragon', passwordVariable: 'MYGET_KEY', usernameVariable: 'DUMMY' )]) {
 
-                        sh 'for pkg in ./output-packages/*.nupkg ; do dotnet nuget push "$pkg" -k "$MYGET_KEY" -s https://www.myget.org/F/oragon/api/v2/package ; done'
-                        
-                        sh 'for pkg in ./output-packages/*.snupkg ; do dotnet nuget push "$pkg" -k "$MYGET_KEY" -s https://www.myget.org/F/oragon/api/v3/index.json ; done'
+                            sh 'for pkg in ./output-packages/*.nupkg ; do dotnet nuget push "$pkg" -k "$MYGET_KEY" -s https://www.myget.org/F/oragon/api/v2/package ; done'
+                             
+                            if (hasSource) {
+
+                                sh 'for pkg in ./output-packages/*.snupkg ; do dotnet nuget push "$pkg" -k "$MYGET_KEY" -s https://www.myget.org/F/oragon/api/v3/index.json ; done'
+
+                            }
 						
                         }
 
