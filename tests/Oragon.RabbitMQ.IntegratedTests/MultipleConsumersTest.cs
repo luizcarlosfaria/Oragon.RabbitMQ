@@ -125,8 +125,6 @@ public class MultipleConsumersTest : IAsyncLifetime
 
             services.AddKeyedScoped(pack.QueueName, (sp, key) => new ExampleService(pack.WaitHandle, pack.CallBack));
 
-            services.AddKeyedScoped()
-
             services.MapQueue<ExampleService, ExampleMessage>((config) =>
                 config
                     .WithDispatchInChildScope()

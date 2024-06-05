@@ -3,7 +3,6 @@
 
 using System.Linq.Expressions;
 using Dawn;
-using Microsoft.Extensions.DependencyInjection;
 using Oragon.RabbitMQ.Serialization;
 
 namespace Oragon.RabbitMQ.Consumer;

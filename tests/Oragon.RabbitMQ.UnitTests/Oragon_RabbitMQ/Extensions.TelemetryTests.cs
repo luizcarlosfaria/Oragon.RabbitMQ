@@ -51,7 +51,7 @@ public class Extensions_Telemetry_Tests
         var activityTraceId = ActivityTraceId.CreateRandom();
         var basicProperties = new BasicProperties
         {
-            Headers = new Dictionary<string, object>
+            Headers = new Dictionary<string, object?>
             {
                 ["TraceId"] = activityTraceId.ToString()
             }
@@ -84,7 +84,7 @@ public class Extensions_Telemetry_Tests
         var activitySpanId = ActivitySpanId.CreateRandom();
         var basicProperties = new BasicProperties
         {
-            Headers = new Dictionary<string, object>
+            Headers = new Dictionary<string, object?>
             {
                 ["SpanId"] = activitySpanId.ToString()
             }
@@ -128,7 +128,7 @@ public class Extensions_Telemetry_Tests
     public void EnsureHeaders_ShouldNotCreateNewDictionaryWhenHeadersExist()
     {
         // Arrange
-        var headers = new Dictionary<string, object>();
+        var headers = new Dictionary<string, object?>();
         var basicProperties = new BasicProperties
         {
             Headers = headers
