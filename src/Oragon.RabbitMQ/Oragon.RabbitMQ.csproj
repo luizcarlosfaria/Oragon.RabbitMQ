@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<Import Project="./../Oragon.RabbitMQ.Build.props" />
 
@@ -6,8 +6,6 @@
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0-preview.4.24266.19" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.0-preview.4.24266.19" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0-preview.4.24266.19" />
-	</ItemGroup>
-	<ItemGroup>
 		<PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.9.0-alpha.1" />
 		<PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0-alpha.1" />
 		<PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.8.1" />
