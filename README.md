@@ -1,4 +1,6 @@
 
+![Card](https://raw.githubusercontent.com/luizcarlosfaria/Oragon.RabbitMQ/master/src/Assets/opengraph-card.png) 
+
 # Oragon.RabbitMQ 
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Oragon.RabbitMQ&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Oragon.RabbitMQ)
