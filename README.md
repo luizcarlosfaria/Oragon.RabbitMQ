@@ -18,6 +18,24 @@
 ## Official Release 
 ![NuGet Version](https://img.shields.io/nuget/v/Oragon.RabbitMQ?logo=nuget&label=nuget)
 
+## Stages 
+- [x] Migrate Demo to Library Project
+- [x] Core: Queue Consumer
+- [x] Core: Rpc Queue Consumer
+- [x] Core: Support Keyed Services
+- [ ] Create Samples
+- [ ] Create Docs
+- [x] Automate Badges
+- [x] Add SonarCloud
+- [x] Code Coverage > 80%
+- [X] Add CI/CD
+- [x] Add Unit Tests
+- [x] Add Integrated Tests with TestContainers
+- [x] Test CI/CD Flow: MyGet Alpha Packages with Symbols
+- [x] Test CI/CD Flow: MyGet Packages without Symbols
+- [x] Test CI/CD Flow: Nuget Packages without Symbols
+
+
 ## Others
 
 ![GitHub Tag](https://img.shields.io/github/v/tag/luizcarlosfaria/Oragon.RabbitMQ) Latest GitHub Tag
