@@ -145,6 +145,7 @@ Refactored to use RabbitMQ.Client 7x (with IChannel instead IModel)
 - [x] Core: Support Keyed Services
 - [x] Core: Support of new design of RabbitMQ.Client
 - [ ] Create Samples
+- [ ] Review All SuppressMessageAttribute
 - [ ] Create Docs
 - [x] Automate Badges
 - [x] Add SonarCloud
