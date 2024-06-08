@@ -16,6 +16,8 @@ pipeline {
                 
                 echo sh(script: 'env|sort', returnStdout: true)
 
+                sh 'dotnet workload restore ./Oragon.RabbitMQ.sln'
+
                 sh 'dotnet build ./Oragon.RabbitMQ.sln'
 
             }
