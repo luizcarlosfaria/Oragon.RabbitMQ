@@ -69,7 +69,7 @@ public class ConsumerBaseParameters
     /// </summary>
     /// <param name="connectionFactoryFunc">The connection factory function.</param>
     /// <returns>The updated instance of <see cref="ConsumerBaseParameters"/>.</returns>
-    public ConsumerBaseParameters WithConnectionFactoryFunc(Func<IServiceProvider, IConnection> connectionFactoryFunc)
+    public ConsumerBaseParameters WithConnection(Func<IServiceProvider, IConnection> connectionFactoryFunc)
     {
         this.ConnectionFactoryFunc = connectionFactoryFunc;
         return this;

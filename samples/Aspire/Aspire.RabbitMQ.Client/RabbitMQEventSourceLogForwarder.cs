@@ -20,7 +20,7 @@ internal sealed class RabbitMQEventSourceLogForwarder : IDisposable
 
     public RabbitMQEventSourceLogForwarder(ILoggerFactory loggerFactory)
     {
-        _logger = loggerFactory.CreateLogger("RabbitMQ.Client");
+        this._logger = loggerFactory.CreateLogger("RabbitMQ.Client");
     }
 
     /// <summary>
@@ -28,7 +28,7 @@ internal sealed class RabbitMQEventSourceLogForwarder : IDisposable
     /// </summary>
     public void Start()
     {
-        _listener ??= new RabbitMQEventSourceListener(LogEvent, EventLevel.Verbose);
+        this._listener ??= new RabbitMQEventSourceListener(this.LogEvent, EventLevel.Verbose);
     }
 
     private void LogEvent(EventWrittenEventArgs eventData)
@@ -44,7 +44,7 @@ internal sealed class RabbitMQEventSourceLogForwarder : IDisposable
             eventData.PayloadNames[0] == "message" &&
             eventData.PayloadNames[1] == "ex")
         {
-            _logger.Log(level, eventId, new ErrorEventSourceEvent(eventData), null, s_formatErrorEvent);
+            this._logger.Log(level, eventId, new ErrorEventSourceEvent(eventData), null, s_formatErrorEvent);
         }
         else
         {
@@ -52,7 +52,7 @@ internal sealed class RabbitMQEventSourceLogForwarder : IDisposable
                 (eventData.EventId == 1 && eventData.EventName == "Info") ||
                 (eventData.EventId == 2 && eventData.EventName == "Warn"));
 
-            _logger.Log(level, eventId, new EventSourceEvent(eventData), null, s_formatEvent);
+            this._logger.Log(level, eventId, new EventSourceEvent(eventData), null, s_formatEvent);
         }
     }
 
@@ -62,7 +62,7 @@ internal sealed class RabbitMQEventSourceLogForwarder : IDisposable
     private static string FormatEvent(EventSourceEvent eventSourceEvent, Exception? ex) =>
         eventSourceEvent.EventData.Payload?[0]?.ToString() ?? "<empty>";
 
-    public void Dispose() => _listener?.Dispose();
+    public void Dispose() => this._listener?.Dispose();
 
     private static LogLevel MapLevel(EventLevel level) => level switch
     {
@@ -84,12 +84,12 @@ internal sealed class RabbitMQEventSourceLogForwarder : IDisposable
             // only Info and Warn events are expected, which always have 'message' as the only payload
             Debug.Assert(eventData.PayloadNames?.Count == 1 && eventData.PayloadNames[0] == "message");
 
-            EventData = eventData;
+            this.EventData = eventData;
         }
 
         public IEnumerator<KeyValuePair<string, object?>> GetEnumerator()
         {
-            for (var i = 0; i < Count; i++)
+            for (var i = 0; i < this.Count; i++)
             {
                 yield return this[i];
             }
@@ -97,12 +97,12 @@ internal sealed class RabbitMQEventSourceLogForwarder : IDisposable
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return GetEnumerator();
+            return this.GetEnumerator();
         }
 
-        public int Count => EventData.PayloadNames?.Count ?? 0;
+        public int Count => this.EventData.PayloadNames?.Count ?? 0;
 
-        public KeyValuePair<string, object?> this[int index] => new(EventData.PayloadNames![index], EventData.Payload![index]);
+        public KeyValuePair<string, object?> this[int index] => new(this.EventData.PayloadNames![index], this.EventData.Payload![index]);
     }
 
     private readonly struct ErrorEventSourceEvent : IReadOnlyList<KeyValuePair<string, object?>>
@@ -111,12 +111,12 @@ internal sealed class RabbitMQEventSourceLogForwarder : IDisposable
 
         public ErrorEventSourceEvent(EventWrittenEventArgs eventData)
         {
-            EventData = eventData;
+            this.EventData = eventData;
         }
 
         public IEnumerator<KeyValuePair<string, object?>> GetEnumerator()
         {
-            for (var i = 0; i < Count; i++)
+            for (var i = 0; i < this.Count; i++)
             {
                 yield return this[i];
             }
@@ -124,7 +124,7 @@ internal sealed class RabbitMQEventSourceLogForwarder : IDisposable
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return GetEnumerator();
+            return this.GetEnumerator();
         }
 
         public int Count => 5;
@@ -133,16 +133,16 @@ internal sealed class RabbitMQEventSourceLogForwarder : IDisposable
         {
             get
             {
-                Debug.Assert(EventData.PayloadNames?.Count == 2 && EventData.Payload?.Count == 2);
-                Debug.Assert(EventData.PayloadNames[0] == "message");
-                Debug.Assert(EventData.PayloadNames[1] == "ex");
+                Debug.Assert(this.EventData.PayloadNames?.Count == 2 && this.EventData.Payload?.Count == 2);
+                Debug.Assert(this.EventData.PayloadNames[0] == "message");
+                Debug.Assert(this.EventData.PayloadNames[1] == "ex");
 
                 ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, 5);
 
                 return index switch
                 {
-                    0 => new(EventData.PayloadNames[0], EventData.Payload[0]),
-                    < 5 => GetExData(EventData, index),
+                    0 => new(this.EventData.PayloadNames[0], this.EventData.Payload[0]),
+                    < 5 => GetExData(this.EventData, index),
                     _ => throw new UnreachableException()
                 };
 
@@ -178,29 +178,29 @@ internal sealed class RabbitMQEventSourceLogForwarder : IDisposable
 
         public RabbitMQEventSourceListener(Action<EventWrittenEventArgs> log, EventLevel level)
         {
-            _log = log;
-            _level = level;
+            this._log = log;
+            this._level = level;
 
-            foreach (EventSource eventSource in _eventSources)
+            foreach (EventSource eventSource in this._eventSources)
             {
-                OnEventSourceCreated(eventSource);
+                this.OnEventSourceCreated(eventSource);
             }
 
-            _eventSources.Clear();
+            this._eventSources.Clear();
         }
 
         protected sealed override void OnEventSourceCreated(EventSource eventSource)
         {
             base.OnEventSourceCreated(eventSource);
 
-            if (_log == null)
+            if (this._log == null)
             {
-                _eventSources.Add(eventSource);
+                this._eventSources.Add(eventSource);
             }
 
             if (eventSource.Name == "rabbitmq-dotnet-client" || eventSource.Name == "rabbitmq-client")
             {
-                EnableEvents(eventSource, _level);
+                this.EnableEvents(eventSource, this._level);
             }
         }
 
@@ -214,7 +214,7 @@ internal sealed class RabbitMQEventSourceLogForwarder : IDisposable
 
             // There is a very tight race during the listener creation where EnableEvents was called
             // and the thread producing events not observing the `_log` field assignment
-            _log?.Invoke(eventData);
+            this._log?.Invoke(eventData);
         }
     }
 }

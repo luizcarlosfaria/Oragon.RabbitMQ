@@ -21,8 +21,4 @@
     <ProjectReference Include="..\DotNetAspireApp.ServiceDefaults\DotNetAspireApp.ServiceDefaults.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Registers\" />
-  </ItemGroup>
-
 </Project>

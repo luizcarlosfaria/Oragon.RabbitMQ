@@ -13,9 +13,9 @@ internal sealed class ConfigurationSchemaAttribute : Attribute
 {
     public ConfigurationSchemaAttribute(string path, Type type, string[]? exclusionPaths = null)
     {
-        Path = path;
-        Type = type;
-        ExclusionPaths = exclusionPaths;
+        this.Path = path;
+        this.Type = type;
+        this.ExclusionPaths = exclusionPaths;
     }
 
     /// <summary>
@@ -42,7 +42,7 @@ internal sealed class LoggingCategoriesAttribute : Attribute
 {
     public LoggingCategoriesAttribute(params string[] categories)
     {
-        Categories = categories;
+        this.Categories = categories;
     }
 
     /// <summary>

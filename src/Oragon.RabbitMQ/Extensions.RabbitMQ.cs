@@ -226,6 +226,23 @@ public static class RabbitMQExtensions
     /// 
     /// </summary>
     /// <param name="connectionFactory"></param>
+    /// <param name="consumerDispatchConcurrency"></param>
+    /// <returns></returns>
+    public static ConnectionFactory Parallelism(this ConnectionFactory connectionFactory, int consumerDispatchConcurrency)
+    {
+        _ = Guard.Argument(connectionFactory).NotNull();
+
+        connectionFactory.ConsumerDispatchConcurrency = consumerDispatchConcurrency;
+
+        return connectionFactory;
+    }
+
+
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="connectionFactory"></param>
     /// <param name="useAsync"></param>
     /// <returns></returns>
     public static IConnectionFactory DispatchConsumersAsync(this IConnectionFactory connectionFactory, bool useAsync = true)

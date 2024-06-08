@@ -24,14 +24,14 @@ public class BackendApiClient(HttpClient httpClient)
         return forecasts?.ToArray() ?? [];
     }
 
-    public async Task EnqueueAsync(DoSomethingCommand command)
+    public async Task EnqueueAsync(DoSomethingRequest request)
     {
-        _ = await httpClient.PostAsJsonAsync("/enqueue", command);
+        _ = await httpClient.PostAsJsonAsync("/enqueue", request);
     }
 }
 
 public record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    public int TemperatureF => 32 + (int)(this.TemperatureC / 0.5556);
 }
 

@@ -12,26 +12,34 @@
 
 <p>This component demonstrates showing data loaded from a backend API service.</p>
 
+<div class="rz-p-12 rz-text-align-center">
+    <RadzenSlider @bind-Value=@TotalItemsToSend TValue="int" Min="1" Max="10000" />
+</div>
+
 <p>
     <label>
         Id
-        <input @bind="itemId" />
+        <input @bind="Message" />
     </label>
     <button @onclick="UpdateHeading">
-        Update heading
+        Enviar @TotalItemsToSend mensagens
     </button>
 </p>
 
 @code {
+    int TotalItemsToSend = 1;
 
-    private string itemId;
+    private string Message = string.Empty;
 
 
     private async Task UpdateHeading()
     {
-        await api.EnqueueAsync(new DoSomethingCommand(this.itemId));
+        string message = this.Message;
+        int totalItensToSend = this.TotalItemsToSend;
 
-        this.itemId = string.Empty;
+        await api.EnqueueAsync(new DoSomethingRequest(totalItensToSend, $"Mensagem {{message}} ({{index}} de {totalItensToSend})")).ConfigureAwait(false);
+
+        this.Message = string.Empty;
     }
 
 }

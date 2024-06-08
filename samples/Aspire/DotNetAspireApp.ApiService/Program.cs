@@ -10,7 +10,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<MessagePublisher>();
 builder.Services.AddSingleton<IAMQPSerializer, SystemTextJsonAMQPSerializer>();
 
-builder.AddRabbitMQClient("rabbitmq");
+builder.AddRabbitMQClient("rabbitmq", null, connectionFactory =>
+{
+    connectionFactory.ClientProvidedName = "DotNetAspireApp.ApiService";
+});
 
 // Add service defaults & Aspire components.
 builder.AddServiceDefaults();
@@ -41,8 +44,15 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 });
 
-app.MapPost("/enqueue", async (DoSomethingCommand msg, [FromServices] MessagePublisher messagePublisher)
-    => await messagePublisher.SendAsync("", "events", msg).ConfigureAwait(true));
+app.MapPost("/enqueue", async (DoSomethingRequest req, [FromServices] MessagePublisher messagePublisher)
+    =>
+{
+    await Parallel.ForAsync(1,req.quantity, async (i, ct) =>
+    {
+        await messagePublisher.SendAsync("", "events", req, ct).ConfigureAwait(false);
+    }).ConfigureAwait(false);
+
+});
 
 app.MapDefaultEndpoints();
 
@@ -50,5 +60,5 @@ app.Run();
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    public int TemperatureF => 32 + (int)(this.TemperatureC / 0.5556);
 }

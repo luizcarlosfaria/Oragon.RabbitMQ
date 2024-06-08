@@ -112,12 +112,12 @@ public static class AspireRabbitMQExtensions
         if (serviceKey is null)
         {
             _ = builder.Services.AddSingleton<IConnectionFactory>(CreateConnectionFactory);
-            _ = builder.Services.AddSingleton<IConnection>(sp => CreateConnectionAsync(sp.GetRequiredService<IConnectionFactory>(), settings.MaxConnectRetryCount).GetAwaiter().GetResult());
+            _ = builder.Services.AddSingleton<IConnection>(sp => CreateConnection(sp.GetRequiredService<IConnectionFactory>(), settings.MaxConnectRetryCount));
         }
         else
         {
             _ = builder.Services.AddKeyedSingleton<IConnectionFactory>(serviceKey, (sp, _) => CreateConnectionFactory(sp));
-            _ = builder.Services.AddKeyedSingleton<IConnection>(serviceKey, (sp, key) => CreateConnectionAsync(sp.GetRequiredKeyedService<IConnectionFactory>(key), settings.MaxConnectRetryCount).GetAwaiter().GetResult());
+            _ = builder.Services.AddKeyedSingleton<IConnection>(serviceKey, (sp, key) => CreateConnection(sp.GetRequiredKeyedService<IConnectionFactory>(key), settings.MaxConnectRetryCount));
         }
 
         _ = builder.Services.AddSingleton<RabbitMQEventSourceLogForwarder>();
@@ -161,16 +161,22 @@ public static class AspireRabbitMQExtensions
         }
     }
 
-    private static async Task<IConnection> CreateConnectionAsync(IConnectionFactory factory, int retryCount)
+    private static IConnection CreateConnection(IConnectionFactory factory, int retryCount)
     {
         var resiliencePipelineBuilder = new ResiliencePipelineBuilder();
         if (retryCount > 0)
         {
             resiliencePipelineBuilder = resiliencePipelineBuilder.AddRetry(new RetryStrategyOptions
             {
-                ShouldHandle = static args => args.Outcome is { Exception: SocketException or BrokerUnreachableException }
-                    ? PredicateResult.True()
-                    : PredicateResult.False(),
+                ShouldHandle = static args =>
+                {
+                    var returnValue =
+                        args.Outcome is { Exception: SocketException or BrokerUnreachableException }
+                        ? PredicateResult.True()
+                        : PredicateResult.False();
+
+                    return returnValue;
+                },
                 BackoffType = DelayBackoffType.Exponential,
                 MaxRetryAttempts = retryCount,
                 Delay = TimeSpan.FromSeconds(5),
@@ -181,14 +187,16 @@ public static class AspireRabbitMQExtensions
         using var activity = s_activitySource.StartActivity("rabbitmq connect", ActivityKind.Client);
         AddRabbitMQTags(activity, factory.Uri);
 
-        return await resiliencePipeline.Execute(async factory =>
+        return resiliencePipeline.Execute(factory =>
         {
+            Console.WriteLine("Criando conexão com o RabbitMQ factory.CreateConnection() ------------------------- ");
+
             using var connectAttemptActivity = s_activitySource.StartActivity("rabbitmq connect attempt", ActivityKind.Client);
             AddRabbitMQTags(connectAttemptActivity, factory.Uri, "connect");
 
             try
             {
-                return await factory.CreateConnectionAsync().ConfigureAwait(false);
+                return factory.CreateConnectionAsync().ConfigureAwait(true).GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
@@ -204,7 +212,7 @@ public static class AspireRabbitMQExtensions
                 }
                 throw;
             }
-        }, factory).ConfigureAwait(false);
+        }, factory);
     }
 
     private static void AddRabbitMQTags(Activity? activity, Uri address, string? operation = null)

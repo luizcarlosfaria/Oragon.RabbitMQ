@@ -32,15 +32,16 @@ public class MessagePublisher(IConnection connection, IAMQPSerializer serializer
     /// <param name="exchange"></param>
     /// <param name="routingKey"></param>
     /// <param name="message"></param>
+    /// <param name="ct"></param>
     /// <returns></returns>
     /// <exception cref="NullReferenceException"></exception>
     [SuppressMessage("Usage", "CA2201", Justification = "Do not raise reserved exception types")]
-    public async Task SendAsync<T>(string exchange, string routingKey, T message)
+    public async Task SendAsync<T>(string exchange, string routingKey, T message, CancellationToken ct)
     {
         //TODO: Rever
         using Activity? publisherActivity = s_activitySource?.StartActivity("MessagePublisher.SendAsync", ActivityKind.Producer) ?? null;
 
-        using IChannel model = await this.connection.CreateChannelAsync().ConfigureAwait(true);
+        using IChannel model = await this.connection.CreateChannelAsync(ct).ConfigureAwait(true);
 
         var properties = model.CreateBasicProperties().EnsureHeaders().SetDurable(true);
 
@@ -52,7 +53,7 @@ public class MessagePublisher(IConnection connection, IAMQPSerializer serializer
 
         var body = this.serializer.Serialize(basicProperties: properties, message: message);
 
-        await model.BasicPublishAsync(exchange, routingKey, properties, body).ConfigureAwait(true);
+        await model.BasicPublishAsync(exchange, routingKey, properties, body, false, ct).ConfigureAwait(true);
 
         //publisherActivity?.SetEndTime(DateTime.UtcNow);
     }
