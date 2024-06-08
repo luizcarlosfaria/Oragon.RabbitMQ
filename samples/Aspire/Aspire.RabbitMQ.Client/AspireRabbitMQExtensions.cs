@@ -166,14 +166,14 @@ public static class AspireRabbitMQExtensions
         var resiliencePipelineBuilder = new ResiliencePipelineBuilder();
         if (retryCount > 0)
         {
-            _ = resiliencePipelineBuilder.AddRetry(new RetryStrategyOptions
+            resiliencePipelineBuilder = resiliencePipelineBuilder.AddRetry(new RetryStrategyOptions
             {
                 ShouldHandle = static args => args.Outcome is { Exception: SocketException or BrokerUnreachableException }
                     ? PredicateResult.True()
                     : PredicateResult.False(),
                 BackoffType = DelayBackoffType.Exponential,
                 MaxRetryAttempts = retryCount,
-                Delay = TimeSpan.FromSeconds(1),
+                Delay = TimeSpan.FromSeconds(5),
             });
         }
         var resiliencePipeline = resiliencePipelineBuilder.Build();
@@ -188,7 +188,7 @@ public static class AspireRabbitMQExtensions
 
             try
             {
-                return await factory.CreateConnectionAsync().ConfigureAwait(true);
+                return await factory.CreateConnectionAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -204,7 +204,7 @@ public static class AspireRabbitMQExtensions
                 }
                 throw;
             }
-        }, factory).ConfigureAwait(true);
+        }, factory).ConfigureAwait(false);
     }
 
     private static void AddRabbitMQTags(Activity? activity, Uri address, string? operation = null)

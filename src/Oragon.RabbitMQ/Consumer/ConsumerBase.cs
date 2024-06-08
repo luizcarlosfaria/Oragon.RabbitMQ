@@ -116,6 +116,8 @@ public abstract class ConsumerBase : BackgroundService
 
             await Task.Delay(1000, stoppingToken).ConfigureAwait(true);
         }
+
+        await this.Channel.BasicCancelAsync(this.consumerTag, false, CancellationToken.None).ConfigureAwait(true);
     }
 
     /// <summary>
