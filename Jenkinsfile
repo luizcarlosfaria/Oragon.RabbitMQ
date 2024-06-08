@@ -87,6 +87,8 @@ pipeline {
 
                             git fetch origin develop:develop
 
+                            dotnet workload restore ./Oragon.RabbitMQ.sln
+
                             export PATH="\$PATH:/root/.dotnet/tools"
 
                             dotnet sonarscanner begin ${sonarParamsText}
