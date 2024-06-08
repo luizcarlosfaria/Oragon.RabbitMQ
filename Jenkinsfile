@@ -8,7 +8,7 @@ pipeline {
 
             agent {
                 dockerfile {                   
-                    args '-u root:root'
+                    args '-u root:root -v /gago/nuget-cache:/root/.nuget/packages'
                 }
             }
 
@@ -32,7 +32,8 @@ pipeline {
                     // alwaysPull false
                     // image 'microsoft/dotnet:2.1-sdk'
                     // reuseNode false
-                    args '-u root:root -v /var/run/docker.sock:/var/run/docker.sock'
+                    args '-u root:root -v /var/run/docker.sock:/var/run/docker.sock -v /gago/nuget-cache:/root/.nuget/packages'
+
                 }
             }
 
@@ -112,7 +113,7 @@ pipeline {
 
             agent {
                 dockerfile {                    
-                    args '-u root:root'
+                    args '-u root:root -v /gago/nuget-cache:/root/.nuget/packages'
                 }
             }
 
@@ -161,7 +162,7 @@ pipeline {
 
             agent {
                 dockerfile {                  
-                    args '-u root:root'
+                    args '-u root:root -v /gago/nuget-cache:/root/.nuget/packages'
                 }
             }
 
