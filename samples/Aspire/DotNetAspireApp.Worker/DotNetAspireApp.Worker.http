@@ -1,0 +1,6 @@
+@DotNetAspireApp.Worker_HostAddress = http://localhost:5210
+
+GET {{DotNetAspireApp.Worker_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
