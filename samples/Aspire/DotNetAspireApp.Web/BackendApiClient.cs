@@ -1,6 +1,8 @@
+using DotNetAspireApp.Common.Messages.Commands;
+
 namespace DotNetAspireApp.Web;
 
-public class WeatherApiClient(HttpClient httpClient)
+public class BackendApiClient(HttpClient httpClient)
 {
     public async Task<WeatherForecast[]> GetWeatherAsync(int maxItems = 10, CancellationToken cancellationToken = default)
     {
@@ -21,9 +23,15 @@ public class WeatherApiClient(HttpClient httpClient)
 
         return forecasts?.ToArray() ?? [];
     }
+
+    public async Task EnqueueAsync(DoSomethingCommand command)
+    {
+        _ = await httpClient.PostAsJsonAsync("/enqueue", command);
+    }
 }
 
 public record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
+

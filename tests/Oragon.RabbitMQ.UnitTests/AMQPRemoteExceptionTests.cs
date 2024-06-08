@@ -15,7 +15,7 @@ public class AMQPRemoteExceptionTests
 
         // Assert
         Assert.NotNull(exception);
-        Assert.IsType<AMQPRemoteException>(exception);
+        _ = Assert.IsType<AMQPRemoteException>(exception);
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public class AMQPRemoteExceptionTests
         // Assert
         Assert.NotNull(exception);
         Assert.Equal(message, exception.Message);
-        Assert.IsType<AMQPRemoteException>(exception);
+        _ = Assert.IsType<AMQPRemoteException>(exception);
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class AMQPRemoteExceptionTests
         Assert.NotNull(exception);
         Assert.Equal(message, exception.Message);
         Assert.Equal(innerException, exception.InnerException);
-        Assert.IsType<AMQPRemoteException>(exception);
+        _ = Assert.IsType<AMQPRemoteException>(exception);
     }
 
     [Fact]
@@ -66,6 +66,6 @@ public class AMQPRemoteExceptionTests
         Assert.Equal(message, exception.Message);
         Assert.Equal(remoteStackTrace, exception.StackTrace);
         Assert.Equal(innerException, exception.InnerException);
-        Assert.IsType<AMQPRemoteException>(exception);
+        _ = Assert.IsType<AMQPRemoteException>(exception);
     }
 }

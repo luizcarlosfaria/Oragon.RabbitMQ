@@ -7,6 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Oragon.RabbitMQ.MinimalConsumer\Oragon.RabbitMQ.MinimalConsumer.csproj" />
+    <ProjectReference Include="..\Aspire.RabbitMQ.Client\Aspire.RabbitMQ.Client.csproj" />
+    <ProjectReference Include="..\DotNetAspireApp.Common\DotNetAspireApp.Common.csproj" />
     <ProjectReference Include="..\DotNetAspireApp.ServiceDefaults\DotNetAspireApp.ServiceDefaults.csproj" />
   </ItemGroup>
 

@@ -7,12 +7,12 @@ var redis = builder.AddRedis("redis");
 
 var rabbitmq = builder.AddRabbitMQ("rabbitmq").WithManagementPlugin();
 
-var apiService = builder.AddProject<Projects.DotNetAspireApp_ApiService>("apiservice");
+var apiService = builder.AddProject<Projects.DotNetAspireApp_ApiService>("apiservice")
+    .WithReference(rabbitmq);
 
 builder.AddProject<Projects.DotNetAspireApp_Web>("webfrontend")
     .WithExternalHttpEndpoints()
     .WithReference(redis)
-    .WithReference(rabbitmq)
     .WithReference(apiService);
 
 builder.AddProject<Projects.DotNetAspireApp_Worker>("worker")

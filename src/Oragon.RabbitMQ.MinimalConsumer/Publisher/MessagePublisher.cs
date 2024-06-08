@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Oragon.RabbitMQ.Publisher;
 
+#nullable enable
 
 /// <summary>
 /// Basic publisher for RabbitMQ.
@@ -17,7 +18,7 @@ namespace Oragon.RabbitMQ.Publisher;
 /// <param name="logger"></param>
 public class MessagePublisher(IConnection connection, IAMQPSerializer serializer, ILogger<MessagePublisher> logger)
 {
-    private static readonly ActivitySource s_activitySource = new(MessagingTelemetryNames.GetName(nameof(MessagePublisher)));
+    private static readonly ActivitySource? s_activitySource = new(MessagingTelemetryNames.GetName(nameof(MessagePublisher)));
     private static readonly TextMapPropagator s_propagator = Propagators.DefaultTextMapPropagator;
 
     private readonly IAMQPSerializer serializer = serializer;
@@ -37,7 +38,7 @@ public class MessagePublisher(IConnection connection, IAMQPSerializer serializer
     public async Task SendAsync<T>(string exchange, string routingKey, T message)
     {
         //TODO: Rever
-        using Activity publisherActivity = s_activitySource.StartActivity("MessagePublisher.SendAsync", ActivityKind.Producer) ?? throw new InvalidOperationException("s_activitySource.StartActivity produces null");
+        using Activity? publisherActivity = s_activitySource?.StartActivity("MessagePublisher.SendAsync", ActivityKind.Producer) ?? null;
 
         using IChannel model = await this.connection.CreateChannelAsync().ConfigureAwait(true);
 
@@ -56,7 +57,7 @@ public class MessagePublisher(IConnection connection, IAMQPSerializer serializer
         //publisherActivity?.SetEndTime(DateTime.UtcNow);
     }
 
-    private static ActivityContext GetActivityContext(Activity activity)
+    private static ActivityContext GetActivityContext(Activity? activity)
     {
         ActivityContext contextToInject = default;
         if (activity != null)
@@ -77,7 +78,7 @@ public class MessagePublisher(IConnection connection, IAMQPSerializer serializer
     {
         try
         {
-            props.Headers ??= new Dictionary<string, object>();
+            props.Headers ??= new Dictionary<string, object?>();
 
             props.Headers[key] = value;
         }

@@ -1,4 +1,16 @@
+using DotNetAspireApp.Common.Messages.Commands;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
+using Oragon.RabbitMQ;
+using Oragon.RabbitMQ.Publisher;
+using Oragon.RabbitMQ.Serialization;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddScoped<MessagePublisher>();
+builder.Services.AddSingleton<IAMQPSerializer, SystemTextJsonAMQPSerializer>();
+
+builder.AddRabbitMQClient("rabbitmq");
 
 // Add service defaults & Aspire components.
 builder.AddServiceDefaults();
@@ -28,6 +40,9 @@ app.MapGet("/weatherforecast", () =>
         .ToArray();
     return forecast;
 });
+
+app.MapPost("/enqueue", async (DoSomethingCommand msg, [FromServices] MessagePublisher messagePublisher)
+    => await messagePublisher.SendAsync("", "events", msg).ConfigureAwait(true));
 
 app.MapDefaultEndpoints();
 

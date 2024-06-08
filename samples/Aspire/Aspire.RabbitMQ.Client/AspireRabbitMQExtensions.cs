@@ -111,22 +111,22 @@ public static class AspireRabbitMQExtensions
 
         if (serviceKey is null)
         {
-            builder.Services.AddSingleton<IConnectionFactory>(CreateConnectionFactory);
-            builder.Services.AddSingleton<IConnection>(sp => CreateConnectionAsync(sp.GetRequiredService<IConnectionFactory>(), settings.MaxConnectRetryCount).GetAwaiter().GetResult());
+            _ = builder.Services.AddSingleton<IConnectionFactory>(CreateConnectionFactory);
+            _ = builder.Services.AddSingleton<IConnection>(sp => CreateConnectionAsync(sp.GetRequiredService<IConnectionFactory>(), settings.MaxConnectRetryCount).GetAwaiter().GetResult());
         }
         else
         {
-            builder.Services.AddKeyedSingleton<IConnectionFactory>(serviceKey, (sp, _) => CreateConnectionFactory(sp));
-            builder.Services.AddKeyedSingleton<IConnection>(serviceKey, (sp, key) => CreateConnectionAsync(sp.GetRequiredKeyedService<IConnectionFactory>(key), settings.MaxConnectRetryCount).GetAwaiter().GetResult());
+            _ = builder.Services.AddKeyedSingleton<IConnectionFactory>(serviceKey, (sp, _) => CreateConnectionFactory(sp));
+            _ = builder.Services.AddKeyedSingleton<IConnection>(serviceKey, (sp, key) => CreateConnectionAsync(sp.GetRequiredKeyedService<IConnectionFactory>(key), settings.MaxConnectRetryCount).GetAwaiter().GetResult());
         }
 
-        builder.Services.AddSingleton<RabbitMQEventSourceLogForwarder>();
+        _ = builder.Services.AddSingleton<RabbitMQEventSourceLogForwarder>();
 
         if (!settings.DisableTracing)
         {
             // Note that RabbitMQ.Client v6.6 doesn't have built-in support for tracing. See https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1261
 
-            builder.Services.AddOpenTelemetry()
+            _ = builder.Services.AddOpenTelemetry()
                 .WithTracing(traceBuilder => traceBuilder.AddSource(ActivitySourceName));
         }
 
@@ -166,7 +166,7 @@ public static class AspireRabbitMQExtensions
         var resiliencePipelineBuilder = new ResiliencePipelineBuilder();
         if (retryCount > 0)
         {
-            resiliencePipelineBuilder.AddRetry(new RetryStrategyOptions
+            _ = resiliencePipelineBuilder.AddRetry(new RetryStrategyOptions
             {
                 ShouldHandle = static args => args.Outcome is { Exception: SocketException or BrokerUnreachableException }
                     ? PredicateResult.True()
@@ -194,13 +194,13 @@ public static class AspireRabbitMQExtensions
             {
                 if (connectAttemptActivity is not null)
                 {
-                    connectAttemptActivity.AddTag("exception.message", ex.Message);
+                    _ = connectAttemptActivity.AddTag("exception.message", ex.Message);
                     // Note that "exception.stacktrace" is the full exception detail, not just the StackTrace property.
                     // See https://opentelemetry.io/docs/specs/semconv/attributes-registry/exception/
                     // and https://github.com/open-telemetry/opentelemetry-specification/pull/697#discussion_r453662519
-                    connectAttemptActivity.AddTag("exception.stacktrace", ex.ToString());
-                    connectAttemptActivity.AddTag("exception.type", ex.GetType().FullName);
-                    connectAttemptActivity.SetStatus(ActivityStatusCode.Error);
+                    _ = connectAttemptActivity.AddTag("exception.stacktrace", ex.ToString());
+                    _ = connectAttemptActivity.AddTag("exception.type", ex.GetType().FullName);
+                    _ = connectAttemptActivity.SetStatus(ActivityStatusCode.Error);
                 }
                 throw;
             }
@@ -214,12 +214,12 @@ public static class AspireRabbitMQExtensions
             return;
         }
 
-        activity.AddTag("server.address", address.Host);
-        activity.AddTag("server.port", address.Port);
-        activity.AddTag("messaging.system", "rabbitmq");
+        _ = activity.AddTag("server.address", address.Host);
+        _ = activity.AddTag("server.port", address.Port);
+        _ = activity.AddTag("messaging.system", "rabbitmq");
         if (operation is not null)
         {
-            activity.AddTag("messaging.operation", operation);
+            _ = activity.AddTag("messaging.operation", operation);
         }
     }
 }

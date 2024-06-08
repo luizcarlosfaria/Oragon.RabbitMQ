@@ -3,6 +3,7 @@ using Oragon.RabbitMQ.Serialization;
 using Oragon.RabbitMQ;
 using DotNetAspireApp.Worker;
 using RabbitMQ.Client;
+using DotNetAspireApp.Common.Messages.Commands;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,7 +19,7 @@ builder.Services.AddSingleton<BusinessService1>();
 builder.Services.AddSingleton<BusinessService2>();
 builder.Services.AddSingleton<IAMQPSerializer, SystemTextJsonAMQPSerializer>();
 
-builder.Services.MapQueue<BusinessService1, BusinessCommandOrEvent>(config => config
+builder.Services.MapQueue<BusinessService1, DoSomethingCommand>(config => config
     .WithDispatchInRootScope()
     .WithAdapter((svc, msg) => svc.DoSomethingAsync(msg))
     .WithQueueName("events")
@@ -42,8 +43,8 @@ app.MapDefaultEndpoints();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    _ = app.UseSwagger();
+    _ = app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();

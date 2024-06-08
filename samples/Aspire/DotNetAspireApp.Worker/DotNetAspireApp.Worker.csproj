@@ -17,6 +17,7 @@
     <ProjectReference Include="..\..\..\src\Oragon.RabbitMQ.Serializer.SystemTextJson\Oragon.RabbitMQ.Serializer.SystemTextJson.csproj" />
     <ProjectReference Include="..\..\..\src\Oragon.RabbitMQ\Oragon.RabbitMQ.csproj" />
     <ProjectReference Include="..\Aspire.RabbitMQ.Client\Aspire.RabbitMQ.Client.csproj" />
+    <ProjectReference Include="..\DotNetAspireApp.Common\DotNetAspireApp.Common.csproj" />
     <ProjectReference Include="..\DotNetAspireApp.ServiceDefaults\DotNetAspireApp.ServiceDefaults.csproj" />
   </ItemGroup>
 
