@@ -37,12 +37,12 @@ public class EmailService
     {
         string logText = $"{command.Text} ({command.Seq} of {command.Max})";
 
-        Console.WriteLine($"Begin | {logText}");
+        //Console.WriteLine($"Begin | {logText}");
 
         //await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
 
-        await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+        //await Task.Delay(TimeSpan.FromSeconds(2)).ConfigureAwait(false);
 
-        Console.WriteLine($"End | {logText}");
+        //Console.WriteLine($"End | {logText}");
     }
 }

@@ -45,20 +45,26 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 });
 
-app.MapPost("/enqueue", async (DoSomethingRequest req, [FromServices] MessagePublisher messagePublisher, [FromServices] IConnection connection)
+app.MapPost("/enqueue", async (DoSomethingRequest req, [FromServices] MessagePublisher messagePublisher, [FromServices] IConnectionFactory connectionFactory)
     =>
 {
-    using var channel = await connection.CreateChannelAsync(CancellationToken.None).ConfigureAwait(true);
+    _ = Task.Run(async () => {
 
-    await Parallel.ForAsync(1, req.quantity + 1, async (currentSeq, ct) =>
-    {
-        var command = new DoSomethingCommand(req.Text, currentSeq, req.quantity);
+        using var connection = await connectionFactory.CreateConnectionAsync(CancellationToken.None).ConfigureAwait(true);
 
-        await messagePublisher
-            .SendAsync(channel, "", "events", command, ct)
-            .ConfigureAwait(false);
+        using var channel = await connection.CreateChannelAsync(CancellationToken.None).ConfigureAwait(true);
 
-    }).ConfigureAwait(false);
+        await Parallel.ForAsync(1, req.quantity + 1, async (currentSeq, ct) =>
+        {
+            var command = new DoSomethingCommand(req.Text, currentSeq, req.quantity);
+
+            await messagePublisher
+                .SendAsync(channel, "", "events", command, ct)
+                .ConfigureAwait(false);
+
+        }).ConfigureAwait(false);
+
+    });
 
 });
 
