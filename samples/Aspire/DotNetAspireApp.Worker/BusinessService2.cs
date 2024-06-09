@@ -9,7 +9,7 @@ public class BusinessService2
 {
     public async Task<DoSomethingCommand> DoSomething2Async(DoSomethingCommand command)
     {
-        Console.WriteLine($"Consumer Recebeu | {command.ItemId}");
+        Console.WriteLine($"Consumer Recebeu | {command.Text}");
 
         await Task.Delay(5000);
 

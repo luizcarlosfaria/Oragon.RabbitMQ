@@ -3,6 +3,4 @@
 
 namespace DotNetAspireApp.Common.Messages.Commands;
 
-public record DoSomethingCommand(string ItemId) { }
-
-public record DoSomethingRequest(int quantity, string ItemId) { }
+public record DoSomethingCommand(string Text, int Seq, int Max) { }

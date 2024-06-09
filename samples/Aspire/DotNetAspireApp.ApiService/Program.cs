@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Oragon.RabbitMQ;
 using Oragon.RabbitMQ.Publisher;
 using Oragon.RabbitMQ.Serialization;
+using RabbitMQ.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,12 +45,19 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 });
 
-app.MapPost("/enqueue", async (DoSomethingRequest req, [FromServices] MessagePublisher messagePublisher)
+app.MapPost("/enqueue", async (DoSomethingRequest req, [FromServices] MessagePublisher messagePublisher, [FromServices] IConnection connection)
     =>
 {
-    await Parallel.ForAsync(1,req.quantity, async (i, ct) =>
+    using var channel = await connection.CreateChannelAsync(CancellationToken.None).ConfigureAwait(true);
+
+    await Parallel.ForAsync(1, req.quantity + 1, async (currentSeq, ct) =>
     {
-        await messagePublisher.SendAsync("", "events", req, ct).ConfigureAwait(false);
+        var command = new DoSomethingCommand(req.Text, currentSeq, req.quantity);
+
+        await messagePublisher
+            .SendAsync(channel, "", "events", command, ct)
+            .ConfigureAwait(false);
+
     }).ConfigureAwait(false);
 
 });

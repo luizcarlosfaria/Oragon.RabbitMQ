@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Oragon.RabbitMQ.Serialization;
 using System.Diagnostics.CodeAnalysis;
+using Dawn;
 
 namespace Oragon.RabbitMQ.Publisher;
 
@@ -38,12 +39,33 @@ public class MessagePublisher(IConnection connection, IAMQPSerializer serializer
     [SuppressMessage("Usage", "CA2201", Justification = "Do not raise reserved exception types")]
     public async Task SendAsync<T>(string exchange, string routingKey, T message, CancellationToken ct)
     {
+        using IChannel model = await this.connection.CreateChannelAsync(ct).ConfigureAwait(true);
+
+        await this.SendAsync(model, exchange, routingKey, message, ct).ConfigureAwait(true);
+    }
+
+    /// <summary>
+    /// Send a message to the RabbitMQ.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="channel"></param>
+    /// <param name="exchange"></param>
+    /// <param name="routingKey"></param>
+    /// <param name="message"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    /// <exception cref="NullReferenceException"></exception>
+    [SuppressMessage("Usage", "CA2201", Justification = "Do not raise reserved exception types")]
+    public async Task SendAsync<T>(IChannel channel, string exchange, string routingKey, T message, CancellationToken ct)
+    {
+        Guard.Argument(channel).NotNull();
+
         //TODO: Rever
         using Activity? publisherActivity = s_activitySource?.StartActivity("MessagePublisher.SendAsync", ActivityKind.Producer) ?? null;
 
-        using IChannel model = await this.connection.CreateChannelAsync(ct).ConfigureAwait(true);
+        //using IChannel model = await this.connection.CreateChannelAsync(ct).ConfigureAwait(true);
 
-        var properties = model.CreateBasicProperties().EnsureHeaders().SetDurable(true);
+        var properties = channel.CreateBasicProperties().EnsureHeaders().SetDurable(true);
 
         //TODO: Rever
         var contextToInject = GetActivityContext(publisherActivity);
@@ -53,7 +75,7 @@ public class MessagePublisher(IConnection connection, IAMQPSerializer serializer
 
         var body = this.serializer.Serialize(basicProperties: properties, message: message);
 
-        await model.BasicPublishAsync(exchange, routingKey, properties, body, false, ct).ConfigureAwait(true);
+        await channel.BasicPublishAsync(exchange, routingKey, properties, body, false, ct).ConfigureAwait(true);
 
         //publisherActivity?.SetEndTime(DateTime.UtcNow);
     }

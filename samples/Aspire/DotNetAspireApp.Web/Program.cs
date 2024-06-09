@@ -1,15 +1,20 @@
 using DotNetAspireApp.Web;
 using DotNetAspireApp.Web.Components;
+using Radzen;
 
 var builder = WebApplication.CreateBuilder(args);
+
 
 // Add service defaults & Aspire components.
 builder.AddServiceDefaults();
 builder.AddRedisOutputCache("redis");
 
 // Add services to the container.
-builder.Services.AddRazorComponents()
+builder.Services
+    .AddRadzenComponents()
+    .AddRazorComponents()
     .AddInteractiveServerComponents();
+
 
 builder.Services.AddHttpClient<BackendApiClient>(client =>
     {

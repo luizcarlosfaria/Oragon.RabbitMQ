@@ -1,5 +1,7 @@
 ﻿@page "/enqueue"
 @using DotNetAspireApp.Common.Messages.Commands
+@inject NotificationService NotificationService
+
 @* @attribute [StreamRendering(true)] *@
 @rendermode InteractiveServer
 @* @attribute [OutputCache(Duration = 5)] *@
@@ -12,8 +14,26 @@
 
 <p>This component demonstrates showing data loaded from a backend API service.</p>
 
+<div class="container">
+    <div class="row">        
+        <div class="col-sm-12 col-lg-8 my-3 my-lg-5">
+            <RadzenArcGauge Style="width: 100%; height: 250px;">
+                <RadzenArcGaugeScale Step="1000" Min="@minValue" Max="@maxValue" MinorStep="100" Radius="1.5" TickPosition=GaugeTickPosition.Outside Y="0.9" Margin="0">
+                    <RadzenArcGaugeScaleValue Value=@TotalItemsToSend ShowValue=true>
+                        <Template Context="pointer">
+                            <h4>
+                                @pointer.Value <sup>msg's</sup>
+                            </h4>
+                        </Template>
+                    </RadzenArcGaugeScaleValue>
+                </RadzenArcGaugeScale>
+            </RadzenArcGauge>
+        </div>
+    </div>
+</div>
+
 <p>
-    <RadzenSlider @bind-Value=@TotalItemsToSend TValue="int" Min="1" Max="10000" Style="width:100%" />
+    <RadzenSlider @bind-Value=@TotalItemsToSend TValue="int" Min="@minValue" Max="@maxValue" Style="width:100%" />
 </p>
 
 <p>
@@ -21,25 +41,42 @@
         Id
         <input @bind="Message" />
     </label>
-    <button @onclick="UpdateHeading">
+    <button @onclick="SendMessage">
         Enviar @TotalItemsToSend mensagens
     </button>
 </p>
 
 @code {
-    int TotalItemsToSend = 1;
+    int minValue = 0;
+    int maxValue = 5000;
+
+    int TotalItemsToSend = 0;
 
     private string Message = string.Empty;
 
 
-    private async Task UpdateHeading()
+    private async Task SendMessage()
     {
         string message = this.Message;
         int totalItensToSend = this.TotalItemsToSend;
 
-        await api.EnqueueAsync(new DoSomethingRequest(totalItensToSend, $"Mensagem {{message}} ({{index}} de {totalItensToSend})")).ConfigureAwait(false);
+        if (totalItensToSend > 0)
+        {
+            await api.EnqueueAsync(new DoSomethingRequest(totalItensToSend, message)).ConfigureAwait(false);
 
-        this.Message = string.Empty;
+            this.ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Mensagem enviada com sucesso!", Detail = "Sucesso", Duration = 4000 });
+        }
+        else
+        {
+            this.ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "Escolha um número de mensagens maior que zero", Detail = "?", Duration = 4000 });
+        }
+
+        
+    }
+
+    void ShowNotification(NotificationMessage message)
+    {
+        this.NotificationService.Notify(message);
     }
 
 }

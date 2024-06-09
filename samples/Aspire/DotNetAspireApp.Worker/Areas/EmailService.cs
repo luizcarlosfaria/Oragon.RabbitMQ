@@ -35,12 +35,14 @@ public class EmailService
 {
     public async Task DoSomethingAsync(DoSomethingCommand command)
     {
-        Console.WriteLine($"Begin | {command.ItemId}");
+        string logText = $"{command.Text} ({command.Seq} of {command.Max})";
+
+        Console.WriteLine($"Begin | {logText}");
 
         //await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
 
-        await Task.Delay(TimeSpan.FromMilliseconds(1)).ConfigureAwait(false);
+        await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
 
-        Console.WriteLine($"End | {command.ItemId}");
+        Console.WriteLine($"End | {logText}");
     }
 }
