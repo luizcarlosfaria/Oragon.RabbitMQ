@@ -2,6 +2,9 @@
 
 
   <Import Project="./../Oragon.RabbitMQ.Build.props" />
+  <PropertyGroup>
+    <Description>Defines the core abstractions for RabbitMQ message consumers. Offers a flexible foundation for extending and integrating custom RabbitMQ solutions.</Description>
+  </PropertyGroup>
 
 
 </Project>
