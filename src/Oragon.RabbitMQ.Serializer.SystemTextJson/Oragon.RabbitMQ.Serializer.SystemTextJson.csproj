@@ -1,6 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<Import Project="./../Oragon.RabbitMQ.Build.props" />
+  <PropertyGroup>
+    <Description>Implements JSON serialization for RabbitMQ using System.Text.Json. Leverage fast and modern serialization for efficient message handling in RabbitMQ consumers.</Description>
+  </PropertyGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\Oragon.RabbitMQ.Abstractions\Oragon.RabbitMQ.Abstractions.csproj" />

@@ -16,7 +16,7 @@ public static class TestExtensions
 
         IAmqpWriteable amqpWriteable = basicProperties;
 
-        amqpWriteable.WriteTo(bytesSpan);
+        _ = amqpWriteable.WriteTo(bytesSpan);
 
         var readOnlyBytesSpan = bytesSpan.ToReadOnly();
 

@@ -7,6 +7,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Oragon.RabbitMQ.Consumer;
 using Oragon.RabbitMQ.Serialization;
+using Polly;
+using Polly.Retry;
 using RabbitMQ.Client;
 
 namespace Oragon.RabbitMQ;
@@ -39,7 +41,7 @@ public static class DependencyInjectionExtensions
                 _ = parameters.WithServiceProvider(sp);
                 _ = parameters.WithDisplayLoopInConsoleEvery(TimeSpan.FromMinutes(1));
                 _ = parameters.WithTestQueueRetryCount(5);
-                _ = parameters.WithConnectionFactoryFunc((sp) => sp.GetRequiredService<IConnection>());
+                _ = parameters.WithConnection((sp) => sp.GetRequiredService<IConnection>());
                 _ = parameters.WithDispatchInRootScope();
                 _ = parameters.WithSerializer(sp.GetRequiredService<IAMQPSerializer>());
 
@@ -74,7 +76,7 @@ public static class DependencyInjectionExtensions
             _ = parameters.WithServiceProvider(sp);
             _ = parameters.WithDisplayLoopInConsoleEvery(TimeSpan.FromMinutes(1));
             _ = parameters.WithTestQueueRetryCount(5);
-            _ = parameters.WithConnectionFactoryFunc((sp) => sp.GetRequiredService<IConnection>());
+            _ = parameters.WithConnection((sp) => sp.GetRequiredService<IConnection>());
             _ = parameters.WithDispatchInRootScope();
             _ = parameters.WithSerializer(sp.GetRequiredService<IAMQPSerializer>());
 
@@ -87,4 +89,49 @@ public static class DependencyInjectionExtensions
                 );
         });
     }
+
+
+    /// <summary>
+    /// Wait Connection is available to use
+    /// </summary>
+    /// <param name="serviceProvider"></param>
+    /// <param name="keyedServiceKey">Optional if using Keyed Services, used to return a RabbitMQ.Client.IConnection instance</param>
+    /// <exception cref="InvalidOperationException"></exception>
+    public static async Task WaitRabbitMQAsync(this IServiceProvider serviceProvider, string keyedServiceKey = null)
+    {
+        var pipeline = new ResiliencePipelineBuilder()
+        .AddRetry(new RetryStrategyOptions()
+        {
+            MaxRetryAttempts = 5,
+            DelayGenerator = static args =>
+            {
+                var delay = args.AttemptNumber switch
+                {
+                    <= 5 => TimeSpan.FromSeconds(Math.Pow(2, args.AttemptNumber)),
+                    _ => TimeSpan.FromMinutes(3)
+                };
+                return new ValueTask<TimeSpan?>(delay);
+            }
+        })
+        .AddTimeout(TimeSpan.FromSeconds(10)) // Add 10 seconds timeout
+        .Build();
+
+        await pipeline.ExecuteAsync(async (cancellationToken) =>
+        {
+            //do not dispose connection
+            var connection = string.IsNullOrWhiteSpace(keyedServiceKey)
+                ? serviceProvider.GetRequiredService<IConnection>()
+                : serviceProvider.GetRequiredKeyedService<IConnection>(keyedServiceKey);
+
+            if (connection.IsOpen)
+            {
+                return;
+            }
+            await connection.CloseAsync(cancellationToken).ConfigureAwait(false);
+
+            throw new InvalidOperationException("Connection is not open");
+        }).ConfigureAwait(false);
+
+    }
+
 }

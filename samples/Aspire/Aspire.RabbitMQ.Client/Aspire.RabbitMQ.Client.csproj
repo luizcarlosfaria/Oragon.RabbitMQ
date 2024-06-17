@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <PackageTags>$(ComponentDatabasePackageTags) rabbitmq amqp</PackageTags>
+    <Description>A RabbitMQ client that integrates with Aspire, including health checks, logging, and telemetry.</Description>
+    <NoWarn>$(NoWarn);SYSLIB1100;SYSLIB1101</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Common\ConfigurationSchemaAttributes.cs" Link="ConfigurationSchemaAttributes.cs" />
+    <Compile Include="..\Common\HealthChecksExtensions.cs" Link="HealthChecksExtensions.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AspNetCore.HealthChecks.Rabbitmq" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.0-preview.4.24266.19" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.0-preview.4.24266.19" />
+    <PackageReference Include="Polly.Core" Version="8.4.0" />
+    <PackageReference Include="RabbitMQ.Client" Version="7.0.0-rc.1" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0-rc.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Aspire.RabbitMQ.Client.Tests" />
+  </ItemGroup>
+
+</Project>

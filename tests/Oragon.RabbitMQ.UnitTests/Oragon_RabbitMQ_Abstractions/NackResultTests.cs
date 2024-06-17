@@ -51,9 +51,9 @@ public class NackResultTests
         var nackResult = new NackResult(true);
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => nackResult.ExecuteAsync(null, deliveryArgs));
+        _ = await Assert.ThrowsAsync<ArgumentNullException>(() => nackResult.ExecuteAsync(null, deliveryArgs));
 
-        await Assert.ThrowsAsync<ArgumentNullException>(() => nackResult.ExecuteAsync(channel, null));
+        _ = await Assert.ThrowsAsync<ArgumentNullException>(() => nackResult.ExecuteAsync(channel, null));
     }
 
     [Fact]
@@ -65,6 +65,6 @@ public class NackResultTests
         var nackResult = new NackResult(true);
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => nackResult.ExecuteAsync(channel, delivery));
+        _ = await Assert.ThrowsAsync<ArgumentNullException>(() => nackResult.ExecuteAsync(channel, delivery));
     }
 }

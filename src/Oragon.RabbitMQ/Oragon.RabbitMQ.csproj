@@ -1,13 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<Import Project="./../Oragon.RabbitMQ.Build.props" />
+  <PropertyGroup>
+    <Description>Provides a minimal API for RabbitMQ consumers, designed for simplicity and resilience. Enhance message handling with streamlined configuration and robust performance.</Description>
+  </PropertyGroup>
 
-	<ItemGroup>
+  <ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0-preview.4.24266.19" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.0-preview.4.24266.19" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0-preview.4.24266.19" />
-		<PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.9.0-alpha.1" />
-		<PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0-alpha.1" />
+		<PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.9.0-rc.1" />
+		<PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0-rc.1" />
 		<PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.8.1" />
 		<PackageReference Include="OpenTelemetry.Instrumentation.GrpcNetClient" Version="1.8.0-beta.1" />
 		<PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.8.1" />
