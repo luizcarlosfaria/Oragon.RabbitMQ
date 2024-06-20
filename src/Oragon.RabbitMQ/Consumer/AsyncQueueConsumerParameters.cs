@@ -71,7 +71,7 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     /// <summary>
     /// Requeue On Crash
     /// </summary>
-    public bool RequeueOnCrash { get; private set; }
+    public bool RequeueOnCrash { get; private set; } = true;
 
     /// <summary>
     /// KeyOfService on Keyed Services

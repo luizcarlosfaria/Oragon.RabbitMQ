@@ -32,7 +32,7 @@
     <Company>oragon.io</Company>
     <Product>Oragon</Product>
     <PackageTags>oragon architecture luizcarlosfaria rabbitmq</PackageTags>
-    <PackageType>Library</PackageType>
+    <!--<PackageType>Library</PackageType>-->
   </PropertyGroup>
 
 
