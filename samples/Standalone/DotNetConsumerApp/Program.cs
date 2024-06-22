@@ -23,22 +23,74 @@ builder.Services.AddSingleton(sp => sp.GetRequiredService<IConnectionFactory>().
 
 
 builder.Services.AddScoped<UpdateService>();
-builder.Services.AddSingleton<IAMQPSerializer, SystemTextJsonAMQPSerializer>();
+
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//Choose one of the following serializers
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//builder.Services.AddSingleton<IAMQPSerializer>(sp => new SystemTextJsonAMQPSerializer(new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.General)));
+builder.Services.AddSingleton<IAMQPSerializer>(sp => new NewtonsoftAMQPSerializer(new Newtonsoft.Json.JsonSerializerSettings()));
 
 builder.Services.MapQueue<UpdateService, PriceChangeEvent>(config => config
     .WithDispatchInChildScope()
+    .WithRequeueOnCrash(false)
     .WithAdapter((svc, msg) => svc.UpdatePriceCacheAsync(msg))
     .WithQueueName("events1")
     .WithPrefetchCount(1)
-    .WithTopology((serviceProvider, channel) => channel.QueueDeclareAsync("events1", durable: true, autoDelete: false, exclusive: false))
+    .WithTopology(async (serviceProvider, channel) =>
+    {
+        _ = await channel.QueueDeclareAsync("events1_dl",
+            durable: true,
+            autoDelete: false,
+            exclusive: false)
+        .ConfigureAwait(false);
+
+        _ = await channel.QueueDeclareAsync("events1",
+            durable: true,
+            autoDelete: false,
+            exclusive: false,
+            arguments: new Dictionary<string, object>()
+            {
+                { "x-dead-letter-exchange", "" },
+                { "x-dead-letter-routing-key", "events1_dl" },
+            })
+        .ConfigureAwait(false);
+    })
 );
 
 builder.Services.MapQueue<UpdateService, PriceChangeEvent>(config => config
     .WithDispatchInChildScope()
+    .WithRequeueOnCrash(false)
     .WithAdapter((svc, msg) => svc.UpdatePriceCacheAsync(msg))
     .WithQueueName("events2")
     .WithPrefetchCount(1)
-    .WithTopology((serviceProvider, channel) => channel.QueueDeclareAsync("events2", durable: true, autoDelete: false, exclusive: false))
+    .WithTopology(async (serviceProvider, channel) =>
+    {
+        _ = await channel.QueueDeclareAsync("events2_dl",
+            durable: true,
+            autoDelete: false,
+            exclusive: false)
+        .ConfigureAwait(false);
+
+        _ = await channel.QueueDeclareAsync("events2",
+            durable: true,
+            autoDelete: false,
+            exclusive: false,
+            arguments: new Dictionary<string, object>()
+            {
+                { "x-dead-letter-exchange", "" },
+                { "x-dead-letter-routing-key", "events2_dl" },
+            })
+        .ConfigureAwait(false);
+    })
+);
+
+builder.Services.MapQueue<UpdateService, PriceChangeEvent>(config => config
+    .WithDispatchInChildScope()
+    .WithRequeueOnCrash(true) //produce requeue forever when failure forever
+    .WithAdapter((svc, msg) => svc.UpdatePriceCacheAsync(msg))
+    .WithQueueName("events3")
+    .WithPrefetchCount(1)
+    .WithTopology((serviceProvider, channel) => channel.QueueDeclareAsync("events3"))
 );
 
 var app = builder.Build();
