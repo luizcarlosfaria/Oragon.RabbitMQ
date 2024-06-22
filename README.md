@@ -82,7 +82,7 @@ builder.Services.MapQueue<BusinessService, BusinessCommandOrEvent>(config => con
 ```cs
 builder.Services.AddScoped<BusinessService>();
 
-builder.Services.AddSingleton<IAMQPSerializer, SystemTextJsonAMQPSerializer>();
+builder.Services.AddSingleton<IAMQPSerializer>(sp => new SystemTextJsonAMQPSerializer(new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.General){ ... }));
 
 builder.Services.MapQueue<BusinessService, BusinessCommandOrEvent>(config => config
     .WithDispatchInChildScope()    
@@ -98,7 +98,7 @@ builder.Services.MapQueue<BusinessService, BusinessCommandOrEvent>(config => con
 builder.Services.AddKeyedScoped<BusinessService>("key-of-service-1");
 builder.Services.AddKeyedScoped("key-of-service-2", (sp, key) => new BusinessService(... custom dependencies ...));
 
-builder.Services.AddSingleton<IAMQPSerializer, NewtonsoftAMQPSerializer>();
+builder.Services.AddSingleton<IAMQPSerializer>(sp => new NewtonsoftAMQPSerializer(new Newtonsoft.Json.JsonSerializerSettings(){ ... }));
 
 builder.Services.MapQueue<BusinessService, BusinessCommandOrEvent>(config => config
     .WithDispatchInChildScope()
@@ -151,7 +151,7 @@ Refactored to use RabbitMQ.Client 7x (with IChannel instead IModel)
 - [x] Core: Rpc Queue Consumer
 - [x] Core: Support Keyed Services
 - [x] Core: Support of new design of RabbitMQ.Client
-- [ ] Create Samples
+- [x] Create Samples
 - [ ] Review All SuppressMessageAttribute
 - [ ] Create Docs
 - [ ] Benchmarks
