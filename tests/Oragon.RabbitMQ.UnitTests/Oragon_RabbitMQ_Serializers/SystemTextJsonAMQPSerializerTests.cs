@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Oragon.RabbitMQ.Serialization;
 using Oragon.RabbitMQ.TestsExtensions;
 using RabbitMQ.Client;
@@ -17,7 +18,7 @@ public class SystemTextJsonAMQPSerializerTests
     {
         public required string Name { get; set; }
 
-        public required int Age { get; set; }
+        public required int? Age { get; set; }
     }
 
     [Fact]
@@ -29,7 +30,7 @@ public class SystemTextJsonAMQPSerializerTests
 
         var sourceObject = new Teste() { Name = "Oragon.RabbitMQ", Age = 2 };
 
-        var serializer = new SystemTextJsonAMQPSerializer();
+        var serializer = new SystemTextJsonAMQPSerializer(null);
 
         var serializerOutput = serializer.Serialize(targetBasicProperties, sourceObject);
 
@@ -50,7 +51,7 @@ public class SystemTextJsonAMQPSerializerTests
 
         var reference = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(sourceObject));
 
-        var serializer = new SystemTextJsonAMQPSerializer();
+        var serializer = new SystemTextJsonAMQPSerializer(null);
 
         var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
@@ -77,7 +78,7 @@ public class SystemTextJsonAMQPSerializerTests
 
         byte[] reference = [];
 
-        var serializer = new SystemTextJsonAMQPSerializer();
+        var serializer = new SystemTextJsonAMQPSerializer(null);
 
         var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
@@ -102,7 +103,7 @@ public class SystemTextJsonAMQPSerializerTests
 
         var reference = Encoding.UTF8.GetBytes("");
 
-        var serializer = new SystemTextJsonAMQPSerializer();
+        var serializer = new SystemTextJsonAMQPSerializer(null);
 
         var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
@@ -128,7 +129,7 @@ public class SystemTextJsonAMQPSerializerTests
 
         var reference = Encoding.UTF8.GetBytes(" ");
 
-        var serializer = new SystemTextJsonAMQPSerializer();
+        var serializer = new SystemTextJsonAMQPSerializer(null);
 
         var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
@@ -141,6 +142,55 @@ public class SystemTextJsonAMQPSerializerTests
             );
 
         Assert.Null(targetObject);
+
+    }
+
+
+
+    [Theory]
+    [InlineData([@"{ ""Name"": ""Oragon.RabbitMQ"" }", "Oragon.RabbitMQ", 0, typeof(JsonException)])]
+    [InlineData([@"{ ""Name"": ""Oragon.RabbitMQ"", ""Age"": 1 }", "Oragon.RabbitMQ", 1, null])]
+    [InlineData([@"{ ""name"": ""Oragon.RabbitMQ"", ""age"": 2 }", "Oragon.RabbitMQ", 2, null])]
+    [InlineData([@"{ ""name"": ""Oragon.RabbitMQ"", ""Age"": ""3"" }", "Oragon.RabbitMQ", 3, null])]
+    public void TheoryOfDesserializationTest(string json, string expectedName, int expectedAge, Type exceptionType)
+    {
+        var jsonInBytes = Encoding.UTF8.GetBytes(json);
+
+        IAMQPSerializer serializer = new SystemTextJsonAMQPSerializer(new JsonSerializerOptions()
+        {
+            PropertyNameCaseInsensitive = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
+            NumberHandling = JsonNumberHandling.AllowReadingFromString,
+            UnmappedMemberHandling = JsonUnmappedMemberHandling.Skip
+        });
+
+        var basicProperties = new BasicProperties();
+        var args = new BasicDeliverEventArgs(
+                    consumerTag: "-",
+                    deliveryTag: 1,
+                    redelivered: false,
+                    exchange: "-",
+                    routingKey: "-",
+                    properties: basicProperties.ToReadOnly(),
+                    body: jsonInBytes);
+
+        Teste targetObject;
+
+        if (exceptionType != null)
+        {
+            _ = Assert.Throws(exceptionType, () =>
+            {
+                targetObject = serializer.Deserialize<Teste>(args);
+            });
+        }
+        else
+        {
+            targetObject = serializer.Deserialize<Teste>(args);
+
+            Assert.Equal(expectedName, targetObject.Name);
+            Assert.Equal(expectedAge, targetObject.Age);
+        }
+
 
     }
 }

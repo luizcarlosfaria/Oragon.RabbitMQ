@@ -113,7 +113,7 @@ public class MultipleConsumersTest : IAsyncLifetime
 
         // Singleton dependencies
         services.AddSingleton(new ActivitySource("test"));
-        services.AddSingleton<IAMQPSerializer, NewtonsoftAMQPSerializer>();
+        services.AddSingleton<IAMQPSerializer>(sp => new NewtonsoftAMQPSerializer(null));
         services.AddSingleton(connection);
 
         // Send a message to the channel.
