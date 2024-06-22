@@ -121,7 +121,7 @@ public class Extensions_Telemetry_Tests
 
         // Assert
         Assert.NotNull(result.Headers);
-        Assert.IsType<Dictionary<string, object>>(result.Headers);
+        _ = Assert.IsType<Dictionary<string, object>>(result.Headers);
     }
 
     [Fact]

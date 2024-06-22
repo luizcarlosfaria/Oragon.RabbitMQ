@@ -1,0 +1,120 @@
+﻿@page "/enqueue"
+@using DotNetAspireApp.Common.Messages.Commands
+@inject NotificationService NotificationService
+
+@* @attribute [StreamRendering(true)] *@
+@rendermode InteractiveServer
+@* @attribute [OutputCache(Duration = 5)] *@
+
+@inject BackendApiClient api
+
+<PageTitle>enqueue</PageTitle>
+
+<h1>enqueue</h1>
+
+<p>Envie mensagens para o RabbitMQ.</p>
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm-12 col-lg-8 my-3 my-lg-5">
+            <RadzenLabel>Quantidade de Mensagens para serem enviadas</RadzenLabel>
+            <RadzenArcGauge Style="width: 100%; height: 250px;">
+                <RadzenArcGaugeScale Step="100" Min="@minValue" Max="@maxValue" MinorStep="100" Radius="1.5" TickPosition=GaugeTickPosition.Outside Y="0.9" Margin="0" >
+                    <RadzenArcGaugeScaleValue Value=@TotalItemsToSend ShowValue=true Fill="indigo">
+                        <Template Context="pointer">
+                            <h4>
+                                @pointer.Value <sup>msg's para enviar</sup>
+                            </h4>
+                        </Template>
+                    </RadzenArcGaugeScaleValue>
+                </RadzenArcGaugeScale>
+            </RadzenArcGauge>
+        </div>
+    </div>
+</div>
+
+<p>
+    <RadzenSlider @bind-Value=@TotalItemsToSend TValue="int" Min="@minValue" Max="@maxValue" Style="width:100%" />
+</p>
+
+<p>
+    <label>
+        Texto
+        <input @bind="Message" />
+    </label>
+    <button @onclick="SendMessage">
+        Enviar solicitação de criação de @TotalItemsToSend mensagens
+    </button>
+</p>
+
+<div class="toast-container position-fixed mt-5 top-0 end-0 p-3">
+
+    @foreach (var message in this.NotificationService.Messages.Reverse())
+    {
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header @(message.Severity == NotificationSeverity.Success? "bg-success" : "bg-primary") ">
+                @* <img src="..." class="rounded me-2" alt="..."> *@
+                <strong class="me-auto text-white">@message.Summary</strong>
+                <small class="text-white">@message.Style</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close" @onclick="@(e => this.Remove(message))"></button>
+            </div>
+            <div class="toast-body">
+                @message.Detail
+            </div>
+        </div>
+    }
+
+
+</div>
+
+@code {
+    int minValue = 0;
+    int maxValue = 1000;
+
+    int TotalItemsToSend = 0;
+
+    private string Message = string.Empty;
+
+
+    private async Task SendMessage()
+    {
+        string message = this.Message;
+        int totalItensToSend = this.TotalItemsToSend;
+
+        if (totalItensToSend > 0)
+        {
+            await api.EnqueueAsync(new DoSomethingRequest(totalItensToSend, message)).ConfigureAwait(true);
+
+            await this.ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Sucesso", Detail = $"{totalItensToSend} mensagens foram enviadas com sucesso!", Duration = 4000, Style = DateTime.Now.ToString("HH:mm:ss") });
+        }
+        else
+        {
+            await this.ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "Info", Detail = "Escolha um número de mensagens maior que zero", Duration = 4000, Style = DateTime.Now.ToString("HH:mm:ss") });
+        }
+
+
+    }
+
+    void Remove(NotificationMessage message)
+    {
+        this.NotificationService.Messages.Remove(message);
+    }
+
+    async Task ShowNotification(NotificationMessage message)
+    {
+        this.NotificationService.Notify(message);
+
+        await Task.Delay(Convert.ToInt32(message.Duration)).ConfigureAwait(true);
+
+        if (this.NotificationService.Messages.Contains(message))
+        {
+            this.NotificationService.Messages.Remove(message);
+        }
+
+
+
+
+    }
+
+}
+

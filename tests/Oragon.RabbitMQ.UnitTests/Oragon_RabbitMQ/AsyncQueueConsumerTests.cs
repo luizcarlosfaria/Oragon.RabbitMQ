@@ -26,7 +26,7 @@ public class AsyncQueueConsumerTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.IsType<BasicProperties>(result);
+        _ = Assert.IsType<BasicProperties>(result);
     }
 
 }

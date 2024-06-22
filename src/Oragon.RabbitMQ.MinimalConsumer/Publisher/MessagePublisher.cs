@@ -5,9 +5,11 @@ using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Oragon.RabbitMQ.Serialization;
 using System.Diagnostics.CodeAnalysis;
+using Dawn;
 
 namespace Oragon.RabbitMQ.Publisher;
 
+#nullable enable
 
 /// <summary>
 /// Basic publisher for RabbitMQ.
@@ -17,7 +19,7 @@ namespace Oragon.RabbitMQ.Publisher;
 /// <param name="logger"></param>
 public class MessagePublisher(IConnection connection, IAMQPSerializer serializer, ILogger<MessagePublisher> logger)
 {
-    private static readonly ActivitySource s_activitySource = new(MessagingTelemetryNames.GetName(nameof(MessagePublisher)));
+    private static readonly ActivitySource? s_activitySource = new(MessagingTelemetryNames.GetName(nameof(MessagePublisher)));
     private static readonly TextMapPropagator s_propagator = Propagators.DefaultTextMapPropagator;
 
     private readonly IAMQPSerializer serializer = serializer;
@@ -31,17 +33,39 @@ public class MessagePublisher(IConnection connection, IAMQPSerializer serializer
     /// <param name="exchange"></param>
     /// <param name="routingKey"></param>
     /// <param name="message"></param>
+    /// <param name="ct"></param>
     /// <returns></returns>
     /// <exception cref="NullReferenceException"></exception>
     [SuppressMessage("Usage", "CA2201", Justification = "Do not raise reserved exception types")]
-    public async Task SendAsync<T>(string exchange, string routingKey, T message)
+    public async Task SendAsync<T>(string exchange, string routingKey, T message, CancellationToken ct)
     {
+        using IChannel model = await this.connection.CreateChannelAsync(ct).ConfigureAwait(true);
+
+        await this.SendAsync(model, exchange, routingKey, message, ct).ConfigureAwait(true);
+    }
+
+    /// <summary>
+    /// Send a message to the RabbitMQ.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="channel"></param>
+    /// <param name="exchange"></param>
+    /// <param name="routingKey"></param>
+    /// <param name="message"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    /// <exception cref="NullReferenceException"></exception>
+    [SuppressMessage("Usage", "CA2201", Justification = "Do not raise reserved exception types")]
+    public async Task SendAsync<T>(IChannel channel, string exchange, string routingKey, T message, CancellationToken ct)
+    {
+        Guard.Argument(channel).NotNull();
+
         //TODO: Rever
-        using Activity publisherActivity = s_activitySource.StartActivity("MessagePublisher.SendAsync", ActivityKind.Producer) ?? throw new InvalidOperationException("s_activitySource.StartActivity produces null");
+        using Activity? publisherActivity = s_activitySource?.StartActivity("MessagePublisher.SendAsync", ActivityKind.Producer) ?? null;
 
-        using IChannel model = await this.connection.CreateChannelAsync().ConfigureAwait(true);
+        //using IChannel model = await this.connection.CreateChannelAsync(ct).ConfigureAwait(true);
 
-        var properties = model.CreateBasicProperties().EnsureHeaders().SetDurable(true);
+        var properties = channel.CreateBasicProperties().EnsureHeaders().SetDurable(true);
 
         //TODO: Rever
         var contextToInject = GetActivityContext(publisherActivity);
@@ -51,12 +75,12 @@ public class MessagePublisher(IConnection connection, IAMQPSerializer serializer
 
         var body = this.serializer.Serialize(basicProperties: properties, message: message);
 
-        await model.BasicPublishAsync(exchange, routingKey, properties, body).ConfigureAwait(true);
+        await channel.BasicPublishAsync(exchange, routingKey, properties, body, false, ct).ConfigureAwait(true);
 
         //publisherActivity?.SetEndTime(DateTime.UtcNow);
     }
 
-    private static ActivityContext GetActivityContext(Activity activity)
+    private static ActivityContext GetActivityContext(Activity? activity)
     {
         ActivityContext contextToInject = default;
         if (activity != null)
@@ -77,7 +101,7 @@ public class MessagePublisher(IConnection connection, IAMQPSerializer serializer
     {
         try
         {
-            props.Headers ??= new Dictionary<string, object>();
+            props.Headers ??= new Dictionary<string, object?>();
 
             props.Headers[key] = value;
         }

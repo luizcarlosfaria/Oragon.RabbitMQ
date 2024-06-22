@@ -1,6 +1,7 @@
 using RabbitMQ.Client;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.Text.Json;
 
 namespace Oragon.RabbitMQ.Serialization;
 
@@ -12,11 +13,15 @@ namespace Oragon.RabbitMQ.Serialization;
 [SuppressMessage("Sonar", "S101", Justification = "AMQP is a acronym for Advanced Message Queuing Protocol, so it's a name.")]
 public class SystemTextJsonAMQPSerializer : AMQPBaseSerializer
 {
+    private readonly JsonSerializerOptions options;
 
     /// <summary>
     /// Create a instance of SystemTextJsonAMQPSerializer
     /// </summary>    
-    public SystemTextJsonAMQPSerializer() : base() { }
+    public SystemTextJsonAMQPSerializer(JsonSerializerOptions options) : base()
+    {
+        this.options = options ?? new();
+    }
 
 
     /// <summary>
@@ -34,7 +39,7 @@ public class SystemTextJsonAMQPSerializer : AMQPBaseSerializer
             var message = Encoding.UTF8.GetString(bytes);
             if (!string.IsNullOrWhiteSpace(message))
             {
-                return System.Text.Json.JsonSerializer.Deserialize<TMessage>(message);
+                return JsonSerializer.Deserialize<TMessage>(message, this.options);
             }
         }
         return default;
@@ -50,7 +55,7 @@ public class SystemTextJsonAMQPSerializer : AMQPBaseSerializer
     /// <returns></returns>
     protected override byte[] SerializeInternal<TMessage>(BasicProperties basicProperties, TMessage message)
     {
-        return Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(message));
+        return Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message, this.options));
     }
 }
 

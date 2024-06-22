@@ -8,13 +8,15 @@ pipeline {
 
             agent {
                 dockerfile {                   
-                    args '-u root:root'
+                    args '-u root:root -v /gago/nuget-cache:/root/.nuget/packages'
                 }
             }
 
             steps {
                 
                 echo sh(script: 'env|sort', returnStdout: true)
+
+                sh 'dotnet workload restore ./Oragon.RabbitMQ.sln'
 
                 sh 'dotnet build ./Oragon.RabbitMQ.sln'
 
@@ -30,7 +32,8 @@ pipeline {
                     // alwaysPull false
                     // image 'microsoft/dotnet:2.1-sdk'
                     // reuseNode false
-                    args '-u root:root -v /var/run/docker.sock:/var/run/docker.sock'
+                    args '-u root:root -v /var/run/docker.sock:/var/run/docker.sock -v /gago/nuget-cache:/root/.nuget/packages'
+
                 }
             }
 
@@ -85,6 +88,8 @@ pipeline {
 
                             git fetch origin develop:develop
 
+                            dotnet workload restore ./Oragon.RabbitMQ.sln
+
                             export PATH="\$PATH:/root/.dotnet/tools"
 
                             dotnet sonarscanner begin ${sonarParamsText}
@@ -108,7 +113,7 @@ pipeline {
 
             agent {
                 dockerfile {                    
-                    args '-u root:root'
+                    args '-u root:root -v /gago/nuget-cache:/root/.nuget/packages'
                 }
             }
 
@@ -157,7 +162,7 @@ pipeline {
 
             agent {
                 dockerfile {                  
-                    args '-u root:root'
+                    args '-u root:root -v /gago/nuget-cache:/root/.nuget/packages'
                 }
             }
 

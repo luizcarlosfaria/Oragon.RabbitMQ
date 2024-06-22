@@ -30,14 +30,14 @@ public class ConsumerBaseParameters
     /// <summary>
     /// Gets or sets the configurer action for topology.
     /// </summary>
-    public Action<IServiceProvider, IChannel> Configurer { get; private set; }
+    public Func<IServiceProvider, IChannel, Task> Configurer { get; private set; }
 
     /// <summary>
     /// Sets the configurer action for topology.
     /// </summary>
     /// <param name="configurer">The configurer action for topology.</param>
     /// <returns>The updated instance of <see cref="ConsumerBaseParameters"/>.</returns>
-    public ConsumerBaseParameters WithTopology(Action<IServiceProvider, IChannel> configurer)
+    public ConsumerBaseParameters WithTopology(Func<IServiceProvider, IChannel, Task> configurer)
     {
         this.Configurer = configurer;
         return this;
@@ -69,7 +69,7 @@ public class ConsumerBaseParameters
     /// </summary>
     /// <param name="connectionFactoryFunc">The connection factory function.</param>
     /// <returns>The updated instance of <see cref="ConsumerBaseParameters"/>.</returns>
-    public ConsumerBaseParameters WithConnectionFactoryFunc(Func<IServiceProvider, IConnection> connectionFactoryFunc)
+    public ConsumerBaseParameters WithConnection(Func<IServiceProvider, IConnection> connectionFactoryFunc)
     {
         this.ConnectionFactoryFunc = connectionFactoryFunc;
         return this;

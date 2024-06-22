@@ -3,6 +3,8 @@
 
 using System.Diagnostics;
 using System.Text;
+using Newtonsoft.Json;
+using System.Text.Json;
 using Oragon.RabbitMQ.Serialization;
 using Oragon.RabbitMQ.TestsExtensions;
 using RabbitMQ.Client;
@@ -27,7 +29,7 @@ public class NewtonsoftAMQPSerializerTests
 
         var sourceObject = new Teste() { Name = "Oragon.RabbitMQ", Age = 2 };
 
-        var serializer = new NewtonsoftAMQPSerializer();
+        var serializer = new NewtonsoftAMQPSerializer(null);
 
         var serializerOutput = serializer.Serialize(targetBasicProperties, sourceObject);
 
@@ -48,7 +50,7 @@ public class NewtonsoftAMQPSerializerTests
 
         var reference = Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(sourceObject));
 
-        var serializer = new NewtonsoftAMQPSerializer();
+        var serializer = new NewtonsoftAMQPSerializer(null);
 
         var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
@@ -75,7 +77,7 @@ public class NewtonsoftAMQPSerializerTests
 
         byte[] reference = [];
 
-        var serializer = new NewtonsoftAMQPSerializer();
+        var serializer = new NewtonsoftAMQPSerializer(null);
 
         var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
@@ -100,7 +102,7 @@ public class NewtonsoftAMQPSerializerTests
 
         var reference = Encoding.UTF8.GetBytes("");
 
-        var serializer = new NewtonsoftAMQPSerializer();
+        var serializer = new NewtonsoftAMQPSerializer(null);
 
         var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
@@ -126,7 +128,7 @@ public class NewtonsoftAMQPSerializerTests
 
         var reference = Encoding.UTF8.GetBytes(" ");
 
-        var serializer = new NewtonsoftAMQPSerializer();
+        var serializer = new NewtonsoftAMQPSerializer(null);
 
         var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
@@ -139,6 +141,38 @@ public class NewtonsoftAMQPSerializerTests
             );
 
         Assert.Null(targetObject);
+
+    }
+
+    [Theory]
+    [InlineData([@"{ ""Name"": ""Oragon.RabbitMQ"" }", "Oragon.RabbitMQ", 0])]
+    [InlineData([@"{ ""Name"": ""Oragon.RabbitMQ"", ""Age"": 1 }", "Oragon.RabbitMQ", 1])]
+    [InlineData([@"{ ""name"": ""Oragon.RabbitMQ"", ""age"": 2 }", "Oragon.RabbitMQ", 2])]
+    [InlineData([@"{ ""name"": ""Oragon.RabbitMQ"", ""Age"": ""3"" }", "Oragon.RabbitMQ", 3])]
+    public void TheoryOfDesserializationTest(string json, string expectedName, int expectedAge)
+    {
+        byte[] jsonInBytes = Encoding.UTF8.GetBytes(json);
+
+       
+        IAMQPSerializer serializer = new NewtonsoftAMQPSerializer(new JsonSerializerSettings()
+        {
+            NullValueHandling = NullValueHandling.Ignore
+        });
+
+        var basicProperties = new BasicProperties();
+
+        var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
+        consumerTag: "-",
+        deliveryTag: 1,
+        redelivered: false,
+        exchange: "-",
+        routingKey: "-",
+        properties: basicProperties.ToReadOnly(),
+        body: jsonInBytes
+        ));
+
+        Assert.Equal(expectedName, targetObject.Name);
+        Assert.Equal(expectedAge, targetObject.Age);
 
     }
 }

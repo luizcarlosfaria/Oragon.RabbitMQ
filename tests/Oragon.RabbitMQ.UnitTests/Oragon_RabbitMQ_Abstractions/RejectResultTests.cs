@@ -54,7 +54,7 @@ public class RejectResultTests
         await rejectResult.ExecuteAsync(channelMock.Object, deliveryArgs);
 
         // Assert
-        Guard.Argument(channelMock.Object).NotNull();
-        Guard.Argument(deliveryArgs).NotNull();
+        _ = Guard.Argument(channelMock.Object).NotNull();
+        _ = Guard.Argument(deliveryArgs).NotNull();
     }
 }

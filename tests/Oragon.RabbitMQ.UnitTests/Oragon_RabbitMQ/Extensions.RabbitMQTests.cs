@@ -16,7 +16,7 @@ public class Extensions_RabbitMQ_Tests
 
         // Assert
         Assert.NotNull(result);
-        Assert.IsType<BasicProperties>(result);
+        _ = Assert.IsType<BasicProperties>(result);
     }
 
     [Fact]
@@ -203,6 +203,6 @@ public class Extensions_RabbitMQ_Tests
 
         // Assert
         Assert.NotNull(result);
-        Assert.IsType<ConnectionFactory>(result);
+        _ = Assert.IsType<ConnectionFactory>(result);
     }
 }

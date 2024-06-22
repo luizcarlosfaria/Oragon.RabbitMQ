@@ -75,7 +75,7 @@ public abstract class ConsumerBase : BackgroundService
         if (this.parameters.Configurer != null)
         {
             using var tmpModel = await this.Connection.CreateChannelAsync(stoppingToken).ConfigureAwait(true);
-            this.parameters.Configurer(this.serviceProvider, tmpModel);
+            await this.parameters.Configurer(this.serviceProvider, tmpModel).ConfigureAwait(true);
         }
 
         await this.WaitQueueCreationAsync().ConfigureAwait(true);
@@ -116,6 +116,8 @@ public abstract class ConsumerBase : BackgroundService
 
             await Task.Delay(1000, stoppingToken).ConfigureAwait(true);
         }
+
+        await this.Channel.BasicCancelAsync(this.consumerTag, false, CancellationToken.None).ConfigureAwait(true);
     }
 
     /// <summary>
