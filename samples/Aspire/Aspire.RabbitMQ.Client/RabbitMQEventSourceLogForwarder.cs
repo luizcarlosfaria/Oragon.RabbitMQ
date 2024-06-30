@@ -12,11 +12,11 @@ namespace Aspire.RabbitMQ.Client;
 
 internal sealed class RabbitMQEventSourceLogForwarder : IDisposable
 {
-    private static readonly Func<ErrorEventSourceEvent, Exception?, string> s_formatErrorEvent = FormatErrorEvent;
-    private static readonly Func<EventSourceEvent, Exception?, string> s_formatEvent = FormatEvent;
+    private static readonly Func<ErrorEventSourceEvent, Exception, string> s_formatErrorEvent = FormatErrorEvent;
+    private static readonly Func<EventSourceEvent, Exception, string> s_formatEvent = FormatEvent;
 
     private readonly ILogger _logger;
-    private RabbitMQEventSourceListener? _listener;
+    private RabbitMQEventSourceListener _listener;
 
     public RabbitMQEventSourceLogForwarder(ILoggerFactory loggerFactory)
     {
@@ -56,10 +56,10 @@ internal sealed class RabbitMQEventSourceLogForwarder : IDisposable
         }
     }
 
-    private static string FormatErrorEvent(ErrorEventSourceEvent eventSourceEvent, Exception? ex) =>
+    private static string FormatErrorEvent(ErrorEventSourceEvent eventSourceEvent, Exception ex) =>
         eventSourceEvent.EventData.Payload?[0]?.ToString() ?? "<empty>";
 
-    private static string FormatEvent(EventSourceEvent eventSourceEvent, Exception? ex) =>
+    private static string FormatEvent(EventSourceEvent eventSourceEvent, Exception ex) =>
         eventSourceEvent.EventData.Payload?[0]?.ToString() ?? "<empty>";
 
     public void Dispose() => this._listener?.Dispose();
@@ -75,7 +75,7 @@ internal sealed class RabbitMQEventSourceLogForwarder : IDisposable
         _ => throw new ArgumentOutOfRangeException(nameof(level), level, null),
     };
 
-    private readonly struct EventSourceEvent : IReadOnlyList<KeyValuePair<string, object?>>
+    private readonly struct EventSourceEvent : IReadOnlyList<KeyValuePair<string, object>>
     {
         public EventWrittenEventArgs EventData { get; }
 
@@ -87,7 +87,7 @@ internal sealed class RabbitMQEventSourceLogForwarder : IDisposable
             this.EventData = eventData;
         }
 
-        public IEnumerator<KeyValuePair<string, object?>> GetEnumerator()
+        public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
         {
             for (var i = 0; i < this.Count; i++)
             {
@@ -102,10 +102,10 @@ internal sealed class RabbitMQEventSourceLogForwarder : IDisposable
 
         public int Count => this.EventData.PayloadNames?.Count ?? 0;
 
-        public KeyValuePair<string, object?> this[int index] => new(this.EventData.PayloadNames![index], this.EventData.Payload![index]);
+        public KeyValuePair<string, object> this[int index] => new(this.EventData.PayloadNames![index], this.EventData.Payload![index]);
     }
 
-    private readonly struct ErrorEventSourceEvent : IReadOnlyList<KeyValuePair<string, object?>>
+    private readonly struct ErrorEventSourceEvent : IReadOnlyList<KeyValuePair<string, object>>
     {
         public EventWrittenEventArgs EventData { get; }
 
@@ -129,7 +129,7 @@ internal sealed class RabbitMQEventSourceLogForwarder : IDisposable
 
         public int Count => 5;
 
-        public KeyValuePair<string, object?> this[int index]
+        public KeyValuePair<string, object> this[int index]
         {
             get
             {
@@ -146,11 +146,11 @@ internal sealed class RabbitMQEventSourceLogForwarder : IDisposable
                     _ => throw new UnreachableException()
                 };
 
-                static KeyValuePair<string, object?> GetExData(EventWrittenEventArgs eventData, int index)
+                static KeyValuePair<string, object> GetExData(EventWrittenEventArgs eventData, int index)
                 {
                     Debug.Assert(index >= 1 && index <= 4);
                     Debug.Assert(eventData.Payload?.Count == 2);
-                    var exData = eventData.Payload[1] as IDictionary<string, object?>;
+                    var exData = eventData.Payload[1] as IDictionary<string, object>;
                     Debug.Assert(exData is not null && exData.Count == 4);
 
                     return index switch

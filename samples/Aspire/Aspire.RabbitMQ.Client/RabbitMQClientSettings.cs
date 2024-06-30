@@ -11,7 +11,7 @@ public sealed class RabbitMQClientSettings
     /// <summary>
     /// Gets or sets the connection string of the RabbitMQ server to connect to.
     /// </summary>
-    public string? ConnectionString { get; set; }
+    public string ConnectionString { get; set; }
 
     /// <summary>
     /// <para>Gets or sets the maximum number of connection retry attempts.</para>

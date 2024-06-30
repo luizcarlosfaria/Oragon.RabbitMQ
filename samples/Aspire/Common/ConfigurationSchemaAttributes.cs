@@ -11,7 +11,7 @@ namespace Aspire;
 [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
 internal sealed class ConfigurationSchemaAttribute : Attribute
 {
-    public ConfigurationSchemaAttribute(string path, Type type, string[]? exclusionPaths = null)
+    public ConfigurationSchemaAttribute(string path, Type type, string[] exclusionPaths = null)
     {
         this.Path = path;
         this.Type = type;
@@ -31,7 +31,7 @@ internal sealed class ConfigurationSchemaAttribute : Attribute
     /// <summary>
     /// (optional) The config sections to exclude from the ConfigurationSchema. This is useful if there are properties you don't want to publicize in the config schema.
     /// </summary>
-    public string[]? ExclusionPaths { get; }
+    public string[] ExclusionPaths { get; }
 }
 
 /// <summary>
