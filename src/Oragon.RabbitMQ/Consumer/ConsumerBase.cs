@@ -72,6 +72,11 @@ public abstract class ConsumerBase : BackgroundService
     {
         this.Connection = this.parameters.ConnectionFactoryFunc(this.serviceProvider);
 
+        if (this.Connection.DispatchConsumersAsyncEnabled == false)
+        {
+            throw new InvalidOperationException($"{nameof(ConnectionFactory.DispatchConsumersAsync)} must be set to true in the {nameof(ConnectionFactory)}. Oragon.RabbitMQ only works with async dispatchers, you must configure {nameof(ConnectionFactory)} to use async dispatch.");
+        }
+
         if (this.parameters.Configurer != null)
         {
             using var tmpModel = await this.Connection.CreateChannelAsync(stoppingToken).ConfigureAwait(true);

@@ -114,17 +114,15 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
         _ = await channel.QueueDeclareAsync(serverQueue, false, false, false, null);
         var replyQueue = await channel.QueueDeclareAsync(queue: string.Empty, exclusive: true, autoDelete: true);
 
-        var basicProperties = channel.CreateBasicProperties();
-        basicProperties.ReplyTo = replyQueue.QueueName;
-        basicProperties.MessageId = Guid.NewGuid().ToString("D");
+        var basicProperties = channel.CreateBasicProperties()
+            .SetReplyTo(replyQueue.QueueName)
+            .SetMessageId(Guid.NewGuid().ToString("D"));
 
         await channel.BasicPublishAsync(string.Empty, serverQueue, basicProperties, Encoding.Default.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(originalMessage)), true);
         await channel.WaitForConfirmsOrDieAsync();
 
         var sp = services.BuildServiceProvider();
-
         var hostedService = sp.GetRequiredService<IHostedService>();
-
         await hostedService.StartAsync(CancellationToken.None);
 
         // Signal the completion of message reception.

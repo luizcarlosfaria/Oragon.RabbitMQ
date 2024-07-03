@@ -76,7 +76,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
 
 
     [Fact]
-    public async Task MapQueueTest()
+    public async Task MapQueueBasicSuccessTest()
     {
         const string queue = "hello";
 
@@ -137,4 +137,61 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
 
         Assert.Equal(originalMessage.Age, receivedMessage.Age);
     }
+
+    [Fact]
+    public async Task MapQueueConnectionFactorySynchronousTest()
+    {
+        const string queue = "sync-failure";
+
+        var originalMessage = new ExampleMessage() { Name = $"Teste - {Guid.NewGuid():D}", Age = 8 };
+        ExampleMessage? receivedMessage = default;
+
+        var connectionFactory = new ConnectionFactory
+        {
+            Uri = new Uri(this._rabbitMqContainer.GetConnectionString()),
+        };
+        //connectionFactory.DispatchConsumersAsync = false; //<< must cause a exception
+
+        // Create and establish a connection.
+        using var connection = await connectionFactory.CreateConnectionAsync().ConfigureAwait(true);
+
+        // Signal the completion of message reception.
+        EventWaitHandle waitHandle = new ManualResetEvent(false);
+
+        ServiceCollection services = new();
+        services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
+
+        // Singleton dependencies
+        services.AddSingleton(new ActivitySource("test"));
+        services.AddSingleton<IAMQPSerializer>(sp => new NewtonsoftAMQPSerializer(null));
+        services.AddSingleton(connection);
+
+        // Scoped dependencies
+        services.AddScoped<ExampleService>();
+        services.AddScoped<Action<ExampleMessage>>((_) => (msg) => receivedMessage = msg);
+        services.AddScoped((_) => waitHandle);
+
+        services.MapQueue<ExampleService, ExampleMessage>((config) =>
+            config
+                .WithDispatchInChildScope()
+                .WithAdapter((svc, msg) => svc.TestAsync(msg))
+                .WithQueueName(queue)
+                .WithPrefetchCount(1)
+        );
+
+        // Send a message to the channel.
+        using var channel = await connection.CreateChannelAsync();
+        await channel.ConfirmSelectAsync();
+        _ = await channel.QueueDeclareAsync(queue, false, false, false, null);
+        
+        var sp = services.BuildServiceProvider();
+
+        var hostedService = sp.GetRequiredService<IHostedService>();
+
+        var exception = Assert.Throws<InvalidOperationException>(() => hostedService.StartAsync(CancellationToken.None).GetAwaiter().GetResult());
+        
+        Assert.Contains($"{nameof(ConnectionFactory.DispatchConsumersAsync)} must be set to true in the {nameof(ConnectionFactory)}", exception.Message);
+        Assert.Contains($"Oragon.RabbitMQ only works with async dispatchers, you must configure {nameof(ConnectionFactory)} to use async dispatch", exception.Message);
+    }
+
 }

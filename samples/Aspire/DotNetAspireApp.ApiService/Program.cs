@@ -1,3 +1,4 @@
+using System.Text.Json;
 using DotNetAspireApp.Common.Messages.Commands;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
@@ -9,7 +10,7 @@ using RabbitMQ.Client;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<MessagePublisher>();
-builder.Services.AddSingleton<IAMQPSerializer, SystemTextJsonAMQPSerializer>();
+builder.Services.AddSingleton<IAMQPSerializer>(sp => new SystemTextJsonAMQPSerializer(JsonSerializerOptions.Default));
 
 builder.AddRabbitMQClient("rabbitmq", null, connectionFactory =>
 {

@@ -12,9 +12,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.StackExchange.Redis.OutputCaching" Version="8.0.0" />
-    <PackageReference Include="RabbitMQ.Client" Version="7.0.0-rc.3" />
-    <PackageReference Include="Radzen.Blazor" Version="4.32.6" />
+    <PackageReference Include="Aspire.StackExchange.Redis.OutputCaching" Version="8.0.2" />
+    <PackageReference Include="RabbitMQ.Client" Version="7.0.0-rc.4" />
+    <PackageReference Include="Radzen.Blazor" Version="4.33.3" />
   </ItemGroup>
 
 </Project>

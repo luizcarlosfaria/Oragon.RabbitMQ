@@ -58,6 +58,7 @@ public static class RabbitMQExtensions
     /// <exception cref="ArgumentException"></exception>
     public static BasicProperties SetCorrelationId(this BasicProperties basicProperties, string correlationId)
     {
+        _ = Guard.Argument(basicProperties).NotNull($"'{nameof(basicProperties)}' cannot be null or empty.");
         _ = Guard.Argument(correlationId).NotNull($"'{nameof(correlationId)}' cannot be null or empty.").NotEmpty($"'{nameof(correlationId)}' cannot be null or empty.").NotWhiteSpace($"'{nameof(correlationId)}' cannot be null or empty.");
         basicProperties.CorrelationId = correlationId;
         return basicProperties;
@@ -71,6 +72,7 @@ public static class RabbitMQExtensions
     /// <returns></returns>
     public static BasicProperties SetDurable(this BasicProperties basicProperties, bool durable = true)
     {
+        _ = Guard.Argument(basicProperties).NotNull($"'{nameof(basicProperties)}' cannot be null or empty.");
         basicProperties.Persistent = durable;
         return basicProperties;
     }
@@ -92,6 +94,8 @@ public static class RabbitMQExtensions
     /// <returns></returns>
     public static BasicProperties SetReplyTo(this BasicProperties basicProperties, string replyTo = null)
     {
+        _ = Guard.Argument(basicProperties).NotNull($"'{nameof(basicProperties)}' cannot be null or empty.");
+
         if (!string.IsNullOrEmpty(replyTo))
         {
             basicProperties.ReplyTo = replyTo;
@@ -107,6 +111,8 @@ public static class RabbitMQExtensions
     /// <returns></returns>
     public static BasicProperties SetAppId(this BasicProperties basicProperties, string appId = null)
     {
+        _ = Guard.Argument(basicProperties).NotNull($"'{nameof(basicProperties)}' cannot be null or empty.");
+
         if (!string.IsNullOrEmpty(appId))
         {
             basicProperties.AppId = appId;
@@ -163,6 +169,7 @@ public static class RabbitMQExtensions
     /// <returns></returns>
     public static BasicProperties SetException(this BasicProperties basicProperties, Exception exception)
     {
+        _ = Guard.Argument(basicProperties).NotNull($"'{nameof(basicProperties)}' cannot be null or empty.");
         _ = Guard.Argument(exception).NotNull();
 
         basicProperties.Headers ??= new Dictionary<string, object>();

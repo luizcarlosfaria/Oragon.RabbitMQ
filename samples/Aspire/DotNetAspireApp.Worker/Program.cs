@@ -5,6 +5,7 @@ using RabbitMQ.Client;
 using DotNetAspireApp.Common.Messages.Commands;
 using DotNetAspireApp.Worker.Areas;
 using Microsoft.AspNetCore.Connections;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,7 +19,7 @@ builder.AddRabbitMQClient("rabbitmq", null, connectionFactory =>
     connectionFactory.ClientProvidedName = "DotNetAspireApp.Worker";
 });
 
-builder.Services.AddSingleton<IAMQPSerializer, SystemTextJsonAMQPSerializer>();
+builder.Services.AddSingleton<IAMQPSerializer>(sp => new SystemTextJsonAMQPSerializer(JsonSerializerOptions.Default));
 
 builder.Services.AddEmailService();
 

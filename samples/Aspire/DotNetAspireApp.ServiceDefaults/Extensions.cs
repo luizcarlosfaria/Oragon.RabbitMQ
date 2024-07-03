@@ -47,7 +47,9 @@ public static class Extensions
             {
                 _ = metrics.AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
-                    .AddRuntimeInstrumentation();
+                    .AddRuntimeInstrumentation()
+                    .AddMeter("EmailService.DoSomethingAsync")
+                    ;
             })
             .WithTracing(tracing =>
             {
