@@ -67,7 +67,7 @@ public class BusinessService
 ```cs
 builder.Services.AddSingleton<BusinessService>();
 
-builder.Services.AddSingleton<IAMQPSerializer, SystemTextJsonAMQPSerializer>();
+builder.Services.AddSingleton<IAMQPSerializer>(sp => new SystemTextJsonAMQPSerializer(new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.General){ ... }));
 
 builder.Services.MapQueue<BusinessService, BusinessCommandOrEvent>(config => config
     .WithDispatchInRootScope()    
