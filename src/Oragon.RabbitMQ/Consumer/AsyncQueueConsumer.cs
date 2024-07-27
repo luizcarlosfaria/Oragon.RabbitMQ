@@ -61,6 +61,31 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
 
     #endregion
 
+    /// <inheritdoc/>
+    protected override void Validate()
+    {
+        base.Validate();
+
+        try
+        {
+            if (this.parameters.DispatchScope == DispatchScope.RootScope)
+            {
+                _ = this.GetService<TService>(this.parameters.ServiceProvider);
+            }
+            else if (this.parameters.DispatchScope == DispatchScope.ChildScope)
+            {
+                using (var scope = this.parameters.ServiceProvider.CreateScope())
+                {
+                    _ = this.GetService<TService>(scope.ServiceProvider);
+                }
+            }
+        }
+        catch (Exception innerException)
+        {
+            throw new InvalidOperationException($"Cannot obtain {typeof(TService)} from ServiceProvider with scope {this.parameters.DispatchScope}", innerException);
+        }
+    }
+
 
     /// <inheritdoc/>
     protected override IBasicConsumer BuildConsumer()
