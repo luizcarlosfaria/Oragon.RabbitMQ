@@ -20,13 +20,13 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
         public int Age { get; set; }
     }
 
-    public class ExampleService(EventWaitHandle waitHandle, Action<MapQueueFullFeaturedTest.ExampleMessage> callbackToTests)
+    public class ExampleService(WeakReference<EventWaitHandle> waitHandle, Action<MapQueueFullFeaturedTest.ExampleMessage> callbackToTests)
     {
 
         /// <summary>
         /// Only for test purposes
         /// </summary>
-        public EventWaitHandle WaitHandle { get; } = waitHandle;
+        public WeakReference<EventWaitHandle> WaitHandleRef { get; } = waitHandle;
 
         /// <summary>
         /// Only for test purposes
@@ -39,7 +39,9 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
 
             this.CallbackToTests(message);
 
-            this.WaitHandle.Set();
+            this.WaitHandleRef.TryGetTarget(out EventWaitHandle? waitHandle);
+
+            waitHandle?.Set();
 
             return Task.CompletedTask;
         }
@@ -87,7 +89,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
         using var connection = await this.CreateConnectionAsync().ConfigureAwait(true);
 
         // Signal the completion of message reception.
-        EventWaitHandle waitHandle = new ManualResetEvent(false);
+        WeakReference<EventWaitHandle> waitHandleRef = new(new ManualResetEvent(false));
 
         ServiceCollection services = new();
         services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
@@ -100,7 +102,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
         // Scoped dependencies
         services.AddScoped<ExampleService>();
         services.AddScoped<Action<ExampleMessage>>((_) => (msg) => receivedMessage = msg);
-        services.AddScoped((_) => waitHandle);
+        services.AddScoped((_) => waitHandleRef);
 
         services.MapQueue<ExampleService, ExampleMessage>((config) =>
             config
@@ -122,6 +124,8 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
         var hostedService = sp.GetRequiredService<IHostedService>();
 
         await hostedService.StartAsync(CancellationToken.None);
+
+        waitHandleRef.TryGetTarget(out EventWaitHandle? waitHandle);
 
         _ = waitHandle.WaitOne(
             Debugger.IsAttached
