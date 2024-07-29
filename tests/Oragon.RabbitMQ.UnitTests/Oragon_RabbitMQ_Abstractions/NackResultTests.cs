@@ -61,7 +61,7 @@ public class NackResultTests
     {
         // Arrange
         var channel = new Mock<IChannel>().Object;
-        BasicDeliverEventArgs delivery = null;
+        BasicDeliverEventArgs? delivery = null;
         var nackResult = new NackResult(true);
 
         // Act & Assert
