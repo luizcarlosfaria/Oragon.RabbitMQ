@@ -88,7 +88,7 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
 
 
     /// <inheritdoc/>
-    protected override IBasicConsumer BuildConsumer()
+    protected override IAsyncBasicConsumer BuildConsumer()
     {
         _ = Guard.Argument(this.Channel).NotNull();
 

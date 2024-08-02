@@ -59,10 +59,10 @@ public class AsyncQueueConsumerTests
             It.IsAny<string>(),
             true,
             false,
-            It.IsAny<IDictionary<string, object>>(),
-            It.IsAny<IBasicConsumer>(),
+            It.IsAny<IDictionary<string, object?>>(),
+            It.IsAny<IAsyncBasicConsumer>(),
             It.IsAny<CancellationToken>()))
-            .Callback((string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, IDictionary<string, object> arguments, IBasicConsumer consumer, CancellationToken cancellationToken) => queueConsumer = (AsyncEventingBasicConsumer)consumer)
+            .Callback((string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, IDictionary<string, object> arguments, IAsyncBasicConsumer consumer, CancellationToken cancellationToken) => queueConsumer = (AsyncEventingBasicConsumer)consumer)
             .ReturnsAsync(consumerTag);
 
         channelMock.Setup(it => it.BasicRejectAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Verifiable(Times.Once);
@@ -74,7 +74,6 @@ public class AsyncQueueConsumerTests
 
         //-------------------------------------------------------
         var connectionMock = new Mock<IConnection>();
-        _ = connectionMock.Setup(it => it.DispatchConsumersAsyncEnabled).Returns(true);
         _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CancellationToken>())).ReturnsAsync(channel);
         var connection = connectionMock.Object;
         _ = services.AddSingleton(connection);
@@ -84,7 +83,6 @@ public class AsyncQueueConsumerTests
         //-------------------------------------------------------
         var connectionFactoryMock = new Mock<IConnectionFactory>();
         _ = connectionFactoryMock.Setup(it => it.CreateConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(connection);
-        _ = connectionFactoryMock.Setup(it => it.DispatchConsumersAsync).Returns(true);
         var connectionFactory = connectionFactoryMock.Object;
         _ = services.AddSingleton(sp => connectionFactory);
         //-------------------------------------------------------
@@ -129,10 +127,10 @@ public class AsyncQueueConsumerTests
             It.IsAny<string>(),
             true,
             false,
-            It.IsAny<IDictionary<string, object>>(),
-            It.IsAny<IBasicConsumer>(),
+            It.IsAny<IDictionary<string, object?>>(),
+            It.IsAny<IAsyncBasicConsumer>(),
             It.IsAny<CancellationToken>()))
-            .Callback((string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, IDictionary<string, object> arguments, IBasicConsumer consumer, CancellationToken cancellationToken) => queueConsumer = (AsyncEventingBasicConsumer)consumer)
+            .Callback((string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, IDictionary<string, object> arguments, IAsyncBasicConsumer consumer, CancellationToken cancellationToken) => queueConsumer = (AsyncEventingBasicConsumer)consumer)
             .ReturnsAsync(consumerTag);
 
         channelMock.Setup(it => it.BasicRejectAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Verifiable(Times.Once);
@@ -144,7 +142,6 @@ public class AsyncQueueConsumerTests
 
         //-------------------------------------------------------
         var connectionMock = new Mock<IConnection>();
-        _ = connectionMock.Setup(it => it.DispatchConsumersAsyncEnabled).Returns(true);
         _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CancellationToken>())).ReturnsAsync(channel);
         var connection = connectionMock.Object;
         _ = services.AddSingleton(connection);
@@ -154,7 +151,6 @@ public class AsyncQueueConsumerTests
         //-------------------------------------------------------
         var connectionFactoryMock = new Mock<IConnectionFactory>();
         _ = connectionFactoryMock.Setup(it => it.CreateConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(connection);
-        _ = connectionFactoryMock.Setup(it => it.DispatchConsumersAsync).Returns(true);
         var connectionFactory = connectionFactoryMock.Object;
         _ = services.AddSingleton(sp => connectionFactory);
         //-------------------------------------------------------

@@ -214,20 +214,6 @@ public static class RabbitMQExtensions
     //    return false;
     //}
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="connectionFactory"></param>
-    /// <param name="useAsync"></param>
-    /// <returns></returns>
-    public static ConnectionFactory DispatchConsumersAsync(this ConnectionFactory connectionFactory, bool useAsync = true)
-    {
-        _ = Guard.Argument(connectionFactory).NotNull();
-
-        connectionFactory.DispatchConsumersAsync = useAsync;
-
-        return connectionFactory;
-    }
 
     /// <summary>
     /// 

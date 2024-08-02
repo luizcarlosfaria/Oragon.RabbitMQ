@@ -177,21 +177,7 @@ public class Extensions_RabbitMQ_Tests
         Assert.Null(result.Headers);
     }
 
-    [Fact]
-    public void DispatchConsumersAsync_Should_Set_DispatchConsumersAsync_Property_On_ConnectionFactory()
-    {
-        // Arrange
-        var connectionFactory = new ConnectionFactory();
-        var useAsync = true;
-
-        // Act
-        var result = connectionFactory.DispatchConsumersAsync(useAsync);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal(useAsync, result.DispatchConsumersAsync);
-    }
-
+   
     [Fact]
     public void Unbox_Should_Convert_IConnectionFactory_To_ConnectionFactory()
     {

@@ -58,10 +58,10 @@ public class FlowTests
             It.IsAny<string>(),
             true,
             false,
-            It.IsAny<IDictionary<string, object>>(),
-            It.IsAny<IBasicConsumer>(),
+            It.IsAny<IDictionary<string, object?>>(),
+            It.IsAny<IAsyncBasicConsumer>(),
             It.IsAny<CancellationToken>()))
-            .Callback((string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, IDictionary<string, object> arguments, IBasicConsumer consumer, CancellationToken cancellationToken) => queueConsumer = (AsyncEventingBasicConsumer)consumer)
+            .Callback((string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, IDictionary<string, object> arguments, IAsyncBasicConsumer consumer, CancellationToken cancellationToken) => queueConsumer = (AsyncEventingBasicConsumer)consumer)
             .ReturnsAsync(consumerTag);
 
         channelMock.Setup(it => it.BasicRejectAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Verifiable(Times.Once);
@@ -72,8 +72,7 @@ public class FlowTests
         //-------------------------------------------------------
 
         //-------------------------------------------------------
-        var connectionMock = new Mock<IConnection>();
-        _ = connectionMock.Setup(it => it.DispatchConsumersAsyncEnabled).Returns(true);
+        var connectionMock = new Mock<IConnection>();        
         _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CancellationToken>())).ReturnsAsync(channel);
         var connection = connectionMock.Object;
         _ = services.AddSingleton(connection);
@@ -82,8 +81,7 @@ public class FlowTests
 
         //-------------------------------------------------------
         var connectionFactoryMock = new Mock<IConnectionFactory>();
-        _ = connectionFactoryMock.Setup(it => it.CreateConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(connection);
-        _ = connectionFactoryMock.Setup(it => it.DispatchConsumersAsync).Returns(true);
+        _ = connectionFactoryMock.Setup(it => it.CreateConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(connection);        
         var connectionFactory = connectionFactoryMock.Object;
         _ = services.AddSingleton(sp => connectionFactory);
         //-------------------------------------------------------
@@ -117,7 +115,7 @@ public class FlowTests
         var bytes = Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(new ExampleMessage()) + ".error.");
 
 
-        await queueConsumer.HandleBasicDeliver(consumerTag: consumerTag, deliveryTag: 1, redelivered: false, exchange: "e", routingKey: "r", properties: properties, body: new ReadOnlyMemory<byte>(bytes));
+        await queueConsumer.HandleBasicDeliverAsync(consumerTag: consumerTag, deliveryTag: 1, redelivered: false, exchange: "e", routingKey: "r", properties: properties, body: new ReadOnlyMemory<byte>(bytes));
 
 
         // Assert
@@ -144,10 +142,10 @@ public class FlowTests
             It.IsAny<string>(),
             true,
             false,
-            It.IsAny<IDictionary<string, object>>(),
-            It.IsAny<IBasicConsumer>(),
+            It.IsAny<IDictionary<string, object?>>(),
+            It.IsAny<IAsyncBasicConsumer>(),
             It.IsAny<CancellationToken>()))
-            .Callback((string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, IDictionary<string, object> arguments, IBasicConsumer consumer, CancellationToken cancellationToken) => queueConsumer = (AsyncEventingBasicConsumer)consumer)
+            .Callback((string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, IDictionary<string, object> arguments, IAsyncBasicConsumer consumer, CancellationToken cancellationToken) => queueConsumer = (AsyncEventingBasicConsumer)consumer)
             .ReturnsAsync(consumerTag);
 
         channelMock.Setup(it => it.BasicRejectAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Verifiable(Times.Never);
@@ -159,7 +157,6 @@ public class FlowTests
 
         //-------------------------------------------------------
         var connectionMock = new Mock<IConnection>();
-        _ = connectionMock.Setup(it => it.DispatchConsumersAsyncEnabled).Returns(true);
         _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CancellationToken>())).ReturnsAsync(channel);
         var connection = connectionMock.Object;
         _ = services.AddSingleton(connection);
@@ -169,7 +166,6 @@ public class FlowTests
         //-------------------------------------------------------
         var connectionFactoryMock = new Mock<IConnectionFactory>();
         _ = connectionFactoryMock.Setup(it => it.CreateConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(connection);
-        _ = connectionFactoryMock.Setup(it => it.DispatchConsumersAsync).Returns(true);
         var connectionFactory = connectionFactoryMock.Object;
         _ = services.AddSingleton(sp => connectionFactory);
         //-------------------------------------------------------
@@ -202,7 +198,7 @@ public class FlowTests
         // Act
         var bytes = Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(new ExampleMessage() { Error = true }));
 
-        await queueConsumer.HandleBasicDeliver(consumerTag: consumerTag, deliveryTag: 1, redelivered: false, exchange: "e", routingKey: "r", properties: properties, body: new ReadOnlyMemory<byte>(bytes));
+        await queueConsumer.HandleBasicDeliverAsync(consumerTag: consumerTag, deliveryTag: 1, redelivered: false, exchange: "e", routingKey: "r", properties: properties, body: new ReadOnlyMemory<byte>(bytes));
 
         // Assert
         Mock.VerifyAll();
@@ -229,10 +225,10 @@ public class FlowTests
             It.IsAny<string>(),
             true,
             false,
-            It.IsAny<IDictionary<string, object>>(),
-            It.IsAny<IBasicConsumer>(),
+            It.IsAny<IDictionary<string, object?>>(),
+            It.IsAny<IAsyncBasicConsumer>(),
             It.IsAny<CancellationToken>()))
-            .Callback((string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, IDictionary<string, object> arguments, IBasicConsumer consumer, CancellationToken cancellationToken) => queueConsumer = (AsyncEventingBasicConsumer)consumer)
+            .Callback((string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, IDictionary<string, object> arguments, IAsyncBasicConsumer consumer, CancellationToken cancellationToken) => queueConsumer = (AsyncEventingBasicConsumer)consumer)
             .ReturnsAsync(consumerTag);
 
         channelMock.Setup(it => it.BasicRejectAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Verifiable(Times.Never);
@@ -244,7 +240,6 @@ public class FlowTests
 
         //-------------------------------------------------------
         var connectionMock = new Mock<IConnection>();
-        _ = connectionMock.Setup(it => it.DispatchConsumersAsyncEnabled).Returns(true);
         _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CancellationToken>())).ReturnsAsync(channel);
         var connection = connectionMock.Object;
         _ = services.AddSingleton(connection);
@@ -254,7 +249,6 @@ public class FlowTests
         //-------------------------------------------------------
         var connectionFactoryMock = new Mock<IConnectionFactory>();
         _ = connectionFactoryMock.Setup(it => it.CreateConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(connection);
-        _ = connectionFactoryMock.Setup(it => it.DispatchConsumersAsync).Returns(true);
         var connectionFactory = connectionFactoryMock.Object;
         _ = services.AddSingleton(sp => connectionFactory);
         //-------------------------------------------------------
@@ -287,7 +281,7 @@ public class FlowTests
         // Act
         var bytes = Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(new ExampleMessage() { Error = false }));
 
-        await queueConsumer.HandleBasicDeliver(consumerTag: consumerTag, deliveryTag: 1, redelivered: false, exchange: "e", routingKey: "r", properties: properties, body: new ReadOnlyMemory<byte>(bytes));
+        await queueConsumer.HandleBasicDeliverAsync(consumerTag: consumerTag, deliveryTag: 1, redelivered: false, exchange: "e", routingKey: "r", properties: properties, body: new ReadOnlyMemory<byte>(bytes));
 
         // Assert
         Mock.VerifyAll();

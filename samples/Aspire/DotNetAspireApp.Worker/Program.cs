@@ -12,7 +12,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton(sp => new ActivitySource("RabbitMQ.Gago", "1.0.0"));
 builder.AddRabbitMQClient("rabbitmq", null, connectionFactory =>
 {
-    connectionFactory.DispatchConsumersAsync = true;
     connectionFactory.ConsumerDispatchConcurrency = DotNetAspireApp.Worker.Constants.Parallelism;
     //connectionFactory.TopologyRecoveryEnabled = true;
     //connectionFactory.AutomaticRecoveryEnabled = true;

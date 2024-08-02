@@ -33,7 +33,7 @@ public abstract class ConsumerBase : BackgroundService
     /// <summary>
     /// The consumer instance.
     /// </summary>
-    protected IBasicConsumer Consumer { get; private set; }
+    protected IAsyncBasicConsumer Consumer { get; private set; }
 
     private string consumerTag;
 
@@ -128,10 +128,7 @@ public abstract class ConsumerBase : BackgroundService
     /// <exception cref="InvalidOperationException"></exception>
     protected virtual void Validate()
     {
-        if (this.Connection.DispatchConsumersAsyncEnabled == false)
-        {
-            throw new InvalidOperationException($"{nameof(ConnectionFactory.DispatchConsumersAsync)} must be set to true in the {nameof(ConnectionFactory)}. Oragon.RabbitMQ only works with async dispatchers, you must configure {nameof(ConnectionFactory)} to use async dispatch.");
-        }
+        
     }
 
     /// <summary>
@@ -159,8 +156,8 @@ public abstract class ConsumerBase : BackgroundService
     /// <summary>
     /// Builds the consumer.
     /// </summary>
-    /// <returns>The built <see cref="IBasicConsumer"/>.</returns>
-    protected abstract IBasicConsumer BuildConsumer();
+    /// <returns>The built <see cref="IAsyncBasicConsumer"/>.</returns>
+    protected abstract IAsyncBasicConsumer BuildConsumer();
 
 
     /// <summary>

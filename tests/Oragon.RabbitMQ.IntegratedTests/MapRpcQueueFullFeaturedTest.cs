@@ -60,8 +60,7 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
     {
         return new ConnectionFactory
         {
-            Uri = new Uri(this._rabbitMqContainer.GetConnectionString()),
-            DispatchConsumersAsync = true
+            Uri = new Uri(this._rabbitMqContainer.GetConnectionString())
         };
     }
 

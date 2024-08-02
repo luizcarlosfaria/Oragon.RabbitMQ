@@ -49,11 +49,12 @@ public class TestContainersTest: IAsyncLifetime
         EventWaitHandle waitHandle = new ManualResetEvent(false);
 
         // Consume a message from the channel.
-        var consumer = new EventingBasicConsumer(channel);
+        var consumer = new AsyncEventingBasicConsumer(channel);
         consumer.Received += (_, eventArgs) =>
         {
             actualMessage = Encoding.Default.GetString(eventArgs.Body.ToArray());
             _ = waitHandle.Set();
+            return Task.CompletedTask;
         };
 
         _ = await channel.BasicConsumeAsync(queue, true, consumer);
