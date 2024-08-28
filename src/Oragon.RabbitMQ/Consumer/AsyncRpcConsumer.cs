@@ -7,7 +7,6 @@ using Dawn;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Oragon.RabbitMQ.Consumer.Actions;
-using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 namespace Oragon.RabbitMQ.Consumer;
@@ -104,7 +103,7 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
     private async Task SendReplyAsync(Activity activity, BasicDeliverEventArgs receivedItem, TResponse responsePayload = null, Exception exception = null)
     {
         _ = Guard.Argument(receivedItem).NotNull();
-        _ = Guard.Argument((IReadOnlyBasicProperties)receivedItem.BasicProperties).NotNull();
+        _ = Guard.Argument(receivedItem.BasicProperties).NotNull();
         _ = Guard.Argument(responsePayload).NotNull();
 
 
@@ -122,7 +121,7 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
             receivedItem.BasicProperties.ReplyTo,
             responseProperties,
             exception != null
-                ? Array.Empty<byte>()
+                ? []
                 : this.parameters.Serializer.Serialize(basicProperties: responseProperties, message: responsePayload)
         ).ConfigureAwait(true);
 

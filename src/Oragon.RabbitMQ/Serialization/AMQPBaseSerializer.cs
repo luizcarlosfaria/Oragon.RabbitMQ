@@ -48,7 +48,7 @@ public abstract class AMQPBaseSerializer : IAMQPSerializer
     public TMessage Deserialize<TMessage>(BasicDeliverEventArgs eventArgs)
     {
         _ = Guard.Argument(eventArgs).NotNull();
-        _ = Guard.Argument((IReadOnlyBasicProperties)eventArgs.BasicProperties).NotNull();
+        _ = Guard.Argument(eventArgs.BasicProperties).NotNull();
 
         var returnValue = this.DeserializeInternal<TMessage>(eventArgs.BasicProperties, eventArgs.Body);
 

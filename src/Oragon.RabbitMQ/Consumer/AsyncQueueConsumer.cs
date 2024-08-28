@@ -110,7 +110,7 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
     {
         _ = Guard.Argument(delivery).NotNull();
 
-        var parentContext = s_propagator.Extract(default, (IReadOnlyBasicProperties)delivery.BasicProperties, this.ExtractTraceContextFromBasicProperties);
+        var parentContext = s_propagator.Extract(default, delivery.BasicProperties, this.ExtractTraceContextFromBasicProperties);
         Baggage.Current = parentContext.Baggage;
 
         using var receiveActivity = activitySource.StartActivity("AsyncQueueConsumer.ReceiveAsync", ActivityKind.Consumer, parentContext.ActivityContext) ?? new Activity("?AsyncQueueConsumer.ReceiveAsync");
