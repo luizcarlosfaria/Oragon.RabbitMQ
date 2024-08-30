@@ -18,6 +18,29 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
+    },
+    "otlp-academia-dev": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "applicationUrl": "https://localhost:7021;http://localhost:5164",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "OTEL_BLRP_SCHEDULE_DELAY": "1000",
+        "OTEL_BSP_SCHEDULE_DELAY": "1000",
+        "OTEL_DOTNET_EXPERIMENTAL_ASPNETCORE_DISABLE_URL_QUERY_REDACTION": "true",
+        "OTEL_DOTNET_EXPERIMENTAL_HTTPCLIENT_DISABLE_URL_QUERY_REDACTION": "true",
+        "OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES": "true",
+        "OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES": "true",
+        "OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY": "in_memory",
+        "OTEL_EXPORTER_OTLP_ENDPOINT": "https://otlp.academia.dev",
+        "OTEL_EXPORTER_OTLP_HEADERS": "x-otlp-api-key=f263fef34533c0da74d2ede69b48d651",
+        "OTEL_EXPORTER_OTLP_PROTOCOL": "http",
+        "OTEL_METRIC_EXPORT_INTERVAL": "1000",
+        "OTEL_RESOURCE_ATTRIBUTES": "service.instance.id=webfrontend-saeq0p8",
+        "OTEL_SERVICE_NAME": "webfrontend",
+        "OTEL_TRACES_SAMPLER": "always_on"
+      }
     }
   }
 }
