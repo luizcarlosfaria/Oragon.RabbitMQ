@@ -3,7 +3,7 @@
   <Import Project="./../Oragon.RabbitMQ.Build.props" />
   
   <PropertyGroup>
-    <Description>A RabbitMQ client that integrates with Aspire, including health checks, logging, and telemetry using RabbitMQ.Client 7 RC Version of .</Description>
+    <Description>A RabbitMQ client that integrates with Aspire, including health checks, logging, and telemetry using RabbitMQ.Client 7 RC Version.</Description>
     <NoWarn>$(NoWarn);SYSLIB1100;SYSLIB1101</NoWarn>
   </PropertyGroup>
 
