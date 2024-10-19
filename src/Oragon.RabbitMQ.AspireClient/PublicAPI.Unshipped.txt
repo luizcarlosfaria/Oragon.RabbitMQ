@@ -1,0 +1,14 @@
+#nullable enable
+Oragon.RabbitMQ.AspireClient.RabbitMQClientSettings
+Oragon.RabbitMQ.AspireClient.RabbitMQClientSettings.ConnectionString.get -> string?
+Oragon.RabbitMQ.AspireClient.RabbitMQClientSettings.ConnectionString.set -> void
+Oragon.RabbitMQ.AspireClient.RabbitMQClientSettings.DisableHealthChecks.get -> bool
+Oragon.RabbitMQ.AspireClient.RabbitMQClientSettings.DisableHealthChecks.set -> void
+Oragon.RabbitMQ.AspireClient.RabbitMQClientSettings.MaxConnectRetryCount.get -> int
+Oragon.RabbitMQ.AspireClient.RabbitMQClientSettings.MaxConnectRetryCount.set -> void
+Oragon.RabbitMQ.AspireClient.RabbitMQClientSettings.RabbitMQClientSettings() -> void
+Oragon.RabbitMQ.AspireClient.RabbitMQClientSettings.DisableTracing.get -> bool
+Oragon.RabbitMQ.AspireClient.RabbitMQClientSettings.DisableTracing.set -> void
+Microsoft.Extensions.Hosting.AspireRabbitMQExtensions
+static Microsoft.Extensions.Hosting.AspireRabbitMQExtensions.AddKeyedRabbitMQClient(this Microsoft.Extensions.Hosting.IHostApplicationBuilder! builder, string! name, System.Action<Aspire.RabbitMQ.Client.RabbitMQClientSettings!>? configureSettings = null, System.Action<RabbitMQ.Client.ConnectionFactory!>? configureConnectionFactory = null) -> void
+static Microsoft.Extensions.Hosting.AspireRabbitMQExtensions.AddRabbitMQClient(this Microsoft.Extensions.Hosting.IHostApplicationBuilder! builder, string! connectionName, System.Action<Aspire.RabbitMQ.Client.RabbitMQClientSettings!>? configureSettings = null, System.Action<RabbitMQ.Client.ConnectionFactory!>? configureConnectionFactory = null) -> void

@@ -1,24 +1,21 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Diagnostics;
 using System.Net.Sockets;
-using System.Threading;
-using System.Threading.Tasks;
 using Aspire;
-using Aspire.RabbitMQ.Client;
 using HealthChecks.RabbitMQ;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Retry;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 
-namespace Microsoft.Extensions.Hosting;
+namespace Oragon.RabbitMQ.AspireClient;
 
 /// <summary>
 /// Extension methods for connecting to a RabbitMQ message broker.
@@ -26,7 +23,7 @@ namespace Microsoft.Extensions.Hosting;
 public static class AspireRabbitMQExtensions
 {
     private const string ActivitySourceName = "Aspire.RabbitMQ.Client";
-    private static readonly ActivitySource s_activitySource = new ActivitySource(ActivitySourceName);
+    private static readonly ActivitySource s_activitySource = new(ActivitySourceName);
     private const string DefaultConfigSectionName = "Aspire:RabbitMQ:Client";
 
     /// <summary>
@@ -43,7 +40,9 @@ public static class AspireRabbitMQExtensions
         string connectionName,
         Action<RabbitMQClientSettings> configureSettings = null,
         Action<ConnectionFactory> configureConnectionFactory = null)
-        => AddRabbitMQClient(builder, DefaultConfigSectionName, configureSettings, configureConnectionFactory, connectionName, serviceKey: null);
+    {
+        AddRabbitMQClient(builder, DefaultConfigSectionName, configureSettings, configureConnectionFactory, connectionName, serviceKey: null);
+    }
 
     /// <summary>
     /// Registers <see cref="IConnection"/> as a keyed singleton for the given <paramref name="name"/> in the services provided by the <paramref name="builder"/>.
@@ -65,6 +64,7 @@ public static class AspireRabbitMQExtensions
         AddRabbitMQClient(builder, $"{DefaultConfigSectionName}:{name}", configureSettings, configureConnectionFactory, connectionName: name, serviceKey: name);
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
     private static void AddRabbitMQClient(
         IHostApplicationBuilder builder,
         string configurationSectionName,
@@ -111,13 +111,13 @@ public static class AspireRabbitMQExtensions
 
         if (serviceKey is null)
         {
-            _ = builder.Services.AddSingleton<IConnectionFactory>(CreateConnectionFactory);
-            _ = builder.Services.AddSingleton<IConnection>(sp => CreateConnection(sp.GetRequiredService<IConnectionFactory>(), settings.MaxConnectRetryCount));
+            _ = builder.Services.AddSingleton(CreateConnectionFactory);
+            _ = builder.Services.AddSingleton(sp => CreateConnection(sp.GetRequiredService<IConnectionFactory>(), settings.MaxConnectRetryCount));
         }
         else
         {
-            _ = builder.Services.AddKeyedSingleton<IConnectionFactory>(serviceKey, (sp, _) => CreateConnectionFactory(sp));
-            _ = builder.Services.AddKeyedSingleton<IConnection>(serviceKey, (sp, key) => CreateConnection(sp.GetRequiredKeyedService<IConnectionFactory>(key), settings.MaxConnectRetryCount));
+            _ = builder.Services.AddKeyedSingleton(serviceKey, (sp, _) => CreateConnectionFactory(sp));
+            _ = builder.Services.AddKeyedSingleton(serviceKey, (sp, key) => CreateConnection(sp.GetRequiredKeyedService<IConnectionFactory>(key), settings.MaxConnectRetryCount));
         }
 
         _ = builder.Services.AddSingleton<RabbitMQEventSourceLogForwarder>();
@@ -139,8 +139,10 @@ public static class AspireRabbitMQExtensions
                     try
                     {
                         // if the IConnection can't be resolved, make a health check that will fail
-                        var options = new RabbitMQHealthCheckOptions();
-                        options.Connection = serviceKey is null ? sp.GetRequiredService<IConnection>() : sp.GetRequiredKeyedService<IConnection>(serviceKey);
+                        var options = new RabbitMQHealthCheckOptions
+                        {
+                            Connection = serviceKey is null ? sp.GetRequiredService<IConnection>() : sp.GetRequiredKeyedService<IConnection>(serviceKey)
+                        };
                         return new RabbitMQHealthCheck(options);
                     }
                     catch (Exception ex)

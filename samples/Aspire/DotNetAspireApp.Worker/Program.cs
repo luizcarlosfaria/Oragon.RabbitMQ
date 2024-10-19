@@ -6,6 +6,7 @@ using DotNetAspireApp.Common.Messages.Commands;
 using DotNetAspireApp.Worker.Areas;
 using Microsoft.AspNetCore.Connections;
 using System.Text.Json;
+using Oragon.RabbitMQ.AspireClient;
 
 var builder = WebApplication.CreateBuilder(args);
 

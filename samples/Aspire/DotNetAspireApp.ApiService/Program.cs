@@ -3,6 +3,7 @@ using DotNetAspireApp.Common.Messages.Commands;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 using Oragon.RabbitMQ;
+using Oragon.RabbitMQ.AspireClient;
 using Oragon.RabbitMQ.Publisher;
 using Oragon.RabbitMQ.Serialization;
 using RabbitMQ.Client;

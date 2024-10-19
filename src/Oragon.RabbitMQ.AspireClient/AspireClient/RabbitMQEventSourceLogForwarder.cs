@@ -1,27 +1,20 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using Microsoft.Extensions.Logging;
 
-namespace Aspire.RabbitMQ.Client;
+namespace Oragon.RabbitMQ.AspireClient;
 
-internal sealed class RabbitMQEventSourceLogForwarder : IDisposable
+internal sealed class RabbitMQEventSourceLogForwarder(ILoggerFactory loggerFactory) : IDisposable
 {
     private static readonly Func<ErrorEventSourceEvent, Exception, string> s_formatErrorEvent = FormatErrorEvent;
     private static readonly Func<EventSourceEvent, Exception, string> s_formatEvent = FormatEvent;
 
-    private readonly ILogger _logger;
+    private readonly ILogger _logger = loggerFactory.CreateLogger("RabbitMQ.Client");
     private RabbitMQEventSourceListener _listener;
-
-    public RabbitMQEventSourceLogForwarder(ILoggerFactory loggerFactory)
-    {
-        this._logger = loggerFactory.CreateLogger("RabbitMQ.Client");
-    }
 
     /// <summary>
     /// Initiates the log forwarding from the RabbitMQ event sources to a provided <see cref="ILoggerFactory"/>, call <see cref="Dispose"/> to stop forwarding.
@@ -56,24 +49,34 @@ internal sealed class RabbitMQEventSourceLogForwarder : IDisposable
         }
     }
 
-    private static string FormatErrorEvent(ErrorEventSourceEvent eventSourceEvent, Exception ex) =>
-        eventSourceEvent.EventData.Payload?[0]?.ToString() ?? "<empty>";
-
-    private static string FormatEvent(EventSourceEvent eventSourceEvent, Exception ex) =>
-        eventSourceEvent.EventData.Payload?[0]?.ToString() ?? "<empty>";
-
-    public void Dispose() => this._listener?.Dispose();
-
-    private static LogLevel MapLevel(EventLevel level) => level switch
+    private static string FormatErrorEvent(ErrorEventSourceEvent eventSourceEvent, Exception ex)
     {
-        EventLevel.Critical => LogLevel.Critical,
-        EventLevel.Error => LogLevel.Error,
-        EventLevel.Informational => LogLevel.Information,
-        EventLevel.Verbose => LogLevel.Debug,
-        EventLevel.Warning => LogLevel.Warning,
-        EventLevel.LogAlways => LogLevel.Information,
-        _ => throw new ArgumentOutOfRangeException(nameof(level), level, null),
-    };
+        return eventSourceEvent.EventData.Payload?[0]?.ToString() ?? "<empty>";
+    }
+
+    private static string FormatEvent(EventSourceEvent eventSourceEvent, Exception ex)
+    {
+        return eventSourceEvent.EventData.Payload?[0]?.ToString() ?? "<empty>";
+    }
+
+    public void Dispose()
+    {
+        this._listener?.Dispose();
+    }
+
+    private static LogLevel MapLevel(EventLevel level)
+    {
+        return level switch
+        {
+            EventLevel.Critical => LogLevel.Critical,
+            EventLevel.Error => LogLevel.Error,
+            EventLevel.Informational => LogLevel.Information,
+            EventLevel.Verbose => LogLevel.Debug,
+            EventLevel.Warning => LogLevel.Warning,
+            EventLevel.LogAlways => LogLevel.Information,
+            _ => throw new ArgumentOutOfRangeException(nameof(level), level, null),
+        };
+    }
 
     private readonly struct EventSourceEvent : IReadOnlyList<KeyValuePair<string, object>>
     {
@@ -105,16 +108,11 @@ internal sealed class RabbitMQEventSourceLogForwarder : IDisposable
         public KeyValuePair<string, object> this[int index] => new(this.EventData.PayloadNames![index], this.EventData.Payload![index]);
     }
 
-    private readonly struct ErrorEventSourceEvent : IReadOnlyList<KeyValuePair<string, object>>
+    private readonly struct ErrorEventSourceEvent(EventWrittenEventArgs eventData) : IReadOnlyList<KeyValuePair<string, object>>
     {
-        public EventWrittenEventArgs EventData { get; }
+        public EventWrittenEventArgs EventData { get; } = eventData;
 
-        public ErrorEventSourceEvent(EventWrittenEventArgs eventData)
-        {
-            this.EventData = eventData;
-        }
-
-        public IEnumerator<KeyValuePair<string, object?>> GetEnumerator()
+        public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
         {
             for (var i = 0; i < this.Count; i++)
             {
@@ -148,7 +146,7 @@ internal sealed class RabbitMQEventSourceLogForwarder : IDisposable
 
                 static KeyValuePair<string, object> GetExData(EventWrittenEventArgs eventData, int index)
                 {
-                    Debug.Assert(index >= 1 && index <= 4);
+                    Debug.Assert(index is >= 1 and <= 4);
                     Debug.Assert(eventData.Payload?.Count == 2);
                     var exData = eventData.Payload[1] as IDictionary<string, object>;
                     Debug.Assert(exData is not null && exData.Count == 4);
@@ -171,7 +169,7 @@ internal sealed class RabbitMQEventSourceLogForwarder : IDisposable
     /// </summary>
     private sealed class RabbitMQEventSourceListener : EventListener
     {
-        private readonly List<EventSource> _eventSources = new List<EventSource>();
+        private readonly List<EventSource> _eventSources = [];
 
         private readonly Action<EventWrittenEventArgs> _log;
         private readonly EventLevel _level;
@@ -181,7 +179,7 @@ internal sealed class RabbitMQEventSourceLogForwarder : IDisposable
             this._log = log;
             this._level = level;
 
-            foreach (EventSource eventSource in this._eventSources)
+            foreach (var eventSource in this._eventSources)
             {
                 this.OnEventSourceCreated(eventSource);
             }
@@ -198,7 +196,7 @@ internal sealed class RabbitMQEventSourceLogForwarder : IDisposable
                 this._eventSources.Add(eventSource);
             }
 
-            if (eventSource.Name == "rabbitmq-dotnet-client" || eventSource.Name == "rabbitmq-client")
+            if (eventSource.Name is "rabbitmq-dotnet-client" or "rabbitmq-client")
             {
                 this.EnableEvents(eventSource, this._level);
             }

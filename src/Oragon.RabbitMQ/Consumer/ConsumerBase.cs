@@ -147,7 +147,7 @@ public abstract class ConsumerBase : BackgroundService
             })
             .ExecuteAsync(async () =>
             {
-                using IChannel testModel = await this.Connection.CreateChannelAsync().ConfigureAwait(true);
+                using var testModel = await this.Connection.CreateChannelAsync().ConfigureAwait(true);
                 _ = await testModel.QueueDeclarePassiveAsync(this.parameters.QueueName).ConfigureAwait(true);
                 return Task.CompletedTask;
             }).ConfigureAwait(true);

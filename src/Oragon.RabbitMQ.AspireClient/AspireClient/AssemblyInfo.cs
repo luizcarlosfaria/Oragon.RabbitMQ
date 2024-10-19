@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Aspire;
-using Aspire.RabbitMQ.Client;
+using Oragon.RabbitMQ.AspireClient;
 using RabbitMQ.Client;
 
 [assembly: ConfigurationSchema("Aspire:RabbitMQ:Client", typeof(RabbitMQClientSettings))]
