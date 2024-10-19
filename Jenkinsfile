@@ -126,6 +126,7 @@ pipeline {
                     def projetcs = [
                         'Oragon.RabbitMQ',
                         'Oragon.RabbitMQ.Abstractions',
+                        'Oragon.RabbitMQ.AspireClient',
                         'Oragon.RabbitMQ.Serializer.NewtonsoftJson',
                         'Oragon.RabbitMQ.Serializer.SystemTextJson',
                     ]
