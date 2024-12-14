@@ -23,7 +23,7 @@ namespace Oragon.RabbitMQ.Consumer;
 /// Represents an asynchronous queue Consumer.
 /// </summary>
 /// <typeparam name="TService">The type of the service.</typeparam>
-/// <typeparam name="TRequest">The type of the request.</typeparam>
+/// <typeparam name="TRequest">The type of the messsage.</typeparam>
 /// <typeparam name="TResponse">The type of the response.</typeparam>
 public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
     where TResponse : Task
@@ -168,19 +168,21 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
     /// </summary>
     /// <param name="receiveActivity">The receive activity.</param>
     /// <param name="receivedItem">The received item.</param>
-    /// <param name="request">The deserialized request.</param>
+    /// <param name="messsage">The deserialized messsage.</param>
     /// <returns><c>true</c> if deserialization is successful; otherwise, <c>false</c>.</returns>
     [SuppressMessage("Design", "CA1031", Justification = "Tratamento de exceçào global, isolando uma micro-operação")]
-    private bool TryDeserialize(Activity receiveActivity, BasicDeliverEventArgs receivedItem, out TRequest request)
+    private bool TryDeserialize(Activity receiveActivity, BasicDeliverEventArgs receivedItem, out TRequest messsage)
     {
         _ = Guard.Argument(receivedItem).NotNull();
 
         var returnValue = true;
 
-        request = default;
+        messsage = default;
         try
         {
-            request = this.parameters.Serializer.Deserialize<TRequest>(eventArgs: receivedItem);
+            messsage = this.parameters.Serializer.Deserialize<TRequest>(eventArgs: receivedItem);
+
+            _ = receiveActivity?.SetTag("message", messsage);
         }
         catch (Exception exception)
         {
@@ -198,11 +200,11 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
 
 
     /// <summary>
-    /// Dispatches the request to the appropriate handler.
+    /// Dispatches the messsage to the appropriate handler.
     /// </summary>
     /// <param name="receiveActivity">The receive activity.</param>
     /// <param name="receivedItem">The received item.</param>
-    /// <param name="request">The request.</param>
+    /// <param name="request">The messsage.</param>
     /// <returns>The result of the dispatch.</returns>
     [SuppressMessage("Design", "CA1031", Justification = "Tratamento de exceção global, isolando uma macro-operação")]
     protected virtual async Task<IAMQPResult> DispatchAsync(Activity receiveActivity, BasicDeliverEventArgs receivedItem, TRequest request)

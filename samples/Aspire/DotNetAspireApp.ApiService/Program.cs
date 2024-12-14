@@ -50,7 +50,8 @@ app.MapGet("/weatherforecast", () =>
 app.MapPost("/enqueue", async (DoSomethingRequest req, [FromServices] MessagePublisher messagePublisher, [FromServices] IConnectionFactory connectionFactory)
     =>
 {
-    _ = Task.Run(async () => {
+    _ = Task.Run(async () =>
+    {
 
         using var connection = await connectionFactory.CreateConnectionAsync(CancellationToken.None).ConfigureAwait(true);
 
@@ -67,7 +68,6 @@ app.MapPost("/enqueue", async (DoSomethingRequest req, [FromServices] MessagePub
         }).ConfigureAwait(false);
 
     });
-
 });
 
 app.MapDefaultEndpoints();

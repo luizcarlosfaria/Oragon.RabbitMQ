@@ -10,5 +10,5 @@ using System.Threading.Tasks;
 namespace Oragon.RabbitMQ.IntegratedTests;
 internal class Constants
 {
-    public const string RabbitMQContainerImage = "rabbitmq:4.0.0-beta.3-management-alpine";
+    public const string RabbitMQContainerImage = "rabbitmq:4-management-alpine";
 }
