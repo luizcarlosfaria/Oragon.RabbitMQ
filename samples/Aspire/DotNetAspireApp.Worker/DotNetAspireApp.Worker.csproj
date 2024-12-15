@@ -1,10 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
+  <Import Project="./../../../Global.Build.props" />
+
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.10" />
@@ -16,8 +13,7 @@
     <ProjectReference Include="..\..\..\src\Oragon.RabbitMQ.AspireClient\Oragon.RabbitMQ.AspireClient.csproj" />
     <ProjectReference Include="..\..\..\src\Oragon.RabbitMQ.Serializer.NewtonsoftJson\Oragon.RabbitMQ.Serializer.NewtonsoftJson.csproj" />
     <ProjectReference Include="..\..\..\src\Oragon.RabbitMQ.Serializer.SystemTextJson\Oragon.RabbitMQ.Serializer.SystemTextJson.csproj" />
-    <ProjectReference Include="..\..\..\src\Oragon.RabbitMQ\Oragon.RabbitMQ.csproj" />
-    <ProjectReference Include="..\Aspire.RabbitMQ.Client\Aspire.RabbitMQ.Client.csproj" />
+    <ProjectReference Include="..\..\..\src\Oragon.RabbitMQ\Oragon.RabbitMQ.csproj" />    
     <ProjectReference Include="..\DotNetAspireApp.Common\DotNetAspireApp.Common.csproj" />
     <ProjectReference Include="..\DotNetAspireApp.ServiceDefaults\DotNetAspireApp.ServiceDefaults.csproj" />
   </ItemGroup>
