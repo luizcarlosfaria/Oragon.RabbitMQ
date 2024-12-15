@@ -3,6 +3,7 @@
 
 using System.Linq.Expressions;
 using Dawn;
+using Microsoft.Extensions.DependencyInjection;
 using Oragon.RabbitMQ.Serialization;
 
 namespace Oragon.RabbitMQ.Consumer;
@@ -72,16 +73,6 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     /// Requeue On Crash
     /// </summary>
     public bool RequeueOnCrash { get; private set; }
-
-    /// <summary>
-    /// KeyOfService on Keyed Services
-    /// </summary>
-    public string KeyOfService { get; private set; }
-
-    /// <summary>
-    /// Validate service is Keyed Service
-    /// </summary>
-    public bool IsKeyedService => !string.IsNullOrEmpty(this.KeyOfService);
 
     /// <summary>
     /// Set an Adapter Func
@@ -165,6 +156,12 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
 
 
     /// <summary>
+    /// Way to get the service
+    /// </summary>
+    public Func<IServiceProvider, TService> GetServiceFunc { get; private set; } = sp => sp.GetRequiredService<TService>();
+
+
+    /// <summary>
     /// KeyOfService to retrieve service Keyed Services
     /// </summary>
     /// <param name="key"></param>
@@ -172,7 +169,9 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     public AsyncQueueConsumerParameters<TService, TRequest, TResponse> WithKeyedService(string key)
     {
         _ = Guard.Argument(key).NotNull().NotEmpty().NotWhiteSpace();
-        this.KeyOfService = key;
+
+        this.GetServiceFunc = sp => sp.GetKeyedService<TService>(key);
+
         return this;
     }
 

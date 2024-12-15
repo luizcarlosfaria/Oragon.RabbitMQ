@@ -23,7 +23,7 @@
                     <RadzenArcGaugeScaleValue Value=@TotalItemsToSend ShowValue=true Fill="indigo">
                         <Template Context="pointer">
                             <h4>
-                                @pointer.Value <sup>msg's para enviar</sup>
+                                @(pointer.Value)k <sup>msg's para enviar</sup>
                             </h4>
                         </Template>
                     </RadzenArcGaugeScaleValue>
@@ -43,7 +43,7 @@
         <input @bind="Message" />
     </label>
     <button @onclick="SendMessage">
-        Enviar solicitação de criação de @TotalItemsToSend mensagens
+        Enviar solicitação de criação de @(TotalItemsToSend)k mensagens
     </button>
 </p>
 
@@ -59,7 +59,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close" @onclick="@(e => this.Remove(message))"></button>
             </div>
             <div class="toast-body">
-                @message.Detail
+                @(message.Detail)
             </div>
         </div>
     }
@@ -79,7 +79,7 @@
     private async Task SendMessage()
     {
         string message = this.Message;
-        int totalItensToSend = this.TotalItemsToSend;
+        int totalItensToSend = this.TotalItemsToSend * 1000;
 
         if (totalItensToSend > 0)
         {

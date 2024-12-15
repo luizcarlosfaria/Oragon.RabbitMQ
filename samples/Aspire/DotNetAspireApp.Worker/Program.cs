@@ -9,6 +9,7 @@ using System.Text.Json;
 using Oragon.RabbitMQ.AspireClient;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.AddRabbitMQConsumer();
 
 builder.Services.AddSingleton(sp => new ActivitySource("RabbitMQ.Gago", "1.0.0"));
 builder.AddRabbitMQClient("rabbitmq", null, connectionFactory =>
@@ -27,6 +28,14 @@ builder.AddServiceDefaults();
 
 var app = builder.Build();
 
+await app.Services.WaitRabbitMQAsync().ConfigureAwait(false);
+
+await app.ConfigureRabbitMQAsync().ConfigureAwait(false);
+
+app.AddManagedEmailService();
+
+Task.Run(app.AddUnmanagedEmailServiceAsync);
+
 //await app.Services.WaitRabbitMQAsync().ConfigureAwait(false);
 
-app.Run();
+await app.RunAsync().ConfigureAwait(false);

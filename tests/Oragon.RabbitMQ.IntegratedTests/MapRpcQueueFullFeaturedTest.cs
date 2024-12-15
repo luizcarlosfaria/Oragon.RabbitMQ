@@ -10,6 +10,7 @@ using Oragon.RabbitMQ.Serialization;
 using Microsoft.Extensions.Hosting;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
+using DotNet.Testcontainers.Builders;
 
 namespace Oragon.RabbitMQ.IntegratedTests;
 
@@ -44,8 +45,7 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
     }
 
 
-    private readonly RabbitMqContainer _rabbitMqContainer = new RabbitMqBuilder().WithImage(Constants.RabbitMQContainerImage).Build();
-
+    private readonly RabbitMqContainer _rabbitMqContainer = new RabbitMqBuilder().BuildRabbitMQ();
     public Task InitializeAsync()
     {
         return this._rabbitMqContainer.StartAsync();
@@ -89,6 +89,7 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
 
 
         ServiceCollection services = new();
+        services.AddRabbitMQConsumer();
         services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
 
         // Singleton dependencies
@@ -99,13 +100,7 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
         // Scoped dependencies
         services.AddScoped<ExampleRpcService>();
 
-        services.MapQueueRPC<ExampleRpcService, RequestMessage, ResponseMessage>((config) =>
-            config
-                .WithDispatchInChildScope()
-                .WithAdapter((svc, msg) => svc.TestRpcAsync(msg))
-                .WithQueueName(serverQueue)
-                .WithPrefetchCount(1)
-        );
+       
 
         // Send a message to the channel.
         using var channel = await connection.CreateChannelAsync();
@@ -121,6 +116,15 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
         await channel.WaitForConfirmsOrDieAsync();
 
         var sp = services.BuildServiceProvider();
+
+        sp.MapQueueRPC<ExampleRpcService, RequestMessage, ResponseMessage>((config) =>
+           config
+               .WithDispatchInChildScope()
+               .WithAdapter((svc, msg) => svc.TestRpcAsync(msg))
+               .WithQueueName(serverQueue)
+               .WithPrefetchCount(1)
+       );
+
         var hostedService = sp.GetRequiredService<IHostedService>();
         await hostedService.StartAsync(CancellationToken.None);
 

@@ -36,7 +36,7 @@ public class FlowTests
     }
     public class ExampleMessage
     {
-        public bool Error { get; set; } 
+        public bool Error { get; set; }
     }
 
     [Fact]
@@ -46,6 +46,7 @@ public class FlowTests
         string queueName = "xpto";
 
         ServiceCollection services = new();
+        services.AddRabbitMQConsumer();
 
         // Arrange
         AsyncEventingBasicConsumer queueConsumer = null;
@@ -72,7 +73,7 @@ public class FlowTests
         //-------------------------------------------------------
 
         //-------------------------------------------------------
-        var connectionMock = new Mock<IConnection>();        
+        var connectionMock = new Mock<IConnection>();
         _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CancellationToken>())).ReturnsAsync(channel);
         var connection = connectionMock.Object;
         _ = services.AddSingleton(connection);
@@ -81,7 +82,7 @@ public class FlowTests
 
         //-------------------------------------------------------
         var connectionFactoryMock = new Mock<IConnectionFactory>();
-        _ = connectionFactoryMock.Setup(it => it.CreateConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(connection);        
+        _ = connectionFactoryMock.Setup(it => it.CreateConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(connection);
         var connectionFactory = connectionFactoryMock.Object;
         _ = services.AddSingleton(sp => connectionFactory);
         //-------------------------------------------------------
@@ -92,7 +93,9 @@ public class FlowTests
         _ = services.AddScoped<ExampleService>();
         //-------------------------------------------------------
 
-        services.MapQueue<ExampleService, ExampleMessage>((config) =>
+        var sp = services.BuildServiceProvider();
+
+        sp.MapQueue<ExampleService, ExampleMessage>((config) =>
            config
                .WithDispatchInChildScope()
                .WithAdapter((svc, msg) => svc.TestAsync(msg))
@@ -100,14 +103,17 @@ public class FlowTests
                .WithPrefetchCount(1)
        );
 
-        var sp = services.BuildServiceProvider();
         var hostedService = sp.GetRequiredService<IHostedService>();
 
         await hostedService.StartAsync(CancellationToken.None);
 
-        Assert.NotNull(queueConsumer);
+        var consumerServer = (ConsumerServer)hostedService;
 
-        var asyncQueueConsumer = (AsyncQueueConsumer<ExampleService, ExampleMessage, Task>)hostedService;
+        var asyncQueueConsumer = (AsyncQueueConsumer<ExampleService, ExampleMessage, Task>)consumerServer.Consumers.Single();
+
+        SafeRunner.Wait(() => queueConsumer != null);
+
+        Assert.NotNull(queueConsumer);
 
         ReadOnlyBasicProperties properties = new BasicProperties().ToReadOnly();
 
@@ -120,7 +126,7 @@ public class FlowTests
 
         // Assert
         Mock.VerifyAll();
-        
+
     }
 
     [Fact]
@@ -133,6 +139,7 @@ public class FlowTests
 
         // Arrange
         AsyncEventingBasicConsumer queueConsumer = null;
+        services.AddRabbitMQConsumer();
 
         //-------------------------------------------------------
         var channelMock = new Mock<IChannel>();
@@ -175,23 +182,27 @@ public class FlowTests
         _ = services.AddSingleton<IAMQPSerializer>(sp => new NewtonsoftAMQPSerializer(null));
         _ = services.AddScoped<ExampleService>();
         //-------------------------------------------------------
+        var sp = services.BuildServiceProvider();
 
-        services.MapQueue<ExampleService, ExampleMessage>((config) =>
+        sp.MapQueue<ExampleService, ExampleMessage>((config) =>
            config
                .WithDispatchInChildScope()
                .WithAdapter((svc, msg) => svc.TestAsync(msg))
                .WithQueueName(queueName)
                .WithPrefetchCount(1)
-       );
+        );
 
-        var sp = services.BuildServiceProvider();
         var hostedService = sp.GetRequiredService<IHostedService>();
 
         await hostedService.StartAsync(CancellationToken.None);
 
-        Assert.NotNull(queueConsumer);
+        var consumerServer = (ConsumerServer)hostedService;
 
-        var asyncQueueConsumer = (AsyncQueueConsumer<ExampleService, ExampleMessage, Task>)hostedService;
+        var asyncQueueConsumer = (AsyncQueueConsumer<ExampleService, ExampleMessage, Task>)consumerServer.Consumers.Single();
+
+        SafeRunner.Wait(() => queueConsumer != null);
+
+        Assert.NotNull(queueConsumer);
 
         ReadOnlyBasicProperties properties = new BasicProperties().ToReadOnly();
 
@@ -213,6 +224,7 @@ public class FlowTests
         string queueName = "xpto";
 
         ServiceCollection services = new();
+        services.AddRabbitMQConsumer();
 
         // Arrange
         AsyncEventingBasicConsumer queueConsumer = null;
@@ -258,8 +270,9 @@ public class FlowTests
         _ = services.AddSingleton<IAMQPSerializer>(sp => new NewtonsoftAMQPSerializer(null));
         _ = services.AddScoped<ExampleService>();
         //-------------------------------------------------------
+        var sp = services.BuildServiceProvider();
 
-        services.MapQueue<ExampleService, ExampleMessage>((config) =>
+        sp.MapQueue<ExampleService, ExampleMessage>((config) =>
            config
                .WithDispatchInChildScope()
                .WithAdapter((svc, msg) => svc.TestAsync(msg))
@@ -267,14 +280,17 @@ public class FlowTests
                .WithPrefetchCount(1)
        );
 
-        var sp = services.BuildServiceProvider();
         var hostedService = sp.GetRequiredService<IHostedService>();
 
         await hostedService.StartAsync(CancellationToken.None);
 
-        Assert.NotNull(queueConsumer);
+        var consumerServer = (ConsumerServer)hostedService;
 
-        var asyncQueueConsumer = (AsyncQueueConsumer<ExampleService, ExampleMessage, Task>)hostedService;
+        var asyncQueueConsumer = (AsyncQueueConsumer<ExampleService, ExampleMessage, Task>)consumerServer.Consumers.Single();
+
+        SafeRunner.Wait(() => queueConsumer != null);
+
+        Assert.NotNull(queueConsumer);
 
         ReadOnlyBasicProperties properties = new BasicProperties().ToReadOnly();
 

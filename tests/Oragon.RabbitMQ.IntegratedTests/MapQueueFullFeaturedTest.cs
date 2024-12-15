@@ -9,6 +9,7 @@ using Oragon.RabbitMQ.Serialization;
 using Microsoft.Extensions.Hosting;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
+using DotNet.Testcontainers.Builders;
 
 namespace Oragon.RabbitMQ.IntegratedTests;
 
@@ -48,7 +49,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
     }
 
 
-    private readonly RabbitMqContainer _rabbitMqContainer = new RabbitMqBuilder().WithImage(Constants.RabbitMQContainerImage).Build();
+    private readonly RabbitMqContainer _rabbitMqContainer = new RabbitMqBuilder().BuildRabbitMQ();
 
     public Task InitializeAsync()
     {
@@ -76,7 +77,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
 
 
 
-    [Fact]
+    [Fact(Timeout = 5000)]
     public async Task MapQueueBasicSuccessTest()
     {
         const string queue = "hello";
@@ -91,6 +92,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
         WeakReference<EventWaitHandle> waitHandleRef = new(new ManualResetEvent(false));
 
         ServiceCollection services = new();
+        services.AddRabbitMQConsumer();
         services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
 
         // Singleton dependencies
@@ -103,13 +105,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
         services.AddScoped<Action<ExampleMessage>>((_) => (msg) => receivedMessage = msg);
         services.AddScoped((_) => waitHandleRef);
 
-        services.MapQueue<ExampleService, ExampleMessage>((config) =>
-            config
-                .WithDispatchInChildScope()
-                .WithAdapter((svc, msg) => svc.TestAsync(msg))
-                .WithQueueName(queue)
-                .WithPrefetchCount(1)
-        );
+        
 
         // Send a message to the channel.
         using var channel = await connection.CreateChannelAsync();
@@ -119,6 +115,14 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
         await channel.WaitForConfirmsOrDieAsync();
 
         var sp = services.BuildServiceProvider();
+
+        sp.MapQueue<ExampleService, ExampleMessage>((config) =>
+            config
+                .WithDispatchInChildScope()
+                .WithAdapter((svc, msg) => svc.TestAsync(msg))
+                .WithQueueName(queue)
+                .WithPrefetchCount(1)
+        );
 
         var hostedService = sp.GetRequiredService<IHostedService>();
 

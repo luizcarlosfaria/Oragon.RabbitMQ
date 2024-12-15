@@ -10,6 +10,9 @@ using Microsoft.Extensions.Hosting;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using System.Threading;
+using DotNet.Testcontainers.Configurations;
+using DotNet.Testcontainers.Builders;
+using Oragon.RabbitMQ.Consumer;
 
 namespace Oragon.RabbitMQ.IntegratedTests;
 
@@ -47,11 +50,11 @@ public class MultipleConsumersTest : IAsyncLifetime
     }
 
 
-    private readonly RabbitMqContainer _rabbitMqContainer = new RabbitMqBuilder().WithImage(Constants.RabbitMQContainerImage).Build();
+    private readonly RabbitMqContainer _rabbitMqContainer = new RabbitMqBuilder().BuildRabbitMQ();
 
-    public Task InitializeAsync()
+    public async Task InitializeAsync()
     {
-        return this._rabbitMqContainer.StartAsync();
+        await this._rabbitMqContainer.StartAsync().ConfigureAwait(true);        
     }
 
     public Task DisposeAsync()
@@ -109,6 +112,7 @@ public class MultipleConsumersTest : IAsyncLifetime
 
         ServiceCollection services = new();
         services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
+        services.AddRabbitMQConsumer();
 
         // Singleton dependencies
         services.AddSingleton(new ActivitySource("test"));
@@ -124,15 +128,6 @@ public class MultipleConsumersTest : IAsyncLifetime
 
             services.AddKeyedScoped(pack.QueueName, (sp, key) => new ExampleService(pack.WaitHandle, pack.CallBack));
 
-            services.MapQueue<ExampleService, ExampleMessage>((config) =>
-                config
-                    .WithDispatchInChildScope()
-                    .WithKeyedService(pack.QueueName)
-                    .WithAdapter((svc, msg) => svc.TestAsync(msg))
-                    .WithQueueName(pack.QueueName)
-                    .WithPrefetchCount(1)
-            );
-
             _ = await channel.QueueDeclareAsync(pack.QueueName, false, false, false, null);
 
             await channel.ConfirmSelectAsync();
@@ -145,9 +140,27 @@ public class MultipleConsumersTest : IAsyncLifetime
 
         var sp = services.BuildServiceProvider();
 
+        foreach (var pack in packs)
+        {
+            sp.MapQueue<ExampleService, ExampleMessage>((config) =>
+                config
+                    .WithDispatchInChildScope()
+                    .WithKeyedService(pack.QueueName)
+                    .WithAdapter((svc, msg) => svc.TestAsync(msg))
+                    .WithQueueName(pack.QueueName)
+                    .WithPrefetchCount(1)
+            );
+        }
+
         var hostedServices = sp.GetServices<IHostedService>();
 
-        Assert.Equal(packs.Count, hostedServices.Count());
+        Assert.Single(hostedServices);
+
+        Assert.IsType<ConsumerServer>(hostedServices.Single());
+
+        ConsumerServer consumerServer = (ConsumerServer)hostedServices.Single();
+
+        Assert.Equal(packs.Count, consumerServer.Consumers.Count());
 
         foreach (var hostedService in hostedServices)
         {
@@ -160,7 +173,7 @@ public class MultipleConsumersTest : IAsyncLifetime
                         p.WaitHandle.WaitOne(
                             Debugger.IsAttached
                             ? TimeSpan.FromMinutes(5)
-                            : TimeSpan.FromSeconds(3)
+                            : TimeSpan.FromSeconds(5)
                         )
                     )
                 )

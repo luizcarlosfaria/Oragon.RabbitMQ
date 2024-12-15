@@ -20,39 +20,81 @@ public static class DependencyInjectionExtensions
 {
 
     /// <summary>
+    /// Add Oragon RabbitMQ Consumer to Dependency Injection
+    /// </summary>
+    /// <param name="builder"></param>
+    public static void AddRabbitMQConsumer(this IHostApplicationBuilder builder)
+    {
+        _ = Guard.Argument(builder).NotNull();
+
+        builder.Services.AddRabbitMQConsumer();
+    }
+
+    /// <summary>
+    /// Add Oragon RabbitMQ Consumer to Dependency Injection
+    /// </summary>
+    /// <param name="services"></param>
+    public static void AddRabbitMQConsumer(this IServiceCollection services)
+    {
+        _ = Guard.Argument(services).NotNull();
+
+        _ = services.AddSingleton<ConsumerServer>();
+
+        _ = services.AddHostedService<ConsumerServer>(sp => sp.GetRequiredService<ConsumerServer>());
+    }
+
+    /// <summary>
     /// Create a new QueueServiceWorker to bind a queue with an function
     /// </summary>
     /// <typeparam name="TService">Service Type will be used to determine which service will be used to connect on queue</typeparam>
     /// <typeparam name="TRequest">Type of message sent by publisher to Consumer. Must be exactly same Type that functionToExecute parameter requests.</typeparam>
     /// <typeparam name="TResponse">Type of returned message sent by Consumer to publisher. Must be exactly same Type that functionToExecute returns.</typeparam>
-    /// <param name="services">Services </param>
+    /// <param name="host">IHost</param>
     /// <param name="config">Configuration handler</param>
-    public static void MapQueueRPC<TService, TRequest, TResponse>(this IServiceCollection services, Action<AsyncQueueConsumerParameters<TService, TRequest, Task<TResponse>>> config)
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "This is a factory, Dispose will be called by Consumer")]
+    public static void MapQueueRPC<TService, TRequest, TResponse>(this IHost host, Action<AsyncQueueConsumerParameters<TService, TRequest, Task<TResponse>>> config)
         where TResponse : class
         where TRequest : class
     {
-        _ = Guard.Argument(services).NotNull();
+        _ = Guard.Argument(host).NotNull();
+
+        host.Services.MapQueueRPC(config);
+    }
+
+        /// <summary>
+        /// Create a new QueueServiceWorker to bind a queue with an function
+        /// </summary>
+        /// <typeparam name="TService">Service Type will be used to determine which service will be used to connect on queue</typeparam>
+        /// <typeparam name="TRequest">Type of message sent by publisher to Consumer. Must be exactly same Type that functionToExecute parameter requests.</typeparam>
+        /// <typeparam name="TResponse">Type of returned message sent by Consumer to publisher. Must be exactly same Type that functionToExecute returns.</typeparam>
+        /// <param name="serviceProvider">Services </param>
+        /// <param name="config">Configuration handler</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "This is a factory, Dispose will be called by Consumer")]
+    public static void MapQueueRPC<TService, TRequest, TResponse>(this IServiceProvider serviceProvider, Action<AsyncQueueConsumerParameters<TService, TRequest, Task<TResponse>>> config)
+        where TResponse : class
+        where TRequest : class
+    {
+        _ = Guard.Argument(serviceProvider).NotNull();
         _ = Guard.Argument(config).NotNull();
 
+        var consumerServer = serviceProvider.GetRequiredService<ConsumerServer>();
 
-        _ = services.AddSingleton<IHostedService>(sp =>
-            {
-                var parameters = new AsyncQueueConsumerParameters<TService, TRequest, Task<TResponse>>();
-                _ = parameters.WithServiceProvider(sp);
-                _ = parameters.WithDisplayLoopInConsoleEvery(TimeSpan.FromMinutes(1));
-                _ = parameters.WithTestQueueRetryCount(5);
-                _ = parameters.WithConnection((sp) => sp.GetRequiredService<IConnection>());
-                _ = parameters.WithDispatchInRootScope();
-                _ = parameters.WithSerializer(sp.GetRequiredService<IAMQPSerializer>());
+        var parameters = new AsyncQueueConsumerParameters<TService, TRequest, Task<TResponse>>();
+        _ = parameters.WithServiceProvider(serviceProvider);
+        _ = parameters.WithDisplayLoopInConsoleEvery(TimeSpan.FromMinutes(1));
+        _ = parameters.WithTestQueueRetryCount(5);
+        _ = parameters.WithConnection((sp) => sp.GetRequiredService<IConnection>());
+        _ = parameters.WithDispatchInRootScope();
+        _ = parameters.WithSerializer(serviceProvider.GetRequiredService<IAMQPSerializer>());
 
-                config(parameters);
+        config(parameters);
 
-                return new AsyncRpcConsumer<TService, TRequest, TResponse>(
-                    sp.GetService<ILogger<AsyncRpcConsumer<TService, TRequest, TResponse>>>(),
+        var queueConsumer = new AsyncRpcConsumer<TService, TRequest, TResponse>(
+                    serviceProvider.GetService<ILogger<AsyncRpcConsumer<TService, TRequest, TResponse>>>(),
                     parameters,
-                    sp
+                    serviceProvider
                 );
-            });
+        consumerServer.AddConsumer(queueConsumer);
     }
 
     /// <summary>
@@ -60,34 +102,49 @@ public static class DependencyInjectionExtensions
     /// </summary>
     /// <typeparam name="TService">Service Type will be used to determine which service will be used to connect on queue</typeparam>
     /// <typeparam name="TRequest">Type of message sent by publisher to Consumer. Must be exactly same Type that functionToExecute parameter requests.</typeparam>    
-    /// <param name="services">Dependency Injection Service Collection</param>
+    /// <param name="host">IHost</param>
     /// <param name="config">Configuration handler</param>
-    public static void MapQueue<TService, TRequest>(this IServiceCollection services, Action<AsyncQueueConsumerParameters<TService, TRequest, Task>> config)
+    public static void MapQueue<TService, TRequest>(this IHost host, Action<AsyncQueueConsumerParameters<TService, TRequest, Task>> config)
         where TRequest : class
     {
-        _ = Guard.Argument(services).NotNull();
+        _ = Guard.Argument(host).NotNull();
+
+        host.Services.MapQueue(config);
+    }
+
+    /// <summary>
+    /// Create a new QueueServiceWorker to bind a queue with an function
+    /// </summary>
+    /// <typeparam name="TService">Service Type will be used to determine which service will be used to connect on queue</typeparam>
+    /// <typeparam name="TRequest">Type of message sent by publisher to Consumer. Must be exactly same Type that functionToExecute parameter requests.</typeparam>    
+    /// <param name="serviceProvider">Service Provider</param>
+    /// <param name="config">Configuration handler</param>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "This is a factory, Dispose will be called by Consumer")]
+    public static void MapQueue<TService, TRequest>(this IServiceProvider serviceProvider, Action<AsyncQueueConsumerParameters<TService, TRequest, Task>> config)
+        where TRequest : class
+    {
+        _ = Guard.Argument(serviceProvider).NotNull();
         _ = Guard.Argument(config).NotNull();
 
+        var consumerServer = serviceProvider.GetRequiredService<ConsumerServer>();
 
-        _ = services.AddSingleton<IHostedService>(sp =>
-        {
+        var parameters = new AsyncQueueConsumerParameters<TService, TRequest, Task>();
+        _ = parameters.WithServiceProvider(serviceProvider);
+        _ = parameters.WithDisplayLoopInConsoleEvery(TimeSpan.FromMinutes(1));
+        _ = parameters.WithTestQueueRetryCount(5);
+        _ = parameters.WithConnection((sp) => sp.GetRequiredService<IConnection>());
+        _ = parameters.WithDispatchInRootScope();
+        _ = parameters.WithSerializer(serviceProvider.GetRequiredService<IAMQPSerializer>());
 
-            var parameters = new AsyncQueueConsumerParameters<TService, TRequest, Task>();
-            _ = parameters.WithServiceProvider(sp);
-            _ = parameters.WithDisplayLoopInConsoleEvery(TimeSpan.FromMinutes(1));
-            _ = parameters.WithTestQueueRetryCount(5);
-            _ = parameters.WithConnection((sp) => sp.GetRequiredService<IConnection>());
-            _ = parameters.WithDispatchInRootScope();
-            _ = parameters.WithSerializer(sp.GetRequiredService<IAMQPSerializer>());
+        config(parameters);
 
-            config(parameters);
-
-            return new AsyncQueueConsumer<TService, TRequest, Task>(
-                    sp.GetService<ILogger<AsyncQueueConsumer<TService, TRequest, Task>>>(),
+        var queueConsumer = new AsyncQueueConsumer<TService, TRequest, Task>(
+                    serviceProvider.GetService<ILogger<AsyncQueueConsumer<TService, TRequest, Task>>>(),
                     parameters,
-                    sp
+                    serviceProvider
                 );
-        });
+
+        consumerServer.AddConsumer(queueConsumer);
     }
 
 

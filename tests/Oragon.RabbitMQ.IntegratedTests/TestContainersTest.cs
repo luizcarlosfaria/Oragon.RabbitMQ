@@ -5,13 +5,13 @@ using RabbitMQ.Client.Events;
 using RabbitMQ.Client;
 using System.Text;
 using Testcontainers.RabbitMq;
+using DotNet.Testcontainers.Builders;
 
 namespace Oragon.RabbitMQ.IntegratedTests;
 
 public class TestContainersTest: IAsyncLifetime
 {
-    private readonly RabbitMqContainer _rabbitMqContainer = new RabbitMqBuilder().WithImage(Constants.RabbitMQContainerImage).Build();
-
+    private readonly RabbitMqContainer _rabbitMqContainer = new RabbitMqBuilder().BuildRabbitMQ();
     public Task InitializeAsync()
     {
         return this._rabbitMqContainer.StartAsync();

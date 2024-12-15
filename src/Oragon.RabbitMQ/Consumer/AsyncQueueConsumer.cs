@@ -7,8 +7,8 @@ using System.Text;
 using Dawn;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry;
-using OpenTelemetry.Context.Propagation;
+//using OpenTelemetry;
+//using OpenTelemetry.Context.Propagation;
 using Oragon.RabbitMQ.Consumer.Actions;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -39,10 +39,10 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
     /// </summary>
     protected static readonly ActivitySource activitySource = new(MessagingTelemetryNames.GetName(nameof(AsyncQueueConsumer<TService, TRequest, TResponse>)));
 
-    /// <summary>
-    /// The propagator for trace context.
-    /// </summary>
-    private static readonly TextMapPropagator s_propagator = Propagators.DefaultTextMapPropagator;
+    ///// <summary>
+    ///// The propagator for trace context.
+    ///// </summary>
+    //private static readonly TextMapPropagator s_propagator = Propagators.DefaultTextMapPropagator;
 
     #region Constructors 
 
@@ -70,13 +70,13 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
         {
             if (this.parameters.DispatchScope == DispatchScope.RootScope)
             {
-                _ = this.GetService<TService>(this.parameters.ServiceProvider);
+                _ = this.parameters.GetServiceFunc(this.parameters.ServiceProvider);
             }
             else if (this.parameters.DispatchScope == DispatchScope.ChildScope)
             {
                 using (var scope = this.parameters.ServiceProvider.CreateScope())
                 {
-                    _ = this.GetService<TService>(scope.ServiceProvider);
+                    _ = this.parameters.GetServiceFunc(scope.ServiceProvider);
                 }
             }
         }
@@ -110,19 +110,20 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
     {
         _ = Guard.Argument(delivery).NotNull();
 
-        var parentContext = s_propagator.Extract(default, delivery.BasicProperties, this.ExtractTraceContextFromBasicProperties);
-        Baggage.Current = parentContext.Baggage;
+        //var parentContext = s_propagator.Extract(default, delivery.BasicProperties, this.ExtractTraceContextFromBasicProperties);
+        //Baggage.Current = parentContext.Baggage;
 
-        using var receiveActivity = activitySource.StartActivity("AsyncQueueConsumer.ReceiveAsync", ActivityKind.Consumer, parentContext.ActivityContext) ?? new Activity("?AsyncQueueConsumer.ReceiveAsync");
+        //using var receiveActivity = activitySource.StartActivity("AsyncQueueConsumer.ReceiveAsync", ActivityKind.Consumer, parentContext.ActivityContext) ?? new Activity("?AsyncQueueConsumer.ReceiveAsync");
+        using var receiveActivity = new Activity("?AsyncQueueConsumer.ReceiveAsync");
 
-        _ = receiveActivity
-            .AddTag("Queue", this.parameters.QueueName)
-            .AddTag("MessageId", delivery.BasicProperties.MessageId)
-            .AddTag("CorrelationId", delivery.BasicProperties.CorrelationId)
-            .SetTag("messaging.system", "rabbitmq")
-            .SetTag("messaging.destination_kind", "queue")
-            .SetTag("messaging.destination", delivery.Exchange)
-            .SetTag("messaging.rabbitmq.routing_key", delivery.RoutingKey);
+        //_ = receiveActivity
+        //    .AddTag("Queue", this.parameters.QueueName)
+        //    .AddTag("MessageId", delivery.BasicProperties.MessageId)
+        //    .AddTag("CorrelationId", delivery.BasicProperties.CorrelationId)
+        //    .SetTag("messaging.system", "rabbitmq")
+        //    .SetTag("messaging.destination_kind", "queue")
+        //    .SetTag("messaging.destination", delivery.Exchange)
+        //    .SetTag("messaging.rabbitmq.routing_key", delivery.RoutingKey);
 
         var result = this.TryDeserialize(receiveActivity, delivery, out var request)
                             ? await this.DispatchAsync(receiveActivity, delivery, request).ConfigureAwait(true)
@@ -174,6 +175,7 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
     private bool TryDeserialize(Activity receiveActivity, BasicDeliverEventArgs receivedItem, out TRequest messsage)
     {
         _ = Guard.Argument(receivedItem).NotNull();
+        _ = Guard.Argument(receiveActivity).NotNull();
 
         var returnValue = true;
 
@@ -182,13 +184,13 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
         {
             messsage = this.parameters.Serializer.Deserialize<TRequest>(eventArgs: receivedItem);
 
-            _ = receiveActivity?.SetTag("message", messsage);
+            //_ = receiveActivity?.SetTag("message", messsage);
         }
         catch (Exception exception)
         {
             returnValue = false;
 
-            _ = receiveActivity.SetStatus(ActivityStatusCode.Error, exception.ToString());
+            //_ = receiveActivity.SetStatus(ActivityStatusCode.Error, exception.ToString());
 
             s_logErrorOnDesserialize(this.Logger, exception, exception);
         }
@@ -216,7 +218,7 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
 
         IAMQPResult returnValue;
 
-        using var dispatchActivity = activitySource.StartActivity(this.parameters.AdapterExpressionText, ActivityKind.Internal, receiveActivity.Context);
+        //using var dispatchActivity = activitySource.StartActivity(this.parameters.AdapterExpressionText, ActivityKind.Internal, receiveActivity.Context);
 
         //using (var logContext = new EnterpriseApplicationLogContext())
         //{
@@ -224,17 +226,17 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
         {
             if (this.parameters.DispatchScope == DispatchScope.RootScope)
             {
-                var service = this.GetService<TService>(this.parameters.ServiceProvider);
+                var service = this.parameters.GetServiceFunc(this.parameters.ServiceProvider);
 
-                await this.parameters.AdapterFunc(service, request).ConfigureAwait(true);
+                await this.parameters.AdapterFunc(service, request).ConfigureAwait(false);
             }
             else if (this.parameters.DispatchScope == DispatchScope.ChildScope)
             {
                 using (var scope = this.parameters.ServiceProvider.CreateScope())
                 {
-                    var service = this.GetService<TService>(scope.ServiceProvider);
+                    var service = this.parameters.GetServiceFunc(scope.ServiceProvider);
 
-                    await this.parameters.AdapterFunc(service, request).ConfigureAwait(true);
+                    await this.parameters.AdapterFunc(service, request).ConfigureAwait(false);
                 }
             }
             returnValue = new AckResult();
@@ -245,17 +247,10 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
 
             returnValue = new NackResult(this.parameters.RequeueOnCrash);
 
-            _ = (dispatchActivity?.SetStatus(ActivityStatusCode.Error, exception.ToString()));
+            //_ = (dispatchActivity?.SetStatus(ActivityStatusCode.Error, exception.ToString()));
         }
         //}
 
         return returnValue;
-    }
-
-    private T GetService<T>(IServiceProvider serviceProvider)
-    {
-        return this.parameters.IsKeyedService
-            ? serviceProvider.GetRequiredKeyedService<T>(this.parameters.KeyOfService)
-            : serviceProvider.GetRequiredService<T>();
     }
 }

@@ -47,6 +47,7 @@ public class AsyncQueueConsumerTests
         string queueName = "xpto";
 
         ServiceCollection services = new();
+        services.AddRabbitMQConsumer();
 
         // Arrange
         AsyncEventingBasicConsumer queueConsumer = null;
@@ -92,15 +93,19 @@ public class AsyncQueueConsumerTests
         _ = services.AddSingleton<IAMQPSerializer>(sp => new NewtonsoftAMQPSerializer(null));
         //_ = services.AddScoped<ExampleService>();
         //-------------------------------------------------------
-        services.MapQueue<ExampleService, ExampleMessage>((config) =>
+
+        var sp = services.BuildServiceProvider();
+
+
+        sp.MapQueue<ExampleService, ExampleMessage>((config) =>
            config
                .WithDispatchInChildScope()
                .WithAdapter((svc, msg) => svc.TestAsync(msg))
                .WithQueueName(queueName)
                .WithPrefetchCount(1)
-       );
+        );
 
-        var sp = services.BuildServiceProvider();
+
         var hostedService = sp.GetRequiredService<IHostedService>();
 
         _ = await Assert.ThrowsAsync<InvalidOperationException>(async () => await hostedService.StartAsync(CancellationToken.None).ConfigureAwait(false));
@@ -115,6 +120,7 @@ public class AsyncQueueConsumerTests
         string queueName = "xpto";
 
         ServiceCollection services = new();
+        services.AddRabbitMQConsumer();
 
         // Arrange
         AsyncEventingBasicConsumer queueConsumer = null;
@@ -160,15 +166,17 @@ public class AsyncQueueConsumerTests
         _ = services.AddSingleton<IAMQPSerializer>(sp => new NewtonsoftAMQPSerializer(null));
         //_ = services.AddScoped<ExampleService>();
         //-------------------------------------------------------
-        services.MapQueue<ExampleService, ExampleMessage>((config) =>
+
+        var sp = services.BuildServiceProvider();
+
+        sp.MapQueue<ExampleService, ExampleMessage>((config) =>
            config
                .WithDispatchInRootScope()
                .WithAdapter((svc, msg) => svc.TestAsync(msg))
                .WithQueueName(queueName)
                .WithPrefetchCount(1)
-       );
+        );
 
-        var sp = services.BuildServiceProvider();
         var hostedService = sp.GetRequiredService<IHostedService>();
 
 
@@ -190,5 +198,5 @@ public class AsyncQueueConsumerTests
 
     }
 
-    
+
 }

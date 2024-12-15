@@ -1,4 +1,6 @@
+using System;
 using System.Text.Json;
+using System.Threading.Channels;
 using DotNetAspireApp.Common.Messages.Commands;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
@@ -47,27 +49,29 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 });
 
-app.MapPost("/enqueue", async (DoSomethingRequest req, [FromServices] MessagePublisher messagePublisher, [FromServices] IConnectionFactory connectionFactory)
+app.MapPost("/enqueue", (DoSomethingRequest req, [FromServices] IAMQPSerializer serializer, [FromServices] IConnectionFactory connectionFactory)
     =>
 {
     _ = Task.Run(async () =>
     {
-
-        using var connection = await connectionFactory.CreateConnectionAsync(CancellationToken.None).ConfigureAwait(true);
-
+        using var connection = await connectionFactory.CreateConnectionAsync("ApiService - enqueue", CancellationToken.None).ConfigureAwait(true);
         using var channel = await connection.CreateChannelAsync(CancellationToken.None).ConfigureAwait(true);
 
-        await Parallel.ForAsync(1, req.quantity + 1, async (currentSeq, ct) =>
+        for (int i = 1; i <= req.quantity; i++)
         {
-            var command = new DoSomethingCommand(req.Text, currentSeq, req.quantity);
 
-            await messagePublisher
-                .SendAsync(channel, "", "events", command, ct)
-                .ConfigureAwait(false);
+            var command = new DoSomethingCommand(req.Text, i, req.quantity);
 
-        }).ConfigureAwait(false);
+            var properties = channel.CreateBasicProperties().EnsureHeaders().SetDurable(true);
 
+            var body = serializer.Serialize(basicProperties: properties, message: command);
+
+            await channel.BasicPublishAsync("events", string.Empty, properties, body, false).ConfigureAwait(true);
+
+        };
     });
+
+    return "ok";
 });
 
 app.MapDefaultEndpoints();

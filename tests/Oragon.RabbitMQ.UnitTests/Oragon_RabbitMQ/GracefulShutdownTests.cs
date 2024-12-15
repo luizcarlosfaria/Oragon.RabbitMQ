@@ -46,6 +46,7 @@ public class GracefulShutdownTests
         string queueName = "xpto";
 
         ServiceCollection services = new();
+        services.AddRabbitMQConsumer();
 
         // Arrange
         AsyncEventingBasicConsumer queueConsumer = null;
@@ -92,25 +93,28 @@ public class GracefulShutdownTests
         _ = services.AddSingleton<IAMQPSerializer>(sp => new NewtonsoftAMQPSerializer(null));
         _ = services.AddScoped<ExampleService>();
         //-------------------------------------------------------
+        var sp = services.BuildServiceProvider();
 
-        services.MapQueue<ExampleService, ExampleMessage>((config) =>
+        sp.MapQueue<ExampleService, ExampleMessage>((config) =>
            config
                .WithDispatchInChildScope()
                .WithAdapter((svc, msg) => svc.TestAsync(msg))
                .WithQueueName(queueName)
                .WithPrefetchCount(1)
        );
-
-        var sp = services.BuildServiceProvider();
-        var hostedService = sp.GetRequiredService<IHostedService>();
-
         CancellationTokenSource cts = new();
+
+        var hostedService = sp.GetRequiredService<IHostedService>();
 
         await hostedService.StartAsync(cts.Token);
 
-        Assert.NotNull(queueConsumer);
+        var consumerServer = (ConsumerServer)hostedService;
 
-        var asyncQueueConsumer = (AsyncQueueConsumer<ExampleService, ExampleMessage, Task>)hostedService;
+        var asyncQueueConsumer = (AsyncQueueConsumer<ExampleService, ExampleMessage, Task>)consumerServer.Consumers.Single();
+
+        SafeRunner.Wait(() => queueConsumer != null);
+
+        Assert.NotNull(queueConsumer);
 
         ReadOnlyBasicProperties properties = new BasicProperties().ToReadOnly();
 

@@ -12,7 +12,8 @@ var password = builder.AddParameter("rabbitmq-password", secret: true);
 
 
 var rabbitmq = builder.AddRabbitMQ("rabbitmq", username, password)
-    .WithManagementPlugin();
+    .WithImage("library/rabbitmq", "4-management-alpine")
+    .WithHttpEndpoint(port: null, targetPort: 15672, name: "management");
 
 var apiService = builder.AddProject<Projects.DotNetAspireApp_ApiService>("apiservice")
     .WithReference(rabbitmq);
@@ -23,6 +24,8 @@ builder.AddProject<Projects.DotNetAspireApp_Web>("webfrontend")
     .WithReference(apiService);
 
 builder.AddProject<Projects.DotNetAspireApp_Worker>("worker")
-    .WithReference(rabbitmq);
+    .WithReference(rabbitmq)
+    .WithReplicas(3)
+    ;
 
 builder.Build().Run();
