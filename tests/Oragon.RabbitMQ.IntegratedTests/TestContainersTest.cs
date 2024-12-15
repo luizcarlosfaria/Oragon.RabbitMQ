@@ -42,15 +42,17 @@ public class TestContainersTest: IAsyncLifetime
 
         // Send a message to the channel.
         using var channel = await connection.CreateChannelAsync();
+
         _ = await channel.QueueDeclareAsync(queue, false, false, false, null);
-        await channel.BasicPublishAsync(string.Empty, queue, Encoding.Default.GetBytes(message), false);
+
+        await channel.BasicPublishAsync(string.Empty, queue, false, Encoding.Default.GetBytes(message));
 
         // Signal the completion of message reception.
         EventWaitHandle waitHandle = new ManualResetEvent(false);
 
         // Consume a message from the channel.
         var consumer = new AsyncEventingBasicConsumer(channel);
-        consumer.Received += (_, eventArgs) =>
+        consumer.ReceivedAsync += (_, eventArgs) =>
         {
             actualMessage = Encoding.Default.GetString(eventArgs.Body.ToArray());
             _ = waitHandle.Set();

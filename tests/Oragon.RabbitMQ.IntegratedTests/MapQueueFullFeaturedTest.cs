@@ -108,11 +108,12 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
         
 
         // Send a message to the channel.
-        using var channel = await connection.CreateChannelAsync();
-        await channel.ConfirmSelectAsync();
+        using var channel = await connection.CreateChannelAsync(new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true));
+        
         _ = await channel.QueueDeclareAsync(queue, false, false, false, null);
-        await channel.BasicPublishAsync(string.Empty, queue, Encoding.Default.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(originalMessage)), true);
-        await channel.WaitForConfirmsOrDieAsync();
+
+        await channel.BasicPublishAsync(string.Empty, queue, true, Encoding.Default.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(originalMessage)));
+        
 
         var sp = services.BuildServiceProvider();
 

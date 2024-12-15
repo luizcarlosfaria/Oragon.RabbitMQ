@@ -54,7 +54,7 @@ public class MultipleConsumersTest : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        await this._rabbitMqContainer.StartAsync().ConfigureAwait(true);        
+        await this._rabbitMqContainer.StartAsync().ConfigureAwait(true);
     }
 
     public Task DisposeAsync()
@@ -124,17 +124,15 @@ public class MultipleConsumersTest : IAsyncLifetime
 
         foreach (var pack in packs)
         {
-            using var channel = await connection.CreateChannelAsync();
+            using var channel = await connection.CreateChannelAsync(new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true));
+
 
             services.AddKeyedScoped(pack.QueueName, (sp, key) => new ExampleService(pack.WaitHandle, pack.CallBack));
 
             _ = await channel.QueueDeclareAsync(pack.QueueName, false, false, false, null);
 
-            await channel.ConfirmSelectAsync();
+            await channel.BasicPublishAsync(string.Empty, pack.QueueName, true, Encoding.Default.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(pack.MessageToSend)));
 
-            await channel.BasicPublishAsync(string.Empty, pack.QueueName, Encoding.Default.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(pack.MessageToSend)), true);
-
-            await channel.WaitForConfirmsOrDieAsync();
         }
 
 
@@ -180,7 +178,7 @@ public class MultipleConsumersTest : IAsyncLifetime
                 .ToArray()
             );
 
-        
+
 
         foreach (var hostedService in hostedServices.Reverse())
         {
@@ -197,7 +195,7 @@ public class MultipleConsumersTest : IAsyncLifetime
             Assert.Equal(pack.MessageToSend.Age, pack.MessagReceived.Age);
 
         }
-            
+
 
     }
 }

@@ -33,15 +33,15 @@ public class MessagePublisher(IConnection connection, IAMQPSerializer serializer
     /// <param name="exchange"></param>
     /// <param name="routingKey"></param>
     /// <param name="message"></param>
-    /// <param name="ct"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
     /// <exception cref="NullReferenceException"></exception>
     [SuppressMessage("Usage", "CA2201", Justification = "Do not raise reserved exception types")]
-    public async Task SendAsync<T>(string exchange, string routingKey, T message, CancellationToken ct)
+    public async Task SendAsync<T>(string exchange, string routingKey, T message, CancellationToken cancellationToken)
     {
-        using IChannel model = await this.connection.CreateChannelAsync(ct).ConfigureAwait(true);
+        using var model = await this.connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
 
-        await this.SendAsync(model, exchange, routingKey, message, ct).ConfigureAwait(true);
+        await this.SendAsync(model, exchange, routingKey, message, cancellationToken).ConfigureAwait(true);
     }
 
     /// <summary>
@@ -52,11 +52,11 @@ public class MessagePublisher(IConnection connection, IAMQPSerializer serializer
     /// <param name="exchange"></param>
     /// <param name="routingKey"></param>
     /// <param name="message"></param>
-    /// <param name="ct"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
     /// <exception cref="NullReferenceException"></exception>
     [SuppressMessage("Usage", "CA2201", Justification = "Do not raise reserved exception types")]
-    public async Task SendAsync<T>(IChannel channel, string exchange, string routingKey, T message, CancellationToken ct)
+    public async Task SendAsync<T>(IChannel channel, string exchange, string routingKey, T message, CancellationToken cancellationToken)
     {
         Guard.Argument(channel).NotNull();
 
@@ -75,7 +75,7 @@ public class MessagePublisher(IConnection connection, IAMQPSerializer serializer
 
         var body = this.serializer.Serialize(basicProperties: properties, message: message);
 
-        await channel.BasicPublishAsync(exchange, routingKey, properties, body, false, ct).ConfigureAwait(true);
+        await channel.BasicPublishAsync(exchange, routingKey, false, properties, body, cancellationToken).ConfigureAwait(true);
 
         //publisherActivity?.SetEndTime(DateTime.UtcNow);
     }

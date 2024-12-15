@@ -100,11 +100,12 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
         // Scoped dependencies
         services.AddScoped<ExampleRpcService>();
 
-       
 
-        // Send a message to the channel.
-        using var channel = await connection.CreateChannelAsync();
-        await channel.ConfirmSelectAsync();
+
+
+
+        using var channel = await connection.CreateChannelAsync(new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true));
+
         _ = await channel.QueueDeclareAsync(serverQueue, false, false, false, null);
         var replyQueue = await channel.QueueDeclareAsync(queue: string.Empty, exclusive: true, autoDelete: true);
 
@@ -112,8 +113,7 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
             .SetReplyTo(replyQueue.QueueName)
             .SetMessageId(Guid.NewGuid().ToString("D"));
 
-        await channel.BasicPublishAsync(string.Empty, serverQueue, basicProperties, Encoding.Default.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(originalMessage)), true);
-        await channel.WaitForConfirmsOrDieAsync();
+        await channel.BasicPublishAsync(string.Empty, serverQueue, true, basicProperties, Encoding.Default.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(originalMessage)));
 
         var sp = services.BuildServiceProvider();
 
@@ -132,7 +132,7 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
         EventWaitHandle waitHandle = new ManualResetEvent(false);
 
         var consumer = new AsyncEventingBasicConsumer(channel);
-        consumer.Received += (_, eventArgs) =>
+        consumer.ReceivedAsync += (_, eventArgs) =>
         {
             receivedMessage = Newtonsoft.Json.JsonConvert.DeserializeObject<ResponseMessage>(Encoding.Default.GetString(eventArgs.Body.ToArray()));
 

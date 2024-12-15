@@ -49,13 +49,13 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 });
 
-app.MapPost("/enqueue", (DoSomethingRequest req, [FromServices] IAMQPSerializer serializer, [FromServices] IConnectionFactory connectionFactory)
+app.MapPost("/enqueue", (DoSomethingRequest req, CancellationToken cancellationToken, [FromServices] IAMQPSerializer serializer, [FromServices] IConnectionFactory connectionFactory)
     =>
 {
     _ = Task.Run(async () =>
     {
         using var connection = await connectionFactory.CreateConnectionAsync("ApiService - enqueue", CancellationToken.None).ConfigureAwait(true);
-        using var channel = await connection.CreateChannelAsync(CancellationToken.None).ConfigureAwait(true);
+        using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
 
         for (int i = 1; i <= req.quantity; i++)
         {
@@ -66,7 +66,7 @@ app.MapPost("/enqueue", (DoSomethingRequest req, [FromServices] IAMQPSerializer 
 
             var body = serializer.Serialize(basicProperties: properties, message: command);
 
-            await channel.BasicPublishAsync("events", string.Empty, properties, body, false).ConfigureAwait(true);
+            await channel.BasicPublishAsync("events", string.Empty, false, properties, body).ConfigureAwait(true);
 
         };
     });

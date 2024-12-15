@@ -94,7 +94,7 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
 
         var consumer = new AsyncEventingBasicConsumer(this.Channel);
 
-        consumer.Received += this.ReceiveAsync;
+        consumer.ReceivedAsync += this.ReceiveAsync;
 
         return consumer;
     }

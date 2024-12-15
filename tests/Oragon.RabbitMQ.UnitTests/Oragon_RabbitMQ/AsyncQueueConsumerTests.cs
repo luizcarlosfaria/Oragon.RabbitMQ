@@ -75,7 +75,7 @@ public class AsyncQueueConsumerTests
 
         //-------------------------------------------------------
         var connectionMock = new Mock<IConnection>();
-        _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CancellationToken>())).ReturnsAsync(channel);
+        _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>())).ReturnsAsync(channel);
         var connection = connectionMock.Object;
         _ = services.AddSingleton(connection);
         //-------------------------------------------------------
@@ -148,7 +148,7 @@ public class AsyncQueueConsumerTests
 
         //-------------------------------------------------------
         var connectionMock = new Mock<IConnection>();
-        _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CancellationToken>())).ReturnsAsync(channel);
+        _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>())).ReturnsAsync(channel);
         var connection = connectionMock.Object;
         _ = services.AddSingleton(connection);
         //-------------------------------------------------------

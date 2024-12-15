@@ -225,7 +225,7 @@ public static class RabbitMQExtensions
     {
         _ = Guard.Argument(connectionFactory).NotNull();
 
-        connectionFactory.ConsumerDispatchConcurrency = consumerDispatchConcurrency;
+        connectionFactory.ConsumerDispatchConcurrency = (ushort)consumerDispatchConcurrency;
 
         return connectionFactory;
     }
@@ -237,7 +237,9 @@ public static class RabbitMQExtensions
     /// <param name="connectionFactory"></param>
     /// <returns></returns>
     public static ConnectionFactory Unbox(this IConnectionFactory connectionFactory)
-        => (ConnectionFactory)connectionFactory;
+    {
+        return (ConnectionFactory)connectionFactory;
+    }
 
 
 

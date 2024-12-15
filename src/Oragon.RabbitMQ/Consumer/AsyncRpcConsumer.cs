@@ -117,8 +117,10 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
         _ = (activity?.AddTag("MessageId", responseProperties.MessageId));
         _ = (activity?.AddTag("CorrelationId", responseProperties.CorrelationId));
 
-        await this.Channel.BasicPublishAsync(string.Empty,
+        await this.Channel.BasicPublishAsync(
+            string.Empty,
             receivedItem.BasicProperties.ReplyTo,
+            false,
             responseProperties,
             exception != null
                 ? []

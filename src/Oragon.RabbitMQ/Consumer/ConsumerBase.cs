@@ -86,13 +86,13 @@ public abstract class ConsumerBase : IHostedAmqpConsumer
 
         if (this.parameters.Configurer != null)
         {
-            using var tmpModel = await this.Connection.CreateChannelAsync(cancellationToken).ConfigureAwait(true);
+            using var tmpModel = await this.Connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
             await this.parameters.Configurer(this.serviceProvider, tmpModel).ConfigureAwait(true);
         }
 
         await this.WaitQueueCreationAsync().ConfigureAwait(true);
 
-        this.Channel = await this.Connection.CreateChannelAsync(cancellationToken).ConfigureAwait(true);
+        this.Channel = await this.Connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
 
         await this.Channel.BasicQosAsync(0, this.parameters.PrefetchCount, false, cancellationToken).ConfigureAwait(true);
 

@@ -72,7 +72,7 @@ public static class EmailServiceExtensions
 
         var serializer = host.Services.GetRequiredService<IAMQPSerializer>();
 
-        consumer.Received += async (sender, ea) =>
+        consumer.ReceivedAsync += async (sender, ea) =>
         {
             using var scope = host.Services.CreateScope();
 
