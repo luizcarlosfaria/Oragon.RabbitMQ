@@ -153,7 +153,7 @@ public abstract class ConsumerBase : IHostedAmqpConsumer
     /// Validate state and parameters before run
     /// </summary>
     /// <exception cref="InvalidOperationException"></exception>
-    protected virtual void Validate()
+    public virtual void Validate()
     {
         
     }

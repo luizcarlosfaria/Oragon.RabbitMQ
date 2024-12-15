@@ -41,7 +41,7 @@ public class AsyncQueueConsumerTests
 
 
     [Fact]
-    public async Task ServiceNotDISInChildScopeShouldCauseException()
+    public async Task ServiceIsNotInDependencyInjectionButConsumerRequiredScopedServiceShouldCauseException()
     {
         string consumerTag = "consumerTag";
         string queueName = "xpto";
@@ -114,7 +114,7 @@ public class AsyncQueueConsumerTests
     }
 
     [Fact]
-    public async Task ServiceNotDISInRootScopeShouldCauseException()
+    public async Task ServiceIsNotInDependencyInjectionButConsumerRequiredSingletonServiceShouldCauseException()
     {
         string consumerTag = "consumerTag";
         string queueName = "xpto";

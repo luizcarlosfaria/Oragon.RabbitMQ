@@ -8,4 +8,10 @@ namespace Oragon.RabbitMQ.Consumer;
 /// <summary>
 /// This interface is responsible for consuming messages from RabbitMQ.
 /// </summary>
-public interface IHostedAmqpConsumer : IHostedService, IAsyncDisposable;
+public interface IHostedAmqpConsumer : IHostedService, IAsyncDisposable
+{
+    /// <summary>
+    /// Validate the consumer configuration.
+    /// </summary>
+    void Validate();
+}

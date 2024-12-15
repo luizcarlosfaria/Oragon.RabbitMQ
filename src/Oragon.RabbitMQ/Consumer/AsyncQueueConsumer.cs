@@ -62,7 +62,7 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
     #endregion
 
     /// <inheritdoc/>
-    protected override void Validate()
+    public override void Validate()
     {
         base.Validate();
 
@@ -74,10 +74,9 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
             }
             else if (this.parameters.DispatchScope == DispatchScope.ChildScope)
             {
-                using (var scope = this.parameters.ServiceProvider.CreateScope())
-                {
-                    _ = this.parameters.GetServiceFunc(scope.ServiceProvider);
-                }
+                using var scope = this.parameters.ServiceProvider.CreateScope();
+
+                _ = this.parameters.GetServiceFunc(scope.ServiceProvider);
             }
         }
         catch (Exception innerException)
