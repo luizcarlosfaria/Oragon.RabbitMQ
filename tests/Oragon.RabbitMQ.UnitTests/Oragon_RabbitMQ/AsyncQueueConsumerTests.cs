@@ -186,6 +186,86 @@ public class AsyncQueueConsumerTests
     }
 
 
+    [Fact]
+    public async Task TestOkMustExecuteWithAck()
+    {
+        string consumerTag = "consumerTag";
+        string queueName = "xpto";
+
+        ServiceCollection services = new();
+        services.AddRabbitMQConsumer();
+
+        // Arrange
+        AsyncEventingBasicConsumer queueConsumer = null;
+
+        //-------------------------------------------------------
+        var basicPropertiesMock = new Mock<IBasicProperties>();
+
+
+        var channelMock = new Mock<IChannel>();
+        _ = channelMock.Setup(it => it.BasicConsumeAsync(
+            It.Is<string>(queue => queue == queueName),
+            false,
+            It.IsAny<string>(),
+            true,
+            false,
+            It.IsAny<IDictionary<string, object?>>(),
+            It.IsAny<IAsyncBasicConsumer>(),
+            It.IsAny<CancellationToken>()))
+            .Callback((string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, IDictionary<string, object> arguments, IAsyncBasicConsumer consumer, CancellationToken cancellationToken) => queueConsumer = (AsyncEventingBasicConsumer)consumer)
+            .ReturnsAsync(consumerTag);
+
+        channelMock.Setup(it => it.BasicRejectAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Verifiable(Times.Never);
+        channelMock.Setup(it => it.BasicNackAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Verifiable(Times.Never);
+        channelMock.Setup(it => it.BasicAckAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Verifiable(Times.Once);
+
+        var channel = channelMock.Object;
+        //-------------------------------------------------------
+
+        //-------------------------------------------------------
+        var connectionMock = new Mock<IConnection>();
+        _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>())).ReturnsAsync(channel);
+        var connection = connectionMock.Object;
+        _ = services.AddSingleton(connection);
+        //-------------------------------------------------------
+
+
+        //-------------------------------------------------------
+        var connectionFactoryMock = new Mock<IConnectionFactory>();
+        _ = connectionFactoryMock.Setup(it => it.CreateConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(connection);
+        var connectionFactory = connectionFactoryMock.Object;
+        _ = services.AddSingleton(sp => connectionFactory);
+        //-------------------------------------------------------
+
+
+        _ = services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
+        _ = services.AddSingleton<IAMQPSerializer>(sp => new NewtonsoftAMQPSerializer(null));
+        _ = services.AddScoped<ExampleService>();
+        //-------------------------------------------------------
+
+        var sp = services.BuildServiceProvider();
+
+        sp.MapQueue<ExampleService, ExampleMessage>((config) =>
+           config
+               .WithDispatchInChildScope()
+               .WithAdapter((svc, msg) => svc.TestAsync(msg))
+               .WithQueueName(queueName)
+               .WithPrefetchCount(1)
+        );
+
+        var hostedService = sp.GetRequiredService<IHostedService>();
+
+
+        await hostedService.StartAsync(CancellationToken.None).ConfigureAwait(false);
+
+        await Task.Delay(TimeSpan.FromMilliseconds(50));
+
+        await queueConsumer.HandleBasicDeliverAsync(consumerTag, 1, false, queueName, queueName, basicPropertiesMock.Object, Encoding.UTF8.GetBytes("{}"));
+
+        channelMock.Verify();
+    }
+
+
     public class ExampleService
     {
         public Task TestAsync(ExampleMessage message)

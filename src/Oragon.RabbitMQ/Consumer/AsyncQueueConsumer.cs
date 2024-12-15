@@ -3,7 +3,6 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using Dawn;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -132,33 +131,6 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
 
         //receiveActivity?.SetEndTime(DateTime.UtcNow);
     }
-
-    private static readonly Action<ILogger, Exception> s_logErrorOnExtractTraceContext = LoggerMessage.Define(LogLevel.Error, new EventId(1, "Failed to extract trace context."), "Failed to extract trace context.");
-
-    /// <summary>
-    /// Extracts the trace context from the basic properties.
-    /// </summary>
-    /// <param name="props">The basic properties.</param>
-    /// <param name="key">The key.</param>
-    /// <returns>The trace context.</returns>
-    [SuppressMessage("Design", "CA1031", Justification = "Tratamento de exceçào global, isolando uma micro-operação")]
-    private IEnumerable<string> ExtractTraceContextFromBasicProperties(IReadOnlyBasicProperties props, string key)
-    {
-        try
-        {
-            if (props.Headers != null && props.Headers.TryGetValue(key, out var value) && (value is byte[] bytes))
-            {
-                return [Encoding.UTF8.GetString(bytes)];
-            }
-        }
-        catch (Exception ex)
-        {
-            s_logErrorOnExtractTraceContext(this.Logger, ex);
-        }
-
-        return [];
-    }
-
 
     private static readonly Action<ILogger, Exception, Exception> s_logErrorOnDesserialize = LoggerMessage.Define<Exception>(LogLevel.Error, new EventId(1, "Message rejected during deserialization"), "Message rejected during deserialization {ExceptionDetails}");
 

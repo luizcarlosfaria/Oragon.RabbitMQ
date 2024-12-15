@@ -1,4 +1,8 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Moq;
+using Oragon.RabbitMQ.Consumer;
 using RabbitMQ.Client;
 
 namespace Oragon.RabbitMQ.UnitTests.Oragon_RabbitMQ;
@@ -177,7 +181,7 @@ public class Extensions_RabbitMQ_Tests
         Assert.Null(result.Headers);
     }
 
-   
+
     [Fact]
     public void Unbox_Should_Convert_IConnectionFactory_To_ConnectionFactory()
     {
@@ -190,5 +194,20 @@ public class Extensions_RabbitMQ_Tests
         // Assert
         Assert.NotNull(result);
         _ = Assert.IsType<ConnectionFactory>(result);
+    }
+
+    [Fact]
+    public void SetupApplication()
+    {
+        var builder = WebApplication.CreateBuilder();
+        builder.AddRabbitMQConsumer();
+        var app = builder.Build();
+
+        var consumer = app.Services.GetRequiredService<ConsumerServer>();
+        Assert.NotNull(consumer);
+
+        var hostedServices = app.Services.GetServices<IHostedService>();
+
+        Assert.Contains(hostedServices, it => it is ConsumerServer);
     }
 }

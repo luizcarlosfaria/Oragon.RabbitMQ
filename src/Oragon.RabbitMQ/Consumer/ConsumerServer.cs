@@ -55,8 +55,6 @@ public class ConsumerServer : IHostedService, IDisposable
         foreach (var consumer in this.internalConsumers)
         {
             _ = Task.Factory.StartNew(() => consumer.StartAsync(cancellationToken), cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-
-            //await consumer.StartAsync(cancellationToken).ConfigureAwait(true);
         }
 
         return Task.CompletedTask;

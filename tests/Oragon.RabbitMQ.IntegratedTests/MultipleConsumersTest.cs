@@ -107,8 +107,7 @@ public class MultipleConsumersTest : IAsyncLifetime
 
         List<Pack> packs = [pack1, pack2];
 
-        // Create and establish a connection.
-        using var connection = await this.CreateConnectionAsync().ConfigureAwait(true);
+
 
         ServiceCollection services = new();
         services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
@@ -117,29 +116,30 @@ public class MultipleConsumersTest : IAsyncLifetime
         // Singleton dependencies
         services.AddSingleton(new ActivitySource("test"));
         services.AddSingleton<IAMQPSerializer>(sp => new NewtonsoftAMQPSerializer(null));
-        services.AddSingleton(connection);
+        services.AddSingleton(sp => this.CreateConnectionAsync().GetAwaiter().GetResult());
 
         // Send a message to the channel.
 
+        foreach (var pack in packs)
+        {
+            services.AddKeyedScoped(pack.QueueName, (sp, key) => new ExampleService(pack.WaitHandle, pack.CallBack));
+        }
+
+        var sp = services.BuildServiceProvider();
+
+        await sp.WaitRabbitMQAsync().ConfigureAwait(true);
+
+        IConnection connection = sp.GetRequiredService<IConnection>();
 
         foreach (var pack in packs)
         {
+
             using var channel = await connection.CreateChannelAsync(new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true));
-
-
-            services.AddKeyedScoped(pack.QueueName, (sp, key) => new ExampleService(pack.WaitHandle, pack.CallBack));
 
             _ = await channel.QueueDeclareAsync(pack.QueueName, false, false, false, null);
 
             await channel.BasicPublishAsync(string.Empty, pack.QueueName, true, Encoding.Default.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(pack.MessageToSend)));
 
-        }
-
-
-        var sp = services.BuildServiceProvider();
-
-        foreach (var pack in packs)
-        {
             sp.MapQueue<ExampleService, ExampleMessage>((config) =>
                 config
                     .WithDispatchInChildScope()
