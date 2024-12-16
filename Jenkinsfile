@@ -98,7 +98,7 @@ pipeline {
 
                             dotnet build --no-incremental --framework net9.0 -p:TargetFrameworks=net9.0 ./Oragon.RabbitMQ.sln
 
-                            dotnet-coverage collect "dotnet test" -f xml -o "/output-coverage/coverage.xml"
+                            dotnet-coverage collect "dotnet test --framework net9.0 -p:TargetFrameworks=net9.0" -f xml -o "/output-coverage/coverage.xml"
 
                             dotnet sonarscanner end /d:sonar.token="\$SONARQUBE_KEY"
 
