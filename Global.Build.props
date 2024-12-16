@@ -1,19 +1,11 @@
 <Project>
 
-  
-
   <PropertyGroup>
     <!--<TargetFramework>net8.0</TargetFramework>-->
     <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
-    <LangVersion>preview</LangVersion>
-    
+    <LangVersion>preview</LangVersion>    
     <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    
+    <ImplicitUsings>enable</ImplicitUsings>    
   </PropertyGroup>
-
-
-
-
 
 </Project>

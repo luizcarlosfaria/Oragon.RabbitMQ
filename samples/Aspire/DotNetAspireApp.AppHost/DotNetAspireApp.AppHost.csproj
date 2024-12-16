@@ -2,7 +2,8 @@
 
   <Import Project="./../../../Global.Build.props" />
 
-  <Sdk Condition=" '$(TargetFramework)' == 'net9.0' " Name="Aspire.AppHost.Sdk" Version="9.0.0" />
+  <!-- <Sdk Condition=" '$(TargetFramework)' == 'net9.0' " Name="Aspire.AppHost.Sdk" Version="9.0.0" /> -->
+  <Sdk Name="Aspire.AppHost.Sdk" Version="9.0.0" />
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -21,11 +22,14 @@
     <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="8.2.2" />
     <PackageReference Include="Aspire.Hosting.Redis" Version="8.2.2" />
   </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net9.0' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net9.0' OR '$(TargetFramework)' == '' ">
     <PackageReference Include="Aspire.Hosting.AppHost" Version="9.0.0" />
     <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="9.0.0" />
     <PackageReference Include="Aspire.Hosting.Redis" Version="9.0.0" />    
   </ItemGroup>
-  
+
+  <ItemGroup>
+    <Reference Include="$(TargetFramework)" />
+  </ItemGroup>
 
 </Project>

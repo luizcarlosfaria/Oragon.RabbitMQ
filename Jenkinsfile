@@ -88,13 +88,15 @@ pipeline {
 
                             git fetch origin develop:develop
 
-                            dotnet workload restore ./Oragon.RabbitMQ.sln
+                            dotnet restore  ./Oragon.RabbitMQ.sln
+
+                            dotnet workload restore --framework net9.0 -p:TargetFrameworks=net9.0 ./Oragon.RabbitMQ.sln
 
                             export PATH="\$PATH:/root/.dotnet/tools"
 
                             dotnet sonarscanner begin ${sonarParamsText}
 
-                            dotnet build --no-incremental ./Oragon.RabbitMQ.sln
+                            dotnet build --no-incremental --framework net9.0 -p:TargetFrameworks=net9.0 ./Oragon.RabbitMQ.sln
 
                             dotnet-coverage collect "dotnet test" -f xml -o "/output-coverage/coverage.xml"
 
