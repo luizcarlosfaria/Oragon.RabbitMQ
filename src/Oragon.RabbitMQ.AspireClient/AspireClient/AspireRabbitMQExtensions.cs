@@ -187,49 +187,14 @@ public static class AspireRabbitMQExtensions
         var resiliencePipeline = resiliencePipelineBuilder.Build();
 
         using var activity = s_activitySource.StartActivity("rabbitmq connect", ActivityKind.Client);
-        //AddRabbitMQTags(activity, factory.Uri);
 
         return resiliencePipeline.Execute(factory =>
         {
             Console.WriteLine("Criando conexão com o RabbitMQ factory.CreateConnection() ------------------------- ");
 
-            //using var connectAttemptActivity = s_activitySource.StartActivity("rabbitmq connect attempt", ActivityKind.Client);
-            //AddRabbitMQTags(connectAttemptActivity, factory.Uri, "connect");
+            return factory.CreateConnectionAsync().ConfigureAwait(true).GetAwaiter().GetResult();
 
-            //try
-            //{
-                return factory.CreateConnectionAsync().ConfigureAwait(true).GetAwaiter().GetResult();
-            //}
-            //catch (Exception ex)
-            //{
-            //    if (connectAttemptActivity is not null)
-            //    {
-            //        _ = connectAttemptActivity.AddTag("exception.message", ex.Message);
-            //        // Note that "exception.stacktrace" is the full exception detail, not just the StackTrace property.
-            //        // See https://opentelemetry.io/docs/specs/semconv/attributes-registry/exception/
-            //        // and https://github.com/open-telemetry/opentelemetry-specification/pull/697#discussion_r453662519
-            //        _ = connectAttemptActivity.AddTag("exception.stacktrace", ex.ToString());
-            //        _ = connectAttemptActivity.AddTag("exception.type", ex.GetType().FullName);
-            //        _ = connectAttemptActivity.SetStatus(ActivityStatusCode.Error);
-            //    }
-            //    throw;
-            //}
         }, factory);
     }
 
-    //private static void AddRabbitMQTags(Activity activity, Uri address, string operation = null)
-    //{
-    //    if (activity is null)
-    //    {
-    //        return;
-    //    }
-
-    //    _ = activity.AddTag("server.address", address.Host);
-    //    _ = activity.AddTag("server.port", address.Port);
-    //    _ = activity.AddTag("messaging.system", "rabbitmq");
-    //    if (operation is not null)
-    //    {
-    //        _ = activity.AddTag("messaging.operation", operation);
-    //    }
-    //}
 }
