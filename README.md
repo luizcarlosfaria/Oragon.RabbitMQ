@@ -46,11 +46,21 @@
 
 Opinionated and Simplified Minimal APIs for Consuming Messages from RabbitMQ, Ensuring No Crucial Configurations Are Hidden.
 
-## What is Oragon.RabbitMQ?
+# What is Oragon.RabbitMQ?
+
+## Oragon.RabbitMQ is a Minimal API implementation for Consume RabbitMQ Queues.
 
 Oragon.RabbitMQ provides everything you need to create resilient RabbitMQ consumers without the need to study numerous books and articles or introduce unknown risks to your environment.
 
-### If you have a service like this
+## Get Started
+
+#### Add Consumer and Serializer packages
+```bash
+dotnet add package Oragon.RabbitMQ
+dotnet add package Oragon.RabbitMQ.Serializer.SystemTextJson
+```
+
+### Implement your service (with or without interface)
 ```cs
 public class BusinessService
 {
@@ -61,62 +71,112 @@ public class BusinessService
 }
 ```
 
-### You will create a RabbitMQ Consumers with this
+### Configuring Dependency Injection
 
-#### Singleton
+#### Basic Setup
 ```cs
+var builder = WebApplication.CreateBuilder(args); //or Host.CreateApplicationBuilder(args);
+
+.../*your dependencies configuration*/...
+
+builder.AddRabbitMQConsumer();
+
+builder.Services.AddSingleton<BusinessService>();
+
+builder.Services.AddSingleton<IAMQPSerializer>(sp => new SystemTextJsonAMQPSerializer(new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.General){ ... }));
+```
+
+
+#### Inject a valid IConnection on dependency injection
+The consumer will use the dependency injection to get an valid instance of **RabbitMQ.Client.IConnection**. If you does not provider one, above you can see how to create a connection configuration.
+
+```cs
+...
+builder.Services.AddSingleton<IConnectionFactory>(sp => new ConnectionFactory()
+{
+    Uri = new Uri("amqp://rabbitmq:5672"),
+    DispatchConsumersAsync = true
+});
+
+builder.Services.AddSingleton(sp => sp.GetRequiredService<IConnectionFactory>().CreateConnectionAsync().GetAwaiter().GetResult());
+...
+
+```
+If you are using .NET Aspire, you can use .NET Aspire with:
+
+```cs
+...
+builder.AddRabbitMQClient("rabbitmq");
+...
+
+```
+
+# 🎯 Map your Queue 🎯
+
+To map your queue using this package, follow these steps:
+
+1. **Build the application:**
+    First, you need to build your application using the builder pattern. This initializes the application and prepares it for further configuration.
+    ```cs
+    var app = builder.Build();
+    ```
+
+2. **Map the queue:**
+    Next, map your queue to a specific service and command/event. This step involves configuring how the service will handle incoming messages from the queue.
+    ```cs
+    app.MapQueue<BusinessService, BusinessCommandOrEvent>(config => config
+        .WithDispatchInRootScope()  // Use for singleton service
+        .WithDispatchInChildScope() // Use for scoped service
+        .WithAdapter((svc, msg) => svc.DoSomethingAsync(msg)) // Define how the service handles the message
+        .WithQueueName("events") // Set the queue name
+        .WithPrefetchCount(System.Environment.ProcessorCount * 16 * 10) // Set the prefetch count
+    );
+    ```
+    - `WithDispatchInRootScope()`: Use this for singleton services that should be instantiated once and shared across the application.
+    - `WithDispatchInChildScope()`: Use this for scoped services that should be instantiated per request or per message.
+    - `WithAdapter((svc, msg) => svc.DoSomethingAsync(msg))`: Define how the service handles the incoming message. This is where you specify the method to process the message.
+    - `WithQueueName("events")`: Set the name of the queue from which the messages will be consumed.
+    - `WithPrefetchCount(System.Environment.ProcessorCount * 16 * 10)`: Set the prefetch count to control how many messages the consumer can fetch at a time. This can help optimize performance.
+
+3. **Run the application:**
+    Finally, run the application to start processing messages from the queue.
+    ```cs
+    app.Run();
+    ```
+    
+
+---
+
+## Full Example
+```cs
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.AddRabbitMQConsumer();
+
 builder.Services.AddSingleton<BusinessService>();
 
 builder.Services.AddSingleton<IAMQPSerializer>(sp => new SystemTextJsonAMQPSerializer(new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.General){ ... }));
 
-builder.Services.MapQueue<BusinessService, BusinessCommandOrEvent>(config => config
-    .WithDispatchInRootScope()    
+builder.Services.AddSingleton<IConnectionFactory>(sp => new ConnectionFactory(){ Uri = new Uri("amqp://rabbitmq:5672"), DispatchConsumersAsync = true });
+
+builder.Services.AddSingleton(sp => sp.GetRequiredService<IConnectionFactory>().CreateConnectionAsync().GetAwaiter().GetResult());
+
+var app = builder.Build();
+
+app.MapQueue<BusinessService, BusinessCommandOrEvent>(config => config
+    .WithDispatchInRootScope()  // ->  for singleton service
+    .WithDispatchInChildScope() // ->  for scoped service
     .WithAdapter((svc, msg) => svc.DoSomethingAsync(msg))
-    .WithQueueName("events")
-    .WithPrefetchCount(1)
+    .WithQueueName("queue")
+    .WithPrefetchCount(System.Environment.ProcessorCount * 16 * 10)
 );
+
+app.Run();
 
 ```
 
-#### Scoped
-```cs
-builder.Services.AddScoped<BusinessService>();
 
-builder.Services.AddSingleton<IAMQPSerializer>(sp => new SystemTextJsonAMQPSerializer(new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.General){ ... }));
-
-builder.Services.MapQueue<BusinessService, BusinessCommandOrEvent>(config => config
-    .WithDispatchInChildScope()    
-    .WithAdapter((svc, msg) => svc.DoSomethingAsync(msg))
-    .WithQueueName("events")
-    .WithPrefetchCount(1)
-);
-
-```
-
-#### Scoped and Keyed Services, Same Type, Multiple Consumers, Using NewtonsoftAMQPSerializer
-```cs
-builder.Services.AddKeyedScoped<BusinessService>("key-of-service-1");
-builder.Services.AddKeyedScoped("key-of-service-2", (sp, key) => new BusinessService(... custom dependencies ...));
-
-builder.Services.AddSingleton<IAMQPSerializer>(sp => new NewtonsoftAMQPSerializer(new Newtonsoft.Json.JsonSerializerSettings(){ ... }));
-
-builder.Services.MapQueue<BusinessService, BusinessCommandOrEvent>(config => config
-    .WithDispatchInChildScope()
-    .WithKeyedService("key-of-service-1") 
-    .WithAdapter((svc, msg) => svc.DoSomethingAsync(msg))
-    .WithQueueName("events1")
-    .WithPrefetchCount(1)
-);
-
-builder.Services.MapQueue<BusinessService, BusinessCommandOrEvent>(config => config
-    .WithDispatchInChildScope()
-    .WithKeyedService("key-of-service-2") 
-    .WithAdapter((svc, msg) => svc.DoSomethingAsync(msg))
-    .WithQueueName("events2")
-    .WithPrefetchCount(1)
-);
-
-```
 
 # Concepts
 
@@ -130,7 +190,7 @@ The result is incredibly simple, decoupled, agnostic, more reusable, and highly 
 
 This consumer is focused on creating a resilient consumer using manual acknowledgments.
 
--   The flow produces a `BasicReject` without requeue for serialization failures (e.g., incorrectly formatted messages),  you will use dead-lettering to ensure these messages are not lost.
+-  The flow produces a `BasicReject` without requeue for serialization failures (e.g., incorrectly formatted messages),  you will use dead-lettering to ensure these messages are not lost.
 -  The flow produces a `BasicNack` with requeue for processing failures, allowing for message reprocessing.
 - Minimal API design style made without reflection
 - Extensible with support for custom serializers and encoders
