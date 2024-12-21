@@ -258,7 +258,7 @@ public class AsyncQueueConsumerTests
 
         await hostedService.StartAsync(CancellationToken.None).ConfigureAwait(false);
 
-        await Task.Delay(TimeSpan.FromMilliseconds(50));
+        await Task.Delay(TimeSpan.FromMilliseconds(500));
 
         await queueConsumer.HandleBasicDeliverAsync(consumerTag, 1, false, queueName, queueName, basicPropertiesMock.Object, Encoding.UTF8.GetBytes("{}"));
 

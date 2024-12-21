@@ -21,7 +21,7 @@ public class AckResult : IAMQPResult
     /// <param name="channel"></param>
     /// <param name="delivery"></param>
     /// <returns></returns>
-    public async Task ExecuteAsync(IChannel channel, BasicDeliverEventArgs delivery)
+    public virtual async Task ExecuteAsync(IChannel channel, BasicDeliverEventArgs delivery)
     {
         _ = Guard.Argument(channel).NotNull();
         _ = Guard.Argument(delivery).NotNull();
@@ -29,3 +29,4 @@ public class AckResult : IAMQPResult
         await channel.BasicAckAsync(delivery.DeliveryTag, false).ConfigureAwait(true);
     }
 }
+

@@ -10,6 +10,7 @@ using Microsoft.Extensions.Hosting;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using DotNet.Testcontainers.Builders;
+using Oragon.RabbitMQ.TestsExtensions;
 
 namespace Oragon.RabbitMQ.IntegratedTests;
 
@@ -69,9 +70,16 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
         };
     }
 
-    private Task<IConnection> CreateConnectionAsync()
+    private async Task<IConnection> CreateConnectionAsync()
     {
-        return this.CreateConnectionFactory().CreateConnectionAsync();
+        IConnection connection = null;
+
+        await SafeRunner.ExecuteWithRetry<global::RabbitMQ.Client.Exceptions.BrokerUnreachableException>(async () =>
+        {
+            connection = await this.CreateConnectionFactory().CreateConnectionAsync();
+        }).ConfigureAwait(true);
+
+        return connection;
     }
 
 

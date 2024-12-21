@@ -47,14 +47,14 @@ public static class DependencyInjectionExtensions
     /// Create a new QueueServiceWorker to bind a queue with an function
     /// </summary>
     /// <typeparam name="TService">Service Type will be used to determine which service will be used to connect on queue</typeparam>
-    /// <typeparam name="TRequest">Type of message sent by publisher to Consumer. Must be exactly same Type that functionToExecute parameter requests.</typeparam>
+    /// <typeparam name="TMessage">Type of message sent by publisher to Consumer. Must be exactly same Type that functionToExecute parameter requests.</typeparam>
     /// <typeparam name="TResponse">Type of returned message sent by Consumer to publisher. Must be exactly same Type that functionToExecute returns.</typeparam>
     /// <param name="host">IHost</param>
     /// <param name="config">Configuration handler</param>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "This is a factory, Dispose will be called by Consumer")]
-    public static void MapQueueRPC<TService, TRequest, TResponse>(this IHost host, Action<AsyncQueueConsumerParameters<TService, TRequest, Task<TResponse>>> config)
+    public static void MapQueueRPC<TService, TMessage, TResponse>(this IHost host, Action<AsyncQueueConsumerParameters<TService, TMessage, Task<TResponse>>> config)
         where TResponse : class
-        where TRequest : class
+        where TMessage : class
     {
         _ = Guard.Argument(host).NotNull();
 
@@ -65,21 +65,21 @@ public static class DependencyInjectionExtensions
         /// Create a new QueueServiceWorker to bind a queue with an function
         /// </summary>
         /// <typeparam name="TService">Service Type will be used to determine which service will be used to connect on queue</typeparam>
-        /// <typeparam name="TRequest">Type of message sent by publisher to Consumer. Must be exactly same Type that functionToExecute parameter requests.</typeparam>
+        /// <typeparam name="TMessage">Type of message sent by publisher to Consumer. Must be exactly same Type that functionToExecute parameter requests.</typeparam>
         /// <typeparam name="TResponse">Type of returned message sent by Consumer to publisher. Must be exactly same Type that functionToExecute returns.</typeparam>
         /// <param name="serviceProvider">Services </param>
         /// <param name="config">Configuration handler</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "This is a factory, Dispose will be called by Consumer")]
-    public static void MapQueueRPC<TService, TRequest, TResponse>(this IServiceProvider serviceProvider, Action<AsyncQueueConsumerParameters<TService, TRequest, Task<TResponse>>> config)
+    public static void MapQueueRPC<TService, TMessage, TResponse>(this IServiceProvider serviceProvider, Action<AsyncQueueConsumerParameters<TService, TMessage, Task<TResponse>>> config)
         where TResponse : class
-        where TRequest : class
+        where TMessage : class
     {
         _ = Guard.Argument(serviceProvider).NotNull();
         _ = Guard.Argument(config).NotNull();
 
         var consumerServer = serviceProvider.GetRequiredService<ConsumerServer>();
 
-        var parameters = new AsyncQueueConsumerParameters<TService, TRequest, Task<TResponse>>();
+        var parameters = new AsyncQueueConsumerParameters<TService, TMessage, Task<TResponse>>();
         _ = parameters.WithServiceProvider(serviceProvider);
         _ = parameters.WithDisplayLoopInConsoleEvery(TimeSpan.FromMinutes(1));
         _ = parameters.WithTestQueueRetryCount(5);
@@ -89,8 +89,8 @@ public static class DependencyInjectionExtensions
 
         config(parameters);
 
-        var queueConsumer = new AsyncRpcConsumer<TService, TRequest, TResponse>(
-                    serviceProvider.GetService<ILogger<AsyncRpcConsumer<TService, TRequest, TResponse>>>(),
+        var queueConsumer = new AsyncRpcConsumer<TService, TMessage, TResponse>(
+                    serviceProvider.GetService<ILogger<AsyncRpcConsumer<TService, TMessage, TResponse>>>(),
                     parameters,
                     serviceProvider
                 );
@@ -101,11 +101,11 @@ public static class DependencyInjectionExtensions
     /// Create a new QueueServiceWorker to bind a queue with an function
     /// </summary>
     /// <typeparam name="TService">Service Type will be used to determine which service will be used to connect on queue</typeparam>
-    /// <typeparam name="TRequest">Type of message sent by publisher to Consumer. Must be exactly same Type that functionToExecute parameter requests.</typeparam>    
+    /// <typeparam name="TMessage">Type of message sent by publisher to Consumer. Must be exactly same Type that functionToExecute parameter requests.</typeparam>    
     /// <param name="host">IHost</param>
     /// <param name="config">Configuration handler</param>
-    public static void MapQueue<TService, TRequest>(this IHost host, Action<AsyncQueueConsumerParameters<TService, TRequest, Task>> config)
-        where TRequest : class
+    public static void MapQueue<TService, TMessage>(this IHost host, Action<AsyncQueueConsumerParameters<TService, TMessage, Task>> config)
+        where TMessage : class
     {
         _ = Guard.Argument(host).NotNull();
 
@@ -116,19 +116,19 @@ public static class DependencyInjectionExtensions
     /// Create a new QueueServiceWorker to bind a queue with an function
     /// </summary>
     /// <typeparam name="TService">Service Type will be used to determine which service will be used to connect on queue</typeparam>
-    /// <typeparam name="TRequest">Type of message sent by publisher to Consumer. Must be exactly same Type that functionToExecute parameter requests.</typeparam>    
+    /// <typeparam name="TMessage">Type of message sent by publisher to Consumer. Must be exactly same Type that functionToExecute parameter requests.</typeparam>    
     /// <param name="serviceProvider">Service Provider</param>
     /// <param name="config">Configuration handler</param>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "This is a factory, Dispose will be called by Consumer")]
-    public static void MapQueue<TService, TRequest>(this IServiceProvider serviceProvider, Action<AsyncQueueConsumerParameters<TService, TRequest, Task>> config)
-        where TRequest : class
+    public static void MapQueue<TService, TMessage>(this IServiceProvider serviceProvider, Action<AsyncQueueConsumerParameters<TService, TMessage, Task>> config)
+        where TMessage : class
     {
         _ = Guard.Argument(serviceProvider).NotNull();
         _ = Guard.Argument(config).NotNull();
 
         var consumerServer = serviceProvider.GetRequiredService<ConsumerServer>();
 
-        var parameters = new AsyncQueueConsumerParameters<TService, TRequest, Task>();
+        var parameters = new AsyncQueueConsumerParameters<TService, TMessage, Task>();
         _ = parameters.WithServiceProvider(serviceProvider);
         _ = parameters.WithDisplayLoopInConsoleEvery(TimeSpan.FromMinutes(1));
         _ = parameters.WithTestQueueRetryCount(5);
@@ -138,8 +138,8 @@ public static class DependencyInjectionExtensions
 
         config(parameters);
 
-        var queueConsumer = new AsyncQueueConsumer<TService, TRequest, Task>(
-                    serviceProvider.GetService<ILogger<AsyncQueueConsumer<TService, TRequest, Task>>>(),
+        var queueConsumer = new AsyncQueueConsumer<TService, TMessage, Task>(
+                    serviceProvider.GetService<ILogger<AsyncQueueConsumer<TService, TMessage, Task>>>(),
                     parameters,
                     serviceProvider
                 );

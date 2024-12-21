@@ -25,7 +25,7 @@ public class NackResult(bool requeue) : IAMQPResult
     /// <param name="channel"></param>
     /// <param name="delivery"></param>
     /// <returns></returns>
-    public async Task ExecuteAsync(IChannel channel, BasicDeliverEventArgs delivery)
+    public virtual async Task ExecuteAsync(IChannel channel, BasicDeliverEventArgs delivery)
     {
         _ = Guard.Argument(channel).NotNull();
         _ = Guard.Argument(delivery).NotNull();

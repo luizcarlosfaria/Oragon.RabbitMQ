@@ -49,6 +49,20 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 });
 
+app.MapPost("/weatherforecast", ([FromServices] IConnectionFactory connectionFactory, string nome) =>
+{
+    var forecast = Enumerable.Range(1, 5).Select(index =>
+        new WeatherForecast
+        (
+            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+            Random.Shared.Next(-20, 55),
+            summaries[Random.Shared.Next(summaries.Length)]
+        ))
+        .ToArray();
+    return forecast;
+});
+
+
 app.MapPost("/enqueue", (DoSomethingRequest req, CancellationToken cancellationToken, [FromServices] IAMQPSerializer serializer, [FromServices] IConnectionFactory connectionFactory)
     =>
 {

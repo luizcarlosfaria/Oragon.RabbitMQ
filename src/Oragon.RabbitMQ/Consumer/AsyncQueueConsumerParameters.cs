@@ -9,14 +9,14 @@ using Oragon.RabbitMQ.Serialization;
 namespace Oragon.RabbitMQ.Consumer;
 
 /// <summary>
-/// <see langword="static"/> factory for <see cref="AsyncQueueConsumerParameters{TService, TRequest, TResponse}"/>.
+/// <see langword="static"/> factory for <see cref="AsyncQueueConsumerParameters{TService, TMessage, TResponse}"/>.
 /// </summary>
 /// <typeparam name="TService"></typeparam>
-/// <typeparam name="TRequest"></typeparam>
+/// <typeparam name="TMessage"></typeparam>
 /// <typeparam name="TResponse"></typeparam>
-public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : ConsumerBaseParameters
+public class AsyncQueueConsumerParameters<TService, TMessage, TResponse> : ConsumerBaseParameters
     where TResponse : Task
-    where TRequest : class
+    where TMessage : class
 {
     /// <summary>
     /// Service Provider
@@ -28,7 +28,7 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     /// </summary>
     /// <param name="serviceProvider"></param>
     /// <returns></returns>
-    public AsyncQueueConsumerParameters<TService, TRequest, TResponse> WithServiceProvider(IServiceProvider serviceProvider)
+    public AsyncQueueConsumerParameters<TService, TMessage, TResponse> WithServiceProvider(IServiceProvider serviceProvider)
     {
         _ = Guard.Argument(serviceProvider).NotNull();
 
@@ -46,7 +46,7 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     /// </summary>
     /// <param name="serializer"></param>
     /// <returns></returns>
-    public AsyncQueueConsumerParameters<TService, TRequest, TResponse> WithSerializer(IAMQPSerializer serializer)
+    public AsyncQueueConsumerParameters<TService, TMessage, TResponse> WithSerializer(IAMQPSerializer serializer)
     {
         _ = Guard.Argument(serializer).NotNull();
 
@@ -57,7 +57,7 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     /// <summary>
     /// Call Adapter, used to adapt message to service method
     /// </summary>
-    public Expression<Func<TService, TRequest, TResponse>> AdapterExpression { get; private set; }
+    public Expression<Func<TService, TMessage, TResponse>> AdapterExpression { get; private set; }
 
     /// <summary>
     /// Call Adapter, used to adapt message to service method
@@ -67,7 +67,7 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     /// <summary>
     /// Adapter Func, used to adapt message to service method
     /// </summary>
-    public Func<TService, TRequest, TResponse> AdapterFunc { get; private set; }
+    public Func<TService, TMessage, TResponse> AdapterFunc { get; private set; }
 
     /// <summary>
     /// Requeue On Crash
@@ -79,7 +79,7 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     /// </summary>
     /// <param name="adapterExpression"></param>
     /// <returns></returns>
-    public AsyncQueueConsumerParameters<TService, TRequest, TResponse> WithAdapter(Expression<Func<TService, TRequest, TResponse>> adapterExpression)
+    public AsyncQueueConsumerParameters<TService, TMessage, TResponse> WithAdapter(Expression<Func<TService, TMessage, TResponse>> adapterExpression)
     {
         _ = Guard.Argument(adapterExpression).NotNull();
 
@@ -89,11 +89,11 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
         return this;
     }
 
-    /*public AsyncQueueConsumerParameters<TService, TRequest, TMessage> WithEnterpriseApplicationLog(Func<EnterpriseApplicationLogContext, TRequest, TMessage> adapterFunc)
+    /*public AsyncQueueConsumerParameters<TService, TMessage, TMessage> WithEnterpriseApplicationLog(Func<EnterpriseApplicationLogContext, TMessage, TMessage> adapterFunc)
     {
         _ = Guard.Argument(this.AdapterFunc).NotNull();
 
-        Func<TService, TRequest, TMessage> oldAdapterFunc = this.AdapterFunc;
+        Func<TService, TMessage, TMessage> oldAdapterFunc = this.AdapterFunc;
 
         this.AdapterFunc = async (svc, msg) =>
         {
@@ -117,7 +117,7 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     /// </summary>
     /// <param name="dispatchScope"></param>
     /// <returns></returns>
-    public AsyncQueueConsumerParameters<TService, TRequest, TResponse> WithDispatchScope(DispatchScope dispatchScope)
+    public AsyncQueueConsumerParameters<TService, TMessage, TResponse> WithDispatchScope(DispatchScope dispatchScope)
     {
         _ = Guard.Argument(dispatchScope).NotIn(DispatchScope.None);
 
@@ -133,7 +133,7 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     /// </summary>
     /// <param name="requeueOnCrash"></param>
     /// <returns></returns>
-    public AsyncQueueConsumerParameters<TService, TRequest, TResponse> WithRequeueOnCrash(bool requeueOnCrash = true)
+    public AsyncQueueConsumerParameters<TService, TMessage, TResponse> WithRequeueOnCrash(bool requeueOnCrash = true)
     {
         this.RequeueOnCrash = requeueOnCrash;
         return this;
@@ -144,14 +144,14 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     /// Set dispatch in root scope
     /// </summary>
     /// <returns></returns>
-    public AsyncQueueConsumerParameters<TService, TRequest, TResponse> WithDispatchInRootScope()
+    public AsyncQueueConsumerParameters<TService, TMessage, TResponse> WithDispatchInRootScope()
         => this.WithDispatchScope(DispatchScope.RootScope);
 
     /// <summary>
     /// Set dispatch in child scope
     /// </summary>
     /// <returns></returns>
-    public AsyncQueueConsumerParameters<TService, TRequest, TResponse> WithDispatchInChildScope()
+    public AsyncQueueConsumerParameters<TService, TMessage, TResponse> WithDispatchInChildScope()
         => this.WithDispatchScope(DispatchScope.ChildScope);
 
 
@@ -166,7 +166,7 @@ public class AsyncQueueConsumerParameters<TService, TRequest, TResponse> : Consu
     /// </summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    public AsyncQueueConsumerParameters<TService, TRequest, TResponse> WithKeyedService(string key)
+    public AsyncQueueConsumerParameters<TService, TMessage, TResponse> WithKeyedService(string key)
     {
         _ = Guard.Argument(key).NotNull().NotEmpty().NotWhiteSpace();
 

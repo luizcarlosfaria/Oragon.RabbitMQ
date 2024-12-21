@@ -22,21 +22,21 @@ namespace Oragon.RabbitMQ.Consumer;
 /// Represents an asynchronous queue Consumer.
 /// </summary>
 /// <typeparam name="TService">The type of the service.</typeparam>
-/// <typeparam name="TRequest">The type of the messsage.</typeparam>
+/// <typeparam name="TMessage">The type of the incomingMessage.</typeparam>
 /// <typeparam name="TResponse">The type of the response.</typeparam>
-public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
+public class AsyncQueueConsumer<TService, TMessage, TResponse> : ConsumerBase
     where TResponse : Task
-    where TRequest : class
+    where TMessage : class
 {
     /// <summary>
     /// The parameters for the Consumer.
     /// </summary>
-    private readonly AsyncQueueConsumerParameters<TService, TRequest, TResponse> parameters;
+    private readonly AsyncQueueConsumerParameters<TService, TMessage, TResponse> parameters;
 
     /// <summary>
     /// The activity source for telemetry.
     /// </summary>
-    protected static readonly ActivitySource activitySource = new(MessagingTelemetryNames.GetName(nameof(AsyncQueueConsumer<TService, TRequest, TResponse>)));
+    protected static readonly ActivitySource activitySource = new(MessagingTelemetryNames.GetName(nameof(AsyncQueueConsumer<TService, TMessage, TResponse>)));
 
     ///// <summary>
     ///// The propagator for trace context.
@@ -46,12 +46,12 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
     #region Constructors 
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="AsyncQueueConsumer{TService, TRequest, TResponse}"/> class.
+    /// Initializes a new instance of the <see cref="AsyncQueueConsumer{TService, TMessage, TResponse}"/> class.
     /// </summary>
     /// <param name="logger">The Logger.</param>
     /// <param name="parameters">The parameters.</param>
     /// <param name="serviceProvider">The service provider.</param>
-    public AsyncQueueConsumer(ILogger logger, AsyncQueueConsumerParameters<TService, TRequest, TResponse> parameters, IServiceProvider serviceProvider)
+    public AsyncQueueConsumer(ILogger logger, AsyncQueueConsumerParameters<TService, TMessage, TResponse> parameters, IServiceProvider serviceProvider)
         : base(logger, parameters, serviceProvider)
     {
         this.parameters = Guard.Argument(parameters).NotNull().Value;
@@ -99,7 +99,7 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
 
 
     /// <summary>
-    /// Handles the asynchronous receive of a message.
+    /// Handles the asynchronous receive of a incomingMessage.
     /// </summary>
     /// <param name="sender">The sender.</param>
     /// <param name="delivery">The delivery arguments.</param>
@@ -108,20 +108,7 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
     {
         _ = Guard.Argument(delivery).NotNull();
 
-        //var parentContext = s_propagator.Extract(default, delivery.BasicProperties, this.ExtractTraceContextFromBasicProperties);
-        //Baggage.Current = parentContext.Baggage;
-
-        //using var receiveActivity = activitySource.StartActivity("AsyncQueueConsumer.ReceiveAsync", ActivityKind.Consumer, parentContext.ActivityContext) ?? new Activity("?AsyncQueueConsumer.ReceiveAsync");
         using var receiveActivity = new Activity("?AsyncQueueConsumer.ReceiveAsync");
-
-        //_ = receiveActivity
-        //    .AddTag("Queue", this.parameters.QueueName)
-        //    .AddTag("MessageId", delivery.BasicProperties.MessageId)
-        //    .AddTag("CorrelationId", delivery.BasicProperties.CorrelationId)
-        //    .SetTag("messaging.system", "rabbitmq")
-        //    .SetTag("messaging.destination_kind", "queue")
-        //    .SetTag("messaging.destination", delivery.Exchange)
-        //    .SetTag("messaging.rabbitmq.routing_key", delivery.RoutingKey);
 
         var result = this.TryDeserialize(receiveActivity, delivery, out var request)
                             ? await this.DispatchAsync(receiveActivity, delivery, request).ConfigureAwait(true)
@@ -129,7 +116,6 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
 
         await result.ExecuteAsync(this.Channel, delivery).ConfigureAwait(true);
 
-        //receiveActivity?.SetEndTime(DateTime.UtcNow);
     }
 
     private static readonly Action<ILogger, Exception, Exception> s_logErrorOnDesserialize = LoggerMessage.Define<Exception>(LogLevel.Error, new EventId(1, "Message rejected during deserialization"), "Message rejected during deserialization {ExceptionDetails}");
@@ -140,22 +126,22 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
     /// </summary>
     /// <param name="receiveActivity">The receive activity.</param>
     /// <param name="receivedItem">The received item.</param>
-    /// <param name="messsage">The deserialized messsage.</param>
+    /// <param name="incomingMessage">The deserialized incomingMessage.</param>
     /// <returns><c>true</c> if deserialization is successful; otherwise, <c>false</c>.</returns>
     [SuppressMessage("Design", "CA1031", Justification = "Tratamento de exceçào global, isolando uma micro-operação")]
-    private bool TryDeserialize(Activity receiveActivity, BasicDeliverEventArgs receivedItem, out TRequest messsage)
+    private bool TryDeserialize(Activity receiveActivity, BasicDeliverEventArgs receivedItem, out TMessage incomingMessage)
     {
         _ = Guard.Argument(receivedItem).NotNull();
         _ = Guard.Argument(receiveActivity).NotNull();
 
         var returnValue = true;
 
-        messsage = default;
+        incomingMessage = default;
         try
         {
-            messsage = this.parameters.Serializer.Deserialize<TRequest>(eventArgs: receivedItem);
+            incomingMessage = this.parameters.Serializer.Deserialize<TMessage>(basicDeliver: receivedItem);
 
-            //_ = receiveActivity?.SetTag("message", messsage);
+            //_ = receiveActivity?.SetTag("incomingMessage", incomingMessage);
         }
         catch (Exception exception)
         {
@@ -169,23 +155,24 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
         return returnValue;
     }
 
-    private static readonly Action<ILogger, string, Exception, Exception> s_logErrorOnDispatch = LoggerMessage.Define<string, Exception>(LogLevel.Error, new EventId(1, "Exception on processing message"), "Exception on processing message {QueueName} {Exception}");
+    private static readonly Action<ILogger, string, Exception, Exception> s_logErrorOnDispatch = LoggerMessage.Define<string, Exception>(LogLevel.Error, new EventId(1, "Exception on processing incomingMessage"), "Exception on processing incomingMessage {QueueName} {Exception}");
 
 
     /// <summary>
-    /// Dispatches the messsage to the appropriate handler.
+    /// Dispatches the incomingMessage to the appropriate handler.
     /// </summary>
     /// <param name="receiveActivity">The receive activity.</param>
     /// <param name="receivedItem">The received item.</param>
-    /// <param name="request">The messsage.</param>
+    /// <param name="incomingMessage">The incomingMessage.</param>
     /// <returns>The result of the dispatch.</returns>
     [SuppressMessage("Design", "CA1031", Justification = "Tratamento de exceção global, isolando uma macro-operação")]
-    protected virtual async Task<IAMQPResult> DispatchAsync(Activity receiveActivity, BasicDeliverEventArgs receivedItem, TRequest request)
+    [SuppressMessage("Style", "IDE0063:Use simple 'using' statement", Justification = "<Pending>")]
+    protected virtual async Task<IAMQPResult> DispatchAsync(Activity receiveActivity, BasicDeliverEventArgs receivedItem, TMessage incomingMessage)
     {
         _ = Guard.Argument(receiveActivity).NotNull();
         _ = Guard.Argument(receivedItem).NotNull();
 
-        if (request == null) return new RejectResult(false);
+        if (incomingMessage == null) return new RejectResult(false);
 
         IAMQPResult returnValue;
 
@@ -199,7 +186,7 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
             {
                 var service = this.parameters.GetServiceFunc(this.parameters.ServiceProvider);
 
-                await this.parameters.AdapterFunc(service, request).ConfigureAwait(false);
+                await this.parameters.AdapterFunc(service, incomingMessage).ConfigureAwait(true);
             }
             else if (this.parameters.DispatchScope == DispatchScope.ChildScope)
             {
@@ -207,7 +194,7 @@ public class AsyncQueueConsumer<TService, TRequest, TResponse> : ConsumerBase
                 {
                     var service = this.parameters.GetServiceFunc(scope.ServiceProvider);
 
-                    await this.parameters.AdapterFunc(service, request).ConfigureAwait(false);
+                    await this.parameters.AdapterFunc(service, incomingMessage).ConfigureAwait(true);
                 }
             }
             returnValue = new AckResult();

@@ -143,7 +143,7 @@ public abstract class ConsumerBase : IHostedAmqpConsumer
     {
         if (this.WasStarted)
         {
-            await this.Channel.BasicCancelAsync(this.consumerTag, false, CancellationToken.None).ConfigureAwait(true);
+            await this.Channel.BasicCancelAsync(this.consumerTag, false, cancellationToken).ConfigureAwait(true);
         }
         this.IsConsumming = false;
     }

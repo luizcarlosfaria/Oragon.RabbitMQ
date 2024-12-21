@@ -16,21 +16,21 @@ namespace Oragon.RabbitMQ.Consumer;
 /// A consumer that processes messages in an RPC flow.
 /// </summary>
 /// <typeparam name="TService"></typeparam>
-/// <typeparam name="TRequest"></typeparam>
+/// <typeparam name="TMessage"></typeparam>
 /// <typeparam name="TResponse"></typeparam>
-public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsumer<TService, TRequest, Task<TResponse>>
+public class AsyncRpcConsumer<TService, TMessage, TResponse> : AsyncQueueConsumer<TService, TMessage, Task<TResponse>>
     where TResponse : class
-    where TRequest : class
+    where TMessage : class
 {
-    private readonly AsyncQueueConsumerParameters<TService, TRequest, Task<TResponse>> parameters;
+    private readonly AsyncQueueConsumerParameters<TService, TMessage, Task<TResponse>> parameters;
 
     /// <summary>
-    /// Creates a new instance of the <see cref="AsyncRpcConsumer{TService, TRequest, TResponse}"/> class.
+    /// Creates a new instance of the <see cref="AsyncRpcConsumer{TService, TMessage, TResponse}"/> class.
     /// </summary>
     /// <param name="logger"></param>
     /// <param name="parameters"></param>
     /// <param name="serviceProvider"></param>
-    public AsyncRpcConsumer(ILogger logger, AsyncQueueConsumerParameters<TService, TRequest, Task<TResponse>> parameters, IServiceProvider serviceProvider)
+    public AsyncRpcConsumer(ILogger logger, AsyncQueueConsumerParameters<TService, TMessage, Task<TResponse>> parameters, IServiceProvider serviceProvider)
         : base(logger, parameters, serviceProvider)
     {
         this.parameters = Guard.Argument(parameters).NotNull().Value;
@@ -45,14 +45,14 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
     /// </summary>
     /// <param name="receiveActivity"></param>
     /// <param name="receivedItem"></param>
-    /// <param name="request"></param>
+    /// <param name="incomingMessage"></param>
     /// <returns></returns>
     [SuppressMessage("Design", "CA1031", Justification = "Tratamento de exceçào global, isolando uma MACRO-operação")]
-    protected override async Task<IAMQPResult> DispatchAsync(Activity receiveActivity, BasicDeliverEventArgs receivedItem, TRequest request)
+    protected override async Task<IAMQPResult> DispatchAsync(Activity receiveActivity, BasicDeliverEventArgs receivedItem, TMessage incomingMessage)
     {
         _ = Guard.Argument(receivedItem).NotNull();
         _ = Guard.Argument(receiveActivity).NotNull();
-        _ = Guard.Argument(request).NotNull();
+        _ = Guard.Argument(incomingMessage).NotNull();
 
         if (receivedItem.BasicProperties.ReplyTo == null)
         {
@@ -71,7 +71,7 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
                 {
                     var service = this.parameters.GetServiceFunc(this.parameters.ServiceProvider);
 
-                    responsePayload = await this.parameters.AdapterFunc(service, request).ConfigureAwait(true);
+                    responsePayload = await this.parameters.AdapterFunc(service, incomingMessage).ConfigureAwait(true);
                 }
                 else if (this.parameters.DispatchScope == DispatchScope.ChildScope)
                 {
@@ -79,7 +79,7 @@ public class AsyncRpcConsumer<TService, TRequest, TResponse> : AsyncQueueConsume
                     {
                         var service = this.parameters.GetServiceFunc(scope.ServiceProvider);
 
-                        responsePayload = await this.parameters.AdapterFunc(service, request).ConfigureAwait(true);
+                        responsePayload = await this.parameters.AdapterFunc(service, incomingMessage).ConfigureAwait(true);
                     }
                 }
             }
