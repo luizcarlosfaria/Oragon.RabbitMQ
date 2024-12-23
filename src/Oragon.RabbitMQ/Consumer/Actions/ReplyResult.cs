@@ -21,7 +21,11 @@ public class ReplyResult(object objectToReply) : IAMQPResult
     {
         _ = Guard.Argument(context).NotNull();
 
-        var replyBasicProperties = new BasicProperties();
+        var replyBasicProperties = new BasicProperties
+        {
+            MessageId = Guid.NewGuid().ToString("D"),
+            CorrelationId = context.Request.BasicProperties.MessageId
+        };
 
         return context.Channel.BasicPublishAsync(
             exchange: string.Empty,
