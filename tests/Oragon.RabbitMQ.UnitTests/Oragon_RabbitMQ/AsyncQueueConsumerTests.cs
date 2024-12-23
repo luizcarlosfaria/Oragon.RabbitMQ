@@ -1,14 +1,10 @@
-using DotNet.Testcontainers.Builders;
-using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Oragon.RabbitMQ.Serialization;
 using RabbitMQ.Client;
-using Oragon.RabbitMQ.Consumer;
 using RabbitMQ.Client.Events;
-using Oragon.RabbitMQ.TestsExtensions;
 using System.Text;
 using Oragon.RabbitMQ.Consumer.Dispatch;
 

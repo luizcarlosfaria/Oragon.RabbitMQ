@@ -26,8 +26,17 @@ public sealed class FromAmqpHeaderAttribute : Attribute, IAmqpArgumentBinderPara
     /// </summary>
     public string Key { get; }
 
+
+    /// <summary>
+    /// Builds the argument binder.
+    /// </summary>
+    /// <param name="parameter"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
     public IAmqpArgumentBinder Build(ParameterInfo parameter)
     {
+        _ = Guard.Argument(parameter).NotNull();
+
         return parameter.ParameterType != Constants.String
             ? throw new InvalidOperationException($"The parameter {parameter.Name} must be of type string")
             : new DynamicArgumentBinder((context) => context.Request.BasicProperties.Headers[this.Key]);

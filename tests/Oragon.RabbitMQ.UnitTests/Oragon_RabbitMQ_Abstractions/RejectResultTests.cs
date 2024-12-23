@@ -1,11 +1,8 @@
-using System.Threading.Tasks;
-using Dawn;
 using Moq;
 using Oragon.RabbitMQ.Consumer.Actions;
 using Oragon.RabbitMQ.Consumer;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using Xunit;
 
 namespace Oragon.RabbitMQ.UnitTests.Oragon_RabbitMQ_Abstractions;
 

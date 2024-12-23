@@ -3,7 +3,6 @@ using Oragon.RabbitMQ.Consumer.Actions;
 using Oragon.RabbitMQ.Consumer;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using System.Threading;
 
 namespace Oragon.RabbitMQ.UnitTests.Oragon_RabbitMQ_Abstractions;
 

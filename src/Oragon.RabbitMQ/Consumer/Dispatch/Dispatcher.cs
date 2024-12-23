@@ -10,14 +10,21 @@ namespace Oragon.RabbitMQ.Consumer.Dispatch;
 /// <summary>
 /// Represents a dispatcher that dispatches messages to a handler.
 /// </summary>
-[GenerateAutomaticInterface]
-public class Dispatcher : IDispatcher
+public class Dispatcher
 {
     private readonly Delegate handler;
     private readonly List<IAmqpArgumentBinder> argumentBinders = [];
-    private readonly Type returnType;
-    private readonly Type messageType;
     private readonly IResultHandler resultHandler;
+
+    /// <summary>
+    /// Type of Message
+    /// </summary>
+    public Type MessageType { get; private set; }
+
+    /// <summary>
+    /// Type of result of processing 
+    /// </summary>
+    public Type ReturnType { get; private set; }
 
     /// <summary>
     /// Initialize the dispatcher
@@ -34,11 +41,11 @@ public class Dispatcher : IDispatcher
 
         if (messageObjectCount == 0) throw new InvalidOperationException("Not found any parameter to represent a message object");
 
-        this.returnType = this.handler.Method.ReturnType;
+        this.ReturnType = this.handler.Method.ReturnType;
 
-        this.messageType = this.argumentBinders.OfType<MessageObjectArgumentBinder>().Single().Type;
+        this.MessageType = this.argumentBinders.OfType<MessageObjectArgumentBinder>().Single().Type;
 
-        this.resultHandler = this.FindBestResultHandler(this.returnType);
+        this.resultHandler = FindBestResultHandler(type: this.ReturnType);
     }
 
     private IAmqpArgumentBinder BuildArgumentBinder(ParameterInfo parameter)
@@ -50,7 +57,7 @@ public class Dispatcher : IDispatcher
         return attributes.Length > 1
             ? throw new InvalidOperationException($"The parameter {parameter.Name} has more than one attribute")
             : attributes.Length == 0
-            ? this.DiscoveryArgumentBinder(parameter)
+            ? DiscoveryArgumentBinder(parameter)
             : attributes[0].Build(parameter);
     }
 
@@ -60,7 +67,8 @@ public class Dispatcher : IDispatcher
     /// <param name="parameter"></param>
     /// <returns></returns>
     /// <exception cref="InvalidOperationException"></exception>
-    private IAmqpArgumentBinder DiscoveryArgumentBinder(ParameterInfo parameter)
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0046:Convert to conditional expression", Justification = "<Pending>")]
+    private static IAmqpArgumentBinder DiscoveryArgumentBinder(ParameterInfo parameter)
     {
         _ = Guard.Argument(parameter).NotNull();
 
@@ -94,12 +102,19 @@ public class Dispatcher : IDispatcher
         return new MessageObjectArgumentBinder(parameter.ParameterType);
     }
 
-    private IResultHandler FindBestResultHandler(Type type)
+    /// <summary>
+    /// Find the best result handler
+    /// </summary>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    private static IResultHandler FindBestResultHandler(Type type)
     {
+        _ = Guard.Argument(type).NotNull();
+
         Type amqpResultType = typeof(IAMQPResult);
         Type taskType = typeof(Task);
 
-        bool isTask = type.IsAssignableTo(taskType);
+        var isTask = type.IsAssignableTo(taskType);
         if (isTask)
         {
             if (type.IsGenericType && type.GenericTypeArguments.Length == 1)
@@ -112,34 +127,14 @@ public class Dispatcher : IDispatcher
             }
             return new TaskResultHandler();
         }
-        else if (type == typeof(void))
-        {
-            return new VoidResultHandler();
-        }
         else
         {
-            return new GenericResultHandler();
+            return type == typeof(void)
+                ? new VoidResultHandler()
+                : new GenericResultHandler();
         }
     }
 
-
-    /// <summary>
-    /// Get the message type
-    /// </summary>
-    /// <returns></returns>
-    public Type GetMessageType()
-    {
-        return this.messageType;
-    }
-
-    /// <summary>
-    /// Get the message type
-    /// </summary>
-    /// <returns></returns>
-    public Type GetReturnType()
-    {
-        return this.returnType;
-    }
 
     /// <summary>
     /// Get the argument binders
@@ -161,6 +156,7 @@ public class Dispatcher : IDispatcher
         return this.resultHandler.Handle(this.DispatchInternal(context));
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
     private object DispatchInternal(IAmqpContext context)
     {
         var arguments = this.argumentBinders.Select(it => it.GetValue(context)).ToArray();
@@ -169,7 +165,7 @@ public class Dispatcher : IDispatcher
             var result = this.handler.DynamicInvoke(arguments);
             return result;
         }
-        catch (Exception ex)
+        catch
         {
             return new NackResult(false);
         }

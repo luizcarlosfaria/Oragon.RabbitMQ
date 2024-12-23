@@ -9,7 +9,6 @@ using Oragon.RabbitMQ.Serialization;
 using Microsoft.Extensions.Hosting;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
-using DotNet.Testcontainers.Builders;
 using Oragon.RabbitMQ.TestsExtensions;
 using Oragon.RabbitMQ.Consumer.Dispatch;
 

@@ -1,9 +1,6 @@
 // Licensed to LuizCarlosFaria, gaGO.io, Mensageria .NET, Cloud Native .NET and ACADEMIA.DEV under one or more agreements.
 // The ACADEMIA.DEV licenses this file to you under the MIT license.
 
-using Dawn;
-using RabbitMQ.Client;
-
 namespace Oragon.RabbitMQ.Consumer.Actions;
 /// <summary>
 /// Represents a composable result that can execute multiple IAMQPResult instances sequentially.
@@ -25,6 +22,7 @@ public class ComposableResult : IAMQPResult
     /// Adds a result on top of the list of results.
     /// </summary>
     /// <param name="result"></param>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1030:Use events where appropriate", Justification = "<Pending>")]
     public void AddOnTop(IAMQPResult result)
     {
         this.results.Insert(0, result);
@@ -34,6 +32,7 @@ public class ComposableResult : IAMQPResult
     /// Adds a result on bottom of the list of results.
     /// </summary>
     /// <param name="result"></param>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1030:Use events where appropriate", Justification = "<Pending>")]
     public void AddOnBottom(IAMQPResult result)
     {
         this.results.Add(result);

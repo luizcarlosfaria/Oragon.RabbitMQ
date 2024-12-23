@@ -13,63 +13,78 @@ namespace Oragon.RabbitMQ.Consumer;
 /// <remarks>
 /// Initializes a new instance of the <see cref="AmqpContext"/> class.
 /// </remarks>
-/// <param name="delivery">The delivery event arguments.</param>
-/// <param name="serviceProvider"></param>
-/// <param name="serializer"></param>
-/// <param name="connection"></param>
-/// <param name="channel"></param>
-/// <param name="queueName"></param>
-/// <param name="message"></param>
-/// <param name="cancellationToken"></param>
 [GenerateAutomaticInterface]
-public class AmqpContext(BasicDeliverEventArgs delivery,
-                         IServiceProvider serviceProvider,
-                         IAMQPSerializer serializer,
-                         IConnection connection,
-                         IChannel channel,
-                         string queueName,
-                         object message,
-                         CancellationToken cancellationToken) : IAmqpContext
+public class AmqpContext : IAmqpContext
 {
 
     /// <summary>
     /// Gets the delivery event arguments.
     /// </summary>
-    public BasicDeliverEventArgs Request { get; } = delivery;
+    public BasicDeliverEventArgs Request { get; }
 
     /// <summary>
     /// Gets the channel for AMQP operations.
     /// </summary>
-    public IChannel Channel { get; } = channel;
+    public IChannel Channel { get; }
 
     /// <summary>
     /// Gets the connection for AMQP operations.
     /// </summary>
-    public IConnection Connection { get; } = connection;
+    public IConnection Connection { get; }
 
     /// <summary>
     /// Gets the name of the queue.
     /// </summary>
-    public string QueueName { get; } = queueName;
+    public string QueueName { get; }
 
     /// <summary>
     /// Gets or sets the message to be sent.
     /// </summary>
-    public object MessageObject { get; } = message;
+    public object MessageObject { get; }
 
     /// <summary>
     /// Gets the service provider.
     /// </summary>
-    public IServiceProvider ServiceProvider { get; } = serviceProvider;
+    public IServiceProvider ServiceProvider { get; }
 
     /// <summary>
     /// Gets the serializer.
     /// </summary>
-    public IAMQPSerializer Serializer { get; } = serializer;
+    public IAMQPSerializer Serializer { get; }
 
     /// <summary>
     /// Gets the service provider.
     /// </summary>
-    public CancellationToken CancellationToken { get; } = cancellationToken;
+    public CancellationToken CancellationToken { get; }
+
+    /// <summary>
+    /// Creates a new instance of the <see cref="AmqpContext"/> class.
+    /// </summary>
+    /// <param name="delivery">The delivery event arguments.</param>
+    /// <param name="serviceProvider">Application Service provider (under scope)</param>
+    /// <param name="serializer"></param>
+    /// <param name="connection"></param>
+    /// <param name="channel"></param>
+    /// <param name="queueName"></param>
+    /// <param name="message"></param>
+    /// <param name="cancellationToken"></param>
+    public AmqpContext(BasicDeliverEventArgs delivery,
+                             IServiceProvider serviceProvider,
+                             IAMQPSerializer serializer,
+                             IConnection connection,
+                             IChannel channel,
+                             string queueName,
+                             object message,
+                             CancellationToken cancellationToken)
+    {
+        this.Request = delivery;
+        this.Channel = channel;
+        this.Connection = connection;
+        this.QueueName = queueName;
+        this.MessageObject = message;
+        this.ServiceProvider = serviceProvider;
+        this.Serializer = serializer;
+        this.CancellationToken = cancellationToken;
+    }
 }
 

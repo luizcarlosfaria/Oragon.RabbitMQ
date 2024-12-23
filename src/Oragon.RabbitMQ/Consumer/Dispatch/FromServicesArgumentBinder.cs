@@ -44,7 +44,7 @@ public class FromServicesArgumentBinder(Type parameterType, string serviceKey = 
     {
         _ = Guard.Argument(serviceProvider).NotNull();
 
-        return string.IsNullOrWhiteSpace(serviceKey)
+        return string.IsNullOrWhiteSpace(this.ServiceKey)
             ? serviceProvider.GetRequiredService(this.ParameterType)
             : serviceProvider.GetRequiredKeyedService(this.ParameterType, this.ServiceKey);
     }

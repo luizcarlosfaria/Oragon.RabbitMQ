@@ -2,9 +2,7 @@
 // The ACADEMIA.DEV licenses this file to you under the MIT license.
 
 using System.Reflection;
-using System.Reflection.Metadata;
 using Dawn;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Oragon.RabbitMQ.Consumer.Dispatch;
 
@@ -32,6 +30,11 @@ public sealed class FromServicesAttribute : Attribute, IAmqpArgumentBinderParame
     /// </summary>
     public string ServiceKey { get; }
 
+    /// <summary>
+    /// Builds the argument binder.
+    /// </summary>
+    /// <param name="parameter"></param>
+    /// <returns></returns>
     public IAmqpArgumentBinder Build(ParameterInfo parameter)
     {
         _ = Guard.Argument(parameter).NotNull();

@@ -7,6 +7,8 @@ using RabbitMQ.Client.Events;
 
 namespace Oragon.RabbitMQ;
 
+#pragma warning disable CS1591, CA1819, CA1720
+
 public static class Constants
 {
     public static Type String { get; } = typeof(string);
@@ -29,3 +31,4 @@ public static class Constants
     public static string[] ConsumerTagParams { get; } = ["consumer", "consumerTag"];
 
 }
+#pragma warning restore CS1591, CA1819, CA1720

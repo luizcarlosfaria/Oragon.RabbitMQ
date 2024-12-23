@@ -5,15 +5,20 @@ using Oragon.RabbitMQ.Consumer.Actions;
 
 namespace Oragon.RabbitMQ.Consumer.Dispatch;
 
+/// <summary>
+/// Handle Void Results
+/// </summary>
 public class VoidResultHandler : IResultHandler
 {
+    /// <summary>
+    /// Handle a task
+    /// </summary>
+    /// <param name="dispatchResult"></param>
+    /// <returns></returns>
     public Task<IAMQPResult> Handle(object dispatchResult)
     {
-        if (dispatchResult is IAMQPResult simpleAmqpResult)
-        {
-            return Task.FromResult(simpleAmqpResult);
-        }
-
-        return Task.FromResult<IAMQPResult>(new AckResult());
+        return dispatchResult is IAMQPResult simpleAmqpResult
+            ? Task.FromResult(simpleAmqpResult)
+            : Task.FromResult<IAMQPResult>(new AckResult());
     }
 }

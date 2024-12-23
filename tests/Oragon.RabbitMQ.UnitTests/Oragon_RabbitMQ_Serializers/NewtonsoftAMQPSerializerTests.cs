@@ -4,7 +4,6 @@
 using System.Diagnostics;
 using System.Text;
 using Newtonsoft.Json;
-using System.Text.Json;
 using Oragon.RabbitMQ.Serialization;
 using Oragon.RabbitMQ.TestsExtensions;
 using RabbitMQ.Client;

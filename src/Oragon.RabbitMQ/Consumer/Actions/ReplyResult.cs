@@ -9,7 +9,7 @@ namespace Oragon.RabbitMQ.Consumer.Actions;
 /// <summary>
 /// Initializes a new instance of the <see cref="ReplyResult"/> class with the specified reply.
 /// </summary>
-/// <param name="reply">The reply to be sent.</param>
+/// <param name="objectToReply">The reply to be sent.</param>
 public class ReplyResult(object objectToReply) : IAMQPResult
 {
     /// <summary>

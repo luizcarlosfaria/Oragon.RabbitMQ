@@ -25,13 +25,13 @@ public class SystemTextJsonAMQPSerializer(JsonSerializerOptions options) : IAMQP
     /// Deserialize a message using System.Text.Json
     /// </summary>
     /// <typeparam name="TMessage"></typeparam>
-    /// <param name="basicDeliver"></param>    
+    /// <param name="eventArgs"></param>    
     /// <returns></returns>
-    public TMessage Deserialize<TMessage>(BasicDeliverEventArgs basicDeliver)
+    public TMessage Deserialize<TMessage>(BasicDeliverEventArgs eventArgs)
     {
-        _ = Guard.Argument(basicDeliver).NotNull();
+        _ = Guard.Argument(eventArgs).NotNull();
 
-        var bytes = basicDeliver.Body.ToArray();
+        var bytes = eventArgs.Body.ToArray();
         if (bytes.Length > 0)
         {
             var message = Encoding.UTF8.GetString(bytes);
@@ -46,15 +46,15 @@ public class SystemTextJsonAMQPSerializer(JsonSerializerOptions options) : IAMQP
     /// <summary>
     /// Deserialize a message using System.Text.Json
     /// </summary>
-    /// <param name="basicDeliver"></param>
+    /// <param name="eventArgs"></param>
     /// <param name="type"></param>    
     /// <returns></returns>
-    public object Deserialize(BasicDeliverEventArgs basicDeliver, Type type)
+    public object Deserialize(BasicDeliverEventArgs eventArgs, Type type)
     {
-        _ = Guard.Argument(basicDeliver).NotNull();
+        _ = Guard.Argument(eventArgs).NotNull();
         _ = Guard.Argument(type).NotNull();
 
-        var bytes = basicDeliver.Body.ToArray();
+        var bytes = eventArgs.Body.ToArray();
         if (bytes.Length > 0)
         {
             var message = Encoding.UTF8.GetString(bytes);

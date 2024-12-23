@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using Dawn;
 using RabbitMQ.Client;
-using Xunit;
 
 namespace Oragon.RabbitMQ.UnitTests.Oragon_RabbitMQ;
 

@@ -1,6 +1,3 @@
-using Xunit;
-using Oragon.RabbitMQ;
-
 namespace Oragon.RabbitMQ.UnitTests;
 
 public class AMQPRemoteExceptionTests

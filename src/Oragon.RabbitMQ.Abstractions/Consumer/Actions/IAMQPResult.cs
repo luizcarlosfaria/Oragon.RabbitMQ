@@ -14,7 +14,6 @@ public interface IAMQPResult
     /// <summary>
     /// Executes the result.
     /// </summary>
-    /// <param name="channel"></param>
-    /// <param name="delivery"></param>
+    /// <param name="context"></param>
     Task ExecuteAsync(IAmqpContext context);
 }

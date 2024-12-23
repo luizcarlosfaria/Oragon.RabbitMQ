@@ -12,7 +12,6 @@ using Oragon.RabbitMQ.Consumer.Actions;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using RabbitMQ.Client.Exceptions;
-using System.Text;
 
 namespace Oragon.RabbitMQ.Consumer;
 
@@ -24,7 +23,7 @@ public class QueueConsumer : IHostedAmqpConsumer
 {
     private readonly ILogger logger;
     private readonly QueueConsumerBuilder parameters;
-    private IDispatcher dispatcher;
+    private Dispatcher dispatcher;
     private AsyncEventingBasicConsumer asyncBasicConsumer;
     private IConnection connection;
     private IChannel channel;
@@ -107,7 +106,7 @@ public class QueueConsumer : IHostedAmqpConsumer
             })
             .ExecuteAsync(async () =>
             {
-                using var testModel = await this.connection.CreateChannelAsync().ConfigureAwait(true);
+                using IChannel testModel = await this.connection.CreateChannelAsync().ConfigureAwait(true);
                 _ = await testModel.QueueDeclarePassiveAsync(this.parameters.QueueName).ConfigureAwait(true);
                 return Task.CompletedTask;
             }).ConfigureAwait(true);
@@ -137,7 +136,7 @@ public class QueueConsumer : IHostedAmqpConsumer
             catch (Exception)
             {
                 var exceptionMessage = $"Error on get service {binder.ParameterType} ";
-                if(!string.IsNullOrWhiteSpace(binder.ServiceKey))
+                if (!string.IsNullOrWhiteSpace(binder.ServiceKey))
                 {
                     exceptionMessage += $" with key '{binder.ServiceKey}'";
                 }
@@ -181,7 +180,7 @@ public class QueueConsumer : IHostedAmqpConsumer
     {
         using (IServiceScope scope = this.parameters.ApplicationServiceProvider.CreateScope())
         {
-            var canProceed = this.TryDeserialize(eventArgs, this.dispatcher.GetMessageType(), out var incomingMessage);
+            var canProceed = this.TryDeserialize(eventArgs, this.dispatcher.MessageType, out var incomingMessage);
 
             IAmqpContext context = new AmqpContext(eventArgs, scope.ServiceProvider, this.serializer, this.connection, this.channel, this.parameters.QueueName, incomingMessage, this.cancellationTokenSource.Token);
 
@@ -201,7 +200,6 @@ public class QueueConsumer : IHostedAmqpConsumer
 
     private Task RegisteredAsync(object sender, ConsumerEventArgs eventArgs)
     {
-        //await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
         return Task.CompletedTask;
     }
     private Task ShutdownAsync(object sender, ShutdownEventArgs eventArgs)
@@ -231,8 +229,6 @@ public class QueueConsumer : IHostedAmqpConsumer
         try
         {
             incomingMessage = this.serializer.Deserialize(eventArgs: eventArgs, type: type);
-
-            //_ = receiveActivity?.SetTag("incomingMessage", incomingMessage);
         }
         catch (Exception exception)
         {
@@ -264,21 +260,24 @@ public class QueueConsumer : IHostedAmqpConsumer
     /// Disposes the consumer asynchronously.
     /// </summary>
     /// <returns>A value task that represents the asynchronous dispose operation.</returns>
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
-        //if (this.Channel != null && this.WasStarted && this.IsConsumming && !string.IsNullOrWhiteSpace(this.consumerTag))
-        //{
-        //    await this.Channel.BasicCancelAsync(this.consumerTag, true).ConfigureAwait(false);
-        //}
-        //if (this.Channel != null)
-        //{
-        //    this.Channel.Dispose();
-        //    this.Channel = null;
-        //}
+        if (this.WasStarted)
+        {
+            this.cancellationTokenSource?.Dispose();
+        }
+
+        if (this.channel != null && this.WasStarted && this.IsConsuming && !string.IsNullOrWhiteSpace(this.consumerTag))
+        {
+            await this.channel.BasicCancelAsync(this.consumerTag, true).ConfigureAwait(false);
+        }
+        if (this.channel != null)
+        {
+            this.channel.Dispose();
+            this.channel = null;
+        }
 
         GC.SuppressFinalize(this);
-
-        return new ValueTask(Task.CompletedTask);
     }
 
 

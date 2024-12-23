@@ -5,7 +5,6 @@ using RabbitMQ.Client.Events;
 using RabbitMQ.Client;
 using System.Text;
 using Testcontainers.RabbitMq;
-using DotNet.Testcontainers.Builders;
 
 namespace Oragon.RabbitMQ.IntegratedTests;
 

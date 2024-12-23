@@ -25,11 +25,11 @@ public class NewtonsoftAMQPSerializer(JsonSerializerSettings options) : IAMQPSer
     /// <typeparam name="TMessage"></typeparam>
     /// <param name="basicDeliver"></param>    
     /// <returns></returns>
-    public TMessage Deserialize<TMessage>(BasicDeliverEventArgs basicDeliver)
+    public TMessage Deserialize<TMessage>(BasicDeliverEventArgs eventArgs)
     {
-        _ = Guard.Argument(basicDeliver).NotNull();
+        _ = Guard.Argument(eventArgs).NotNull();
 
-        var bytes = basicDeliver.Body.ToArray();
+        var bytes = eventArgs.Body.ToArray();
         if (bytes.Length > 0)
         {
             var message = Encoding.UTF8.GetString(bytes);
@@ -47,12 +47,12 @@ public class NewtonsoftAMQPSerializer(JsonSerializerSettings options) : IAMQPSer
     /// <param name="basicDeliver"></param>
     /// <param name="type"></param>    
     /// <returns></returns>
-    public object Deserialize(BasicDeliverEventArgs basicDeliver, Type type)
+    public object Deserialize(BasicDeliverEventArgs eventArgs, Type type)
     {
-        _ = Guard.Argument(basicDeliver).NotNull();
+        _ = Guard.Argument(eventArgs).NotNull();
         _ = Guard.Argument(type).NotNull();
 
-        var bytes = basicDeliver.Body.ToArray();
+        var bytes = eventArgs.Body.ToArray();
         if (bytes.Length > 0)
         {
             var message = Encoding.UTF8.GetString(bytes);
