@@ -34,8 +34,4 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Oragon_RabbitMQ_Abstractions\" />
-  </ItemGroup>
-
 </Project>

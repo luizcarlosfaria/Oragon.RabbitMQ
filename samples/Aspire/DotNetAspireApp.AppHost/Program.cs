@@ -1,8 +1,6 @@
 // Licensed to LuizCarlosFaria, gaGO.io, Mensageria .NET, Cloud Native .NET and ACADEMIA.DEV under one or more agreements.
 // The ACADEMIA.DEV licenses this file to you under the MIT license.
 
-using Aspire.Hosting;
-
 var builder = DistributedApplication.CreateBuilder(args);
 
 var redis = builder.AddRedis("redis");
@@ -25,7 +23,7 @@ builder.AddProject<Projects.DotNetAspireApp_Web>("webfrontend")
 
 builder.AddProject<Projects.DotNetAspireApp_Worker>("worker")
     .WithReference(rabbitmq)
-    .WithReplicas(3)
+    //.WithReplicas(3)
     ;
 
 builder.Build().Run();

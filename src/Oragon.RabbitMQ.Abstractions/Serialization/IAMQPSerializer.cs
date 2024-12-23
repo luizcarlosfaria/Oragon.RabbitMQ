@@ -14,7 +14,7 @@ public interface IAMQPSerializer
     /// <typeparam name="TMessage"></typeparam>
     /// <param name="basicDeliver"></param>
     /// <returns></returns>
-    TMessage Deserialize<TMessage>(BasicDeliverEventArgs basicDeliver);
+    TMessage Deserialize<TMessage>(BasicDeliverEventArgs eventArgs);
 
 
     /// <summary>

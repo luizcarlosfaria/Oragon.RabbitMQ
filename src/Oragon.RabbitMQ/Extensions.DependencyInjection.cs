@@ -4,9 +4,7 @@
 using Dawn;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Oragon.RabbitMQ.Consumer;
-using Oragon.RabbitMQ.Serialization;
 using Polly;
 using Polly.Retry;
 using RabbitMQ.Client;
@@ -40,111 +38,40 @@ public static class DependencyInjectionExtensions
 
         _ = services.AddSingleton<ConsumerServer>();
 
-        _ = services.AddHostedService<ConsumerServer>(sp => sp.GetRequiredService<ConsumerServer>());
+        _ = services.AddHostedService(sp => sp.GetRequiredService<ConsumerServer>());
     }
 
     /// <summary>
     /// Create a new QueueServiceWorker to bind a queue with an function
     /// </summary>
-    /// <typeparam name="TService">Service Type will be used to determine which service will be used to connect on queue</typeparam>
-    /// <typeparam name="TMessage">Type of message sent by publisher to Consumer. Must be exactly same Type that functionToExecute parameter requests.</typeparam>
-    /// <typeparam name="TResponse">Type of returned message sent by Consumer to publisher. Must be exactly same Type that functionToExecute returns.</typeparam>
     /// <param name="host">IHost</param>
-    /// <param name="config">Configuration handler</param>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "This is a factory, Dispose will be called by Consumer")]
-    public static void MapQueueRPC<TService, TMessage, TResponse>(this IHost host, Action<AsyncQueueConsumerParameters<TService, TMessage, Task<TResponse>>> config)
-        where TResponse : class
-        where TMessage : class
+    /// <param name="queueName"></param>
+    /// <param name="handler"></param>    
+    public static QueueConsumerBuilder MapQueue(this IHost host, string queueName, Delegate handler)
     {
         _ = Guard.Argument(host).NotNull();
 
-        host.Services.MapQueueRPC(config);
-    }
-
-        /// <summary>
-        /// Create a new QueueServiceWorker to bind a queue with an function
-        /// </summary>
-        /// <typeparam name="TService">Service Type will be used to determine which service will be used to connect on queue</typeparam>
-        /// <typeparam name="TMessage">Type of message sent by publisher to Consumer. Must be exactly same Type that functionToExecute parameter requests.</typeparam>
-        /// <typeparam name="TResponse">Type of returned message sent by Consumer to publisher. Must be exactly same Type that functionToExecute returns.</typeparam>
-        /// <param name="serviceProvider">Services </param>
-        /// <param name="config">Configuration handler</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "This is a factory, Dispose will be called by Consumer")]
-    public static void MapQueueRPC<TService, TMessage, TResponse>(this IServiceProvider serviceProvider, Action<AsyncQueueConsumerParameters<TService, TMessage, Task<TResponse>>> config)
-        where TResponse : class
-        where TMessage : class
-    {
-        _ = Guard.Argument(serviceProvider).NotNull();
-        _ = Guard.Argument(config).NotNull();
-
-        var consumerServer = serviceProvider.GetRequiredService<ConsumerServer>();
-
-        var parameters = new AsyncQueueConsumerParameters<TService, TMessage, Task<TResponse>>();
-        _ = parameters.WithServiceProvider(serviceProvider);
-        _ = parameters.WithDisplayLoopInConsoleEvery(TimeSpan.FromMinutes(1));
-        _ = parameters.WithTestQueueRetryCount(5);
-        _ = parameters.WithConnection((sp) => sp.GetRequiredService<IConnection>());
-        _ = parameters.WithDispatchInRootScope();
-        _ = parameters.WithSerializer(serviceProvider.GetRequiredService<IAMQPSerializer>());
-
-        config(parameters);
-
-        var queueConsumer = new AsyncRpcConsumer<TService, TMessage, TResponse>(
-                    serviceProvider.GetService<ILogger<AsyncRpcConsumer<TService, TMessage, TResponse>>>(),
-                    parameters,
-                    serviceProvider
-                );
-        consumerServer.AddConsumer(queueConsumer);
+        return host.Services.MapQueue(queueName, handler);
     }
 
     /// <summary>
     /// Create a new QueueServiceWorker to bind a queue with an function
     /// </summary>
-    /// <typeparam name="TService">Service Type will be used to determine which service will be used to connect on queue</typeparam>
-    /// <typeparam name="TMessage">Type of message sent by publisher to Consumer. Must be exactly same Type that functionToExecute parameter requests.</typeparam>    
-    /// <param name="host">IHost</param>
-    /// <param name="config">Configuration handler</param>
-    public static void MapQueue<TService, TMessage>(this IHost host, Action<AsyncQueueConsumerParameters<TService, TMessage, Task>> config)
-        where TMessage : class
-    {
-        _ = Guard.Argument(host).NotNull();
-
-        host.Services.MapQueue(config);
-    }
-
-    /// <summary>
-    /// Create a new QueueServiceWorker to bind a queue with an function
-    /// </summary>
-    /// <typeparam name="TService">Service Type will be used to determine which service will be used to connect on queue</typeparam>
-    /// <typeparam name="TMessage">Type of message sent by publisher to Consumer. Must be exactly same Type that functionToExecute parameter requests.</typeparam>    
     /// <param name="serviceProvider">Service Provider</param>
-    /// <param name="config">Configuration handler</param>
+    /// <param name="queueName"></param>
+    /// <param name="handler"></param>    
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "This is a factory, Dispose will be called by Consumer")]
-    public static void MapQueue<TService, TMessage>(this IServiceProvider serviceProvider, Action<AsyncQueueConsumerParameters<TService, TMessage, Task>> config)
-        where TMessage : class
+    public static QueueConsumerBuilder MapQueue(this IServiceProvider serviceProvider, string queueName, Delegate handler)
     {
         _ = Guard.Argument(serviceProvider).NotNull();
-        _ = Guard.Argument(config).NotNull();
+        _ = Guard.Argument(handler).NotNull();
+        _ = Guard.Argument(queueName).NotNull().NotEmpty().NotWhiteSpace();
 
-        var consumerServer = serviceProvider.GetRequiredService<ConsumerServer>();
+        var queueConsumerBuilder = new QueueConsumerBuilder(serviceProvider, queueName, handler);
 
-        var parameters = new AsyncQueueConsumerParameters<TService, TMessage, Task>();
-        _ = parameters.WithServiceProvider(serviceProvider);
-        _ = parameters.WithDisplayLoopInConsoleEvery(TimeSpan.FromMinutes(1));
-        _ = parameters.WithTestQueueRetryCount(5);
-        _ = parameters.WithConnection((sp) => sp.GetRequiredService<IConnection>());
-        _ = parameters.WithDispatchInRootScope();
-        _ = parameters.WithSerializer(serviceProvider.GetRequiredService<IAMQPSerializer>());
-
-        config(parameters);
-
-        var queueConsumer = new AsyncQueueConsumer<TService, TMessage, Task>(
-                    serviceProvider.GetService<ILogger<AsyncQueueConsumer<TService, TMessage, Task>>>(),
-                    parameters,
-                    serviceProvider
-                );
-
-        consumerServer.AddConsumer(queueConsumer);
+        ConsumerServer consumerServer = serviceProvider.GetRequiredService<ConsumerServer>();
+        consumerServer.AddConsumerBuilder(queueConsumerBuilder);
+        return queueConsumerBuilder;
     }
 
 
@@ -156,13 +83,13 @@ public static class DependencyInjectionExtensions
     /// <exception cref="InvalidOperationException"></exception>
     public static async Task WaitRabbitMQAsync(this IServiceProvider serviceProvider, string keyedServiceKey = null)
     {
-        var pipeline = new ResiliencePipelineBuilder()
+        ResiliencePipeline pipeline = new ResiliencePipelineBuilder()
         .AddRetry(new RetryStrategyOptions()
         {
             MaxRetryAttempts = 5,
             DelayGenerator = static args =>
             {
-                var delay = args.AttemptNumber switch
+                TimeSpan delay = args.AttemptNumber switch
                 {
                     <= 5 => TimeSpan.FromSeconds(Math.Pow(2, args.AttemptNumber)),
                     _ => TimeSpan.FromMinutes(3)
@@ -176,7 +103,7 @@ public static class DependencyInjectionExtensions
         await pipeline.ExecuteAsync(async (cancellationToken) =>
         {
             //do not dispose connection
-            var connection = string.IsNullOrWhiteSpace(keyedServiceKey)
+            IConnection connection = string.IsNullOrWhiteSpace(keyedServiceKey)
                 ? serviceProvider.GetRequiredService<IConnection>()
                 : serviceProvider.GetRequiredKeyedService<IConnection>(keyedServiceKey);
 

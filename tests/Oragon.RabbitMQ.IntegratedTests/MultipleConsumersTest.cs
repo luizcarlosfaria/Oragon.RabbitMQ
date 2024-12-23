@@ -12,8 +12,9 @@ using Microsoft.Extensions.Logging;
 using System.Threading;
 using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Builders;
-using Oragon.RabbitMQ.Consumer;
 using Oragon.RabbitMQ.TestsExtensions;
+using Oragon.RabbitMQ.Consumer.Dispatch;
+using Oragon.RabbitMQ.Consumer;
 
 namespace Oragon.RabbitMQ.IntegratedTests;
 
@@ -83,11 +84,13 @@ public class MultipleConsumersTest : IAsyncLifetime
         return connection;
     }
 
-    public class Pack(string queueName, ExampleMessage originalMessage, Action<ExampleMessage> actionOnRun)
+    public class Pack(string queueName, ExampleMessage messageToSend, Action<ExampleMessage> actionOnRun, Delegate handler)
     {
         public string QueueName { get; } = queueName;
-        public ExampleMessage MessageToSend { get; } = originalMessage;
+        public ExampleMessage MessageToSend { get; } = messageToSend;
         public Action<ExampleMessage> CallBack { get; } = actionOnRun;
+
+        public Delegate Handler { get; } = handler;
 
         public ExampleMessage? MessagReceived { get; set; }
 
@@ -101,16 +104,18 @@ public class MultipleConsumersTest : IAsyncLifetime
     {
         Pack? pack1 = null;
         pack1 = new Pack(
-            "queue1",
-            new ExampleMessage() { Name = $"Teste - {Guid.NewGuid():D}", Age = 3 },
-            (msg) => pack1!.MessagReceived = msg
+            queueName: "queue1",
+            messageToSend: new ExampleMessage() { Name = $"Teste - {Guid.NewGuid():D}", Age = 3 },
+            actionOnRun: (msg) => pack1!.MessagReceived = msg,
+            handler: ([FromServices("queue1")] ExampleService svc, ExampleMessage msg) => svc.TestAsync(msg)
             );
 
         Pack? pack2 = null;
         pack2 = new Pack(
-           "queue2",
-           new ExampleMessage() { Name = $"Teste - {Guid.NewGuid():D}", Age = 2 },
-           (msg) => pack2!.MessagReceived = msg
+           queueName: "queue2",
+           messageToSend: new ExampleMessage() { Name = $"Teste - {Guid.NewGuid():D}", Age = 2 },
+           actionOnRun: (msg) => pack2!.MessagReceived = msg,
+           handler: ([FromServices("queue2")] ExampleService svc, ExampleMessage msg) => svc.TestAsync(msg)
            );
 
         List<Pack> packs = [pack1, pack2];
@@ -141,21 +146,14 @@ public class MultipleConsumersTest : IAsyncLifetime
 
         foreach (var pack in packs)
         {
-
             using var channel = await connection.CreateChannelAsync(new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true));
 
             _ = await channel.QueueDeclareAsync(pack.QueueName, false, false, false, null);
 
             await channel.BasicPublishAsync(string.Empty, pack.QueueName, true, Encoding.Default.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(pack.MessageToSend)));
 
-            sp.MapQueue<ExampleService, ExampleMessage>((config) =>
-                config
-                    .WithDispatchInChildScope()
-                    .WithKeyedService(pack.QueueName)
-                    .WithAdapter((svc, msg) => svc.TestAsync(msg))
-                    .WithQueueName(pack.QueueName)
-                    .WithPrefetchCount(1)
-            );
+            sp.MapQueue(pack.QueueName, pack.Handler)
+                .WithPrefetch(1);
         }
 
         var hostedServices = sp.GetServices<IHostedService>();
@@ -166,12 +164,12 @@ public class MultipleConsumersTest : IAsyncLifetime
 
         ConsumerServer consumerServer = (ConsumerServer)hostedServices.Single();
 
-        Assert.Equal(packs.Count, consumerServer.Consumers.Count());
-
         foreach (var hostedService in hostedServices)
         {
             await hostedService.StartAsync(CancellationToken.None);
         }
+
+        Assert.Equal(packs.Count, consumerServer.Consumers.Count());
 
         await Task.WhenAll(
                 packs.

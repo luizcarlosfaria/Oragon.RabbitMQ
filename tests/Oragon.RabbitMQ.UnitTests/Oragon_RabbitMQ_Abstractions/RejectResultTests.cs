@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Dawn;
 using Moq;
 using Oragon.RabbitMQ.Consumer.Actions;
+using Oragon.RabbitMQ.Consumer;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Xunit;
@@ -15,46 +16,31 @@ public class RejectResultTests
     {
         // Arrange
         var channelMock = new Mock<IChannel>();
-        var deliveryArgs = new BasicDeliverEventArgs(
-            consumerTag: string.Empty,
-            deliveryTag: 9,
-            redelivered: false,
-            exchange: string.Empty,
-            routingKey: string.Empty,
-            properties: default,
-            body: default);
+
+        var contextMock = new Mock<IAmqpContext>();
+        _ = contextMock.Setup(it => it.Channel).Returns(channelMock.Object);
+
+        var basicPropertiesMock = new Mock<IReadOnlyBasicProperties>();
+
+        var basicDeliverEventArgs = new BasicDeliverEventArgs(
+                consumerTag: Guid.NewGuid().ToString(),
+                deliveryTag: 2,
+                redelivered: false,
+                exchange: Guid.NewGuid().ToString(),
+                routingKey: Guid.NewGuid().ToString(),
+                properties: basicPropertiesMock.Object,
+                body: null,
+                cancellationToken: default);
+
+        _ = contextMock.Setup(it => it.Request).Returns(basicDeliverEventArgs);
 
         var rejectResult = new RejectResult(true);
 
         // Act
-        await rejectResult.ExecuteAsync(channelMock.Object, deliveryArgs);
+        await rejectResult.ExecuteAsync(contextMock.Object);
 
         // Assert
-        channelMock.Verify(c => c.BasicRejectAsync(deliveryArgs.DeliveryTag, rejectResult.Requeue, default), Times.Once);
+        channelMock.Verify(c => c.BasicRejectAsync(basicDeliverEventArgs.DeliveryTag, rejectResult.Requeue, default), Times.Once);
     }
 
-    [Fact]
-    public async Task ExecuteAsync_ShouldNotNullCheckChannelAndDelivery()
-    {
-        // Arrange
-        var channelMock = new Mock<IChannel>();
-        var deliveryArgs = new BasicDeliverEventArgs(
-            consumerTag: string.Empty,
-            deliveryTag: 9,
-            redelivered: false,
-            exchange: string.Empty,
-            routingKey: string.Empty,
-            properties: default,
-            body: default);
-
-
-        var rejectResult = new RejectResult(true);
-
-        // Act
-        await rejectResult.ExecuteAsync(channelMock.Object, deliveryArgs);
-
-        // Assert
-        _ = Guard.Argument(channelMock.Object).NotNull();
-        _ = Guard.Argument(deliveryArgs).NotNull();
-    }
 }

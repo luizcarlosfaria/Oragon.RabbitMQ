@@ -6,10 +6,11 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Oragon.RabbitMQ.Serialization;
 using RabbitMQ.Client;
-using Oragon.RabbitMQ.Consumer;
 using RabbitMQ.Client.Events;
 using Oragon.RabbitMQ.TestsExtensions;
 using System.Text;
+using Oragon.RabbitMQ.Consumer.Dispatch;
+using Oragon.RabbitMQ.Consumer;
 
 namespace Oragon.RabbitMQ.UnitTests.Oragon_RabbitMQ;
 
@@ -95,13 +96,10 @@ public class GracefulShutdownTests
         //-------------------------------------------------------
         var sp = services.BuildServiceProvider();
 
-        sp.MapQueue<ExampleService, ExampleMessage>((config) =>
-           config
-               .WithDispatchInChildScope()
-               .WithAdapter((svc, msg) => svc.TestAsync(msg))
-               .WithQueueName(queueName)
-               .WithPrefetchCount(1)
-       );
+        
+        _ = sp.MapQueue(queueName, ([FromServices] ExampleService svc, ExampleMessage msg) => svc.TestAsync(msg)).WithPrefetch(1);
+
+
         CancellationTokenSource cts = new();
 
         var hostedService = sp.GetRequiredService<IHostedService>();
@@ -110,7 +108,7 @@ public class GracefulShutdownTests
 
         var consumerServer = (ConsumerServer)hostedService;
 
-        var asyncQueueConsumer = (AsyncQueueConsumer<ExampleService, ExampleMessage, Task>)consumerServer.Consumers.Single();
+        var asyncQueueConsumer = (QueueConsumer)consumerServer.Consumers.Single();
 
         SafeRunner.Wait(() => queueConsumer != null);
 

@@ -1,6 +1,4 @@
 using Dawn;
-using RabbitMQ.Client.Events;
-using RabbitMQ.Client;
 
 namespace Oragon.RabbitMQ.Consumer.Actions;
 
@@ -19,17 +17,16 @@ public class NackResult(bool requeue) : IAMQPResult
     /// </summary>
     public bool Requeue { get; } = requeue;
 
-    /// <summary>
-    /// Perform nack on channel
-    /// </summary>
-    /// <param name="channel"></param>
-    /// <param name="delivery"></param>
-    /// <returns></returns>
-    public virtual async Task ExecuteAsync(IChannel channel, BasicDeliverEventArgs delivery)
-    {
-        _ = Guard.Argument(channel).NotNull();
-        _ = Guard.Argument(delivery).NotNull();
 
-        await channel.BasicNackAsync(delivery.DeliveryTag, false, this.Requeue).ConfigureAwait(true);
+    /// <summary>
+    /// Perform ack on channel
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    public virtual async Task ExecuteAsync(IAmqpContext context)
+    {
+        _ = Guard.Argument(context).NotNull();
+
+        await context.Channel.BasicNackAsync(context.Request.DeliveryTag, false, this.Requeue).ConfigureAwait(true);
     }
 }

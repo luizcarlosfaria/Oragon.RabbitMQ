@@ -26,7 +26,7 @@ internal sealed class RabbitMQEventSourceLogForwarder(ILoggerFactory loggerFacto
 
     private void LogEvent(EventWrittenEventArgs eventData)
     {
-        var level = MapLevel(eventData.Level);
+        LogLevel level = MapLevel(eventData.Level);
         var eventId = new EventId(eventData.EventId, eventData.EventName);
 
         // Special case the Error event so the Exception Details are written correctly
@@ -179,7 +179,7 @@ internal sealed class RabbitMQEventSourceLogForwarder(ILoggerFactory loggerFacto
             this._log = log;
             this._level = level;
 
-            foreach (var eventSource in this._eventSources)
+            foreach (EventSource eventSource in this._eventSources)
             {
                 this.OnEventSourceCreated(eventSource);
             }

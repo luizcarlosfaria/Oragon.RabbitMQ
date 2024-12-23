@@ -46,7 +46,7 @@ dotnet_style_predefined_type_for_member_access = true:suggestion
 # Require var all the time.
 csharp_style_var_for_built_in_types = true:suggestion
 csharp_style_var_when_type_is_apparent = true:suggestion
-csharp_style_var_elsewhere = true:suggestion
+csharp_style_var_elsewhere = false:suggestion
 
 # Disallow throw expressions.
 csharp_style_throw_expression = false:suggestion
@@ -96,7 +96,7 @@ csharp_using_directive_placement = outside_namespace:warning
 csharp_prefer_simple_using_statement = true:silent
 csharp_style_prefer_method_group_conversion = true:suggestion
 csharp_style_prefer_top_level_statements = true:silent
-csharp_style_prefer_primary_constructors = true:suggestion
+csharp_style_prefer_primary_constructors = true:silent
 csharp_style_expression_bodied_methods = false:silent
 csharp_style_expression_bodied_constructors = false:silent
 csharp_style_expression_bodied_operators = false:silent
@@ -134,6 +134,7 @@ csharp_style_prefer_not_pattern = true:suggestion
 csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
 csharp_style_prefer_extended_property_pattern = true:suggestion
 csharp_space_around_binary_operators = before_and_after
+csharp_prefer_system_threading_lock = true:suggestion
 
 [*.{xml,config,*proj,nuspec,props,resx,targets,yml,tasks}]
 indent_size = 2

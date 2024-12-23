@@ -174,7 +174,7 @@ public static class RabbitMQExtensions
 
         basicProperties.Headers ??= new Dictionary<string, object>();
 
-        var exceptionType = exception.GetType();
+        Type exceptionType = exception.GetType();
 
         basicProperties.Headers.Add("exception.type", $"{exceptionType.Namespace}.{exceptionType.Name}, {exceptionType.Assembly.FullName}");
         basicProperties.Headers.Add("exception.message", exception.Message);

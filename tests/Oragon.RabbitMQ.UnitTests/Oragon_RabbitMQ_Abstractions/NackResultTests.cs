@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Dawn;
 using Moq;
 using Oragon.RabbitMQ.Consumer.Actions;
+using Oragon.RabbitMQ.Consumer;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Xunit;
@@ -16,26 +17,34 @@ public class NackResultTests
         // Arrange
         var channelMock = new Mock<IChannel>();
 
-        var deliveryArgs = new BasicDeliverEventArgs(
-            consumerTag: string.Empty,
-            deliveryTag: 1,
-            redelivered: false,
-            exchange: string.Empty,
-            routingKey: string.Empty,
-            properties: default,
-            body: default);
+        var contextMock = new Mock<IAmqpContext>();
+        _ = contextMock.Setup(it => it.Channel).Returns(channelMock.Object);
+
+        var basicPropertiesMock = new Mock<IReadOnlyBasicProperties>();
+
+        var basicDeliverEventArgs = new BasicDeliverEventArgs(
+                consumerTag: Guid.NewGuid().ToString(),
+                deliveryTag: 2,
+                redelivered: false,
+                exchange: Guid.NewGuid().ToString(),
+                routingKey: Guid.NewGuid().ToString(),
+                properties: basicPropertiesMock.Object,
+                body: null,
+                cancellationToken: default);
+
+        _ = contextMock.Setup(it => it.Request).Returns(basicDeliverEventArgs);
 
         var nackResult = new NackResult(true);
 
         // Act
-        await nackResult.ExecuteAsync(channelMock.Object, deliveryArgs);
+        await nackResult.ExecuteAsync(contextMock.Object);
 
         // Assert
-        channelMock.Verify(c => c.BasicNackAsync(deliveryArgs.DeliveryTag, false, nackResult.Requeue, default), Times.Once);
+        channelMock.Verify(c => c.BasicNackAsync(basicDeliverEventArgs.DeliveryTag, false, nackResult.Requeue, default), Times.Once);
     }
 
     [Fact]
-    public async Task ExecuteAsync_ShouldThrowArgumentNullException_WhenChannelIsNull()
+    public async Task ExecuteAsync_ShouldThrowArgumentNullException_WhenContextIsNull()
     {
         // Arrange
         var channel = new Mock<IChannel>().Object;
@@ -51,20 +60,7 @@ public class NackResultTests
         var nackResult = new NackResult(true);
 
         // Act & Assert
-        _ = await Assert.ThrowsAsync<ArgumentNullException>(() => nackResult.ExecuteAsync(null, deliveryArgs));
-
-        _ = await Assert.ThrowsAsync<ArgumentNullException>(() => nackResult.ExecuteAsync(channel, null));
+        _ = await Assert.ThrowsAsync<ArgumentNullException>(() => nackResult.ExecuteAsync(null));
     }
 
-    [Fact]
-    public async Task ExecuteAsync_ShouldThrowArgumentNullException_WhenDeliveryIsNull()
-    {
-        // Arrange
-        var channel = new Mock<IChannel>().Object;
-        BasicDeliverEventArgs? delivery = null;
-        var nackResult = new NackResult(true);
-
-        // Act & Assert
-        _ = await Assert.ThrowsAsync<ArgumentNullException>(() => nackResult.ExecuteAsync(channel, delivery));
-    }
 }

@@ -33,7 +33,7 @@ public class MessagePublisher(IConnection connection, IAMQPSerializer serializer
     [SuppressMessage("Usage", "CA2201", Justification = "Do not raise reserved exception types")]
     public async Task SendAsync<T>(string exchange, string routingKey, T message, CancellationToken cancellationToken)
     {
-        using var model = await this.connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
+        using IChannel model = await this.connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
 
         await this.SendAsync(model, exchange, routingKey, message, cancellationToken).ConfigureAwait(true);
     }
@@ -54,7 +54,7 @@ public class MessagePublisher(IConnection connection, IAMQPSerializer serializer
     {
         Guard.Argument(channel).NotNull();
 
-        var properties = channel.CreateBasicProperties().EnsureHeaders().SetDurable(true);
+        BasicProperties properties = channel.CreateBasicProperties().EnsureHeaders().SetDurable(true);
 
         var body = this.serializer.Serialize(basicProperties: properties, message: message);
 

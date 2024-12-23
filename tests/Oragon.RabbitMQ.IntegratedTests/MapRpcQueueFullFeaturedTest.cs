@@ -12,6 +12,8 @@ using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using DotNet.Testcontainers.Builders;
 using Oragon.RabbitMQ.TestsExtensions;
+using Oragon.RabbitMQ.Consumer.Dispatch;
+using Oragon.RabbitMQ.Consumer.Actions;
 
 namespace Oragon.RabbitMQ.IntegratedTests;
 
@@ -125,13 +127,13 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
 
         var sp = services.BuildServiceProvider();
 
-        sp.MapQueueRPC<ExampleRpcService, RequestMessage, ResponseMessage>((config) =>
-           config
-               .WithDispatchInChildScope()
-               .WithAdapter((svc, msg) => svc.TestRpcAsync(msg))
-               .WithQueueName(serverQueue)
-               .WithPrefetchCount(1)
-       );
+        sp.MapQueue(serverQueue, async ([FromServices] ExampleRpcService svc, RequestMessage msg) =>
+        {
+            ResponseMessage reply = await svc.TestRpcAsync(msg).ConfigureAwait(true);
+
+            return new ComposableResult(new AckResult(), new ReplyResult(reply));
+        }).WithPrefetch(1);
+
 
         var hostedService = sp.GetRequiredService<IHostedService>();
         await hostedService.StartAsync(CancellationToken.None);

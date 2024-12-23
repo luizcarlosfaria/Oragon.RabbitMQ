@@ -22,7 +22,7 @@ public static class TelemetryExtensions
     public static Activity SafeStartActivity(this ActivitySource activitySource, ActivityKind kind = ActivityKind.Internal, [CallerMemberName] string name = "")
     {
         ArgumentNullException.ThrowIfNull(activitySource);
-        var activity = activitySource.StartActivity(name, kind) ?? new Activity(name);
+        Activity activity = activitySource.StartActivity(name, kind) ?? new Activity(name);
         _ = activity.SetStartTime(DateTime.UtcNow);
         return activity;
     }
@@ -38,7 +38,7 @@ public static class TelemetryExtensions
     public static Activity SafeStartActivity(this ActivitySource activitySource, ActivityKind kind, ActivityContext parentContext, [CallerMemberName] string name = "")
     {
         ArgumentNullException.ThrowIfNull(activitySource);
-        var activity = activitySource.StartActivity(name, kind, parentContext) ?? new Activity(name);
+        Activity activity = activitySource.StartActivity(name, kind, parentContext) ?? new Activity(name);
         _ = activity.SetStartTime(DateTime.UtcNow);
         return activity;
     }

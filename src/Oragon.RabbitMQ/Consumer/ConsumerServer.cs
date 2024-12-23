@@ -13,7 +13,6 @@ public class ConsumerServer : IHostedService, IDisposable
 {
     private bool disposedValue;
 
-    private readonly List<IHostedAmqpConsumer> internalConsumers = [];
 
     /// <summary>
     /// Lock the consumers to Add Consumers
@@ -24,17 +23,25 @@ public class ConsumerServer : IHostedService, IDisposable
     /// The consumers that will be started.
     /// </summary>
     public IEnumerable<IHostedAmqpConsumer> Consumers => [.. this.internalConsumers];
+    private readonly List<IHostedAmqpConsumer> internalConsumers = [];
+
+    /// <summary>
+    /// The consumers that will be started.
+    /// </summary>
+    public IEnumerable<QueueConsumerBuilder> QueueConsumerBuilders => [.. this.internalQueueConsumerBuilders];
+    private readonly List<QueueConsumerBuilder> internalQueueConsumerBuilders = [];
+
 
     /// <summary>
     /// Add a new consumer to the server.
     /// </summary>
-    /// <param name="consumer"></param>
+    /// <param name="builder"></param>
     /// <exception cref="InvalidOperationException"></exception>
-    public void AddConsumer(IHostedAmqpConsumer consumer)
+    public void AddConsumerBuilder(QueueConsumerBuilder builder)
     {
         if (this.IsReadOnly) throw new InvalidOperationException("The ConsumerServer is in readonly state");
 
-        this.internalConsumers.Add(consumer);
+        this.internalQueueConsumerBuilders.Add(builder);
     }
 
 
@@ -43,21 +50,19 @@ public class ConsumerServer : IHostedService, IDisposable
     /// </summary>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
         this.IsReadOnly = true;
 
-        foreach (var consumer in this.internalConsumers)
+        foreach (QueueConsumerBuilder consumer in this.QueueConsumerBuilders)
         {
-            consumer.Validate();
+            this.internalConsumers.Add(await consumer.BuildAsync(cancellationToken).ConfigureAwait(true));
         }
 
-        foreach (var consumer in this.internalConsumers)
+        foreach (IHostedAmqpConsumer consumer in this.internalConsumers)
         {
             _ = Task.Factory.StartNew(() => consumer.StartAsync(cancellationToken), cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
-
-        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -67,7 +72,7 @@ public class ConsumerServer : IHostedService, IDisposable
     /// <returns></returns>
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        foreach (var consumer in this.internalConsumers.NewReverseList())
+        foreach (IHostedAmqpConsumer consumer in this.internalConsumers.NewReverseList())
         {
             await consumer.StopAsync(cancellationToken).ConfigureAwait(true);
         }
@@ -86,7 +91,7 @@ public class ConsumerServer : IHostedService, IDisposable
             if (disposing)
             {
                 // TODO: dispose managed state (managed objects)
-                foreach (var consumer in this.internalConsumers.NewReverseList())
+                foreach (IHostedAmqpConsumer consumer in this.internalConsumers.NewReverseList())
                 {
                     consumer.DisposeAsync().AsTask().GetAwaiter().GetResult();
 

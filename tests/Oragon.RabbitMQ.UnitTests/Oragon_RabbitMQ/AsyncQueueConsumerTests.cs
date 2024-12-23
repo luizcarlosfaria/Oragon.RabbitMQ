@@ -10,6 +10,7 @@ using Oragon.RabbitMQ.Consumer;
 using RabbitMQ.Client.Events;
 using Oragon.RabbitMQ.TestsExtensions;
 using System.Text;
+using Oragon.RabbitMQ.Consumer.Dispatch;
 
 namespace Oragon.RabbitMQ.UnitTests.Oragon_RabbitMQ;
 
@@ -96,15 +97,7 @@ public class AsyncQueueConsumerTests
 
         var sp = services.BuildServiceProvider();
 
-
-        sp.MapQueue<ExampleService, ExampleMessage>((config) =>
-           config
-               .WithDispatchInChildScope()
-               .WithAdapter((svc, msg) => svc.TestAsync(msg))
-               .WithQueueName(queueName)
-               .WithPrefetchCount(1)
-        );
-
+        _ = sp.MapQueue(queueName, ([FromServices] ExampleService svc, ExampleMessage msg) => svc.TestAsync(msg)).WithPrefetch(1);
 
         var hostedService = sp.GetRequiredService<IHostedService>();
 
@@ -169,13 +162,7 @@ public class AsyncQueueConsumerTests
 
         var sp = services.BuildServiceProvider();
 
-        sp.MapQueue<ExampleService, ExampleMessage>((config) =>
-           config
-               .WithDispatchInRootScope()
-               .WithAdapter((svc, msg) => svc.TestAsync(msg))
-               .WithQueueName(queueName)
-               .WithPrefetchCount(1)
-        );
+        _ = sp.MapQueue(queueName, ([FromServices] ExampleService svc, ExampleMessage msg) => svc.TestAsync(msg)).WithPrefetch(1);
 
         var hostedService = sp.GetRequiredService<IHostedService>();
 
@@ -245,13 +232,8 @@ public class AsyncQueueConsumerTests
 
         var sp = services.BuildServiceProvider();
 
-        sp.MapQueue<ExampleService, ExampleMessage>((config) =>
-           config
-               .WithDispatchInChildScope()
-               .WithAdapter((svc, msg) => svc.TestAsync(msg))
-               .WithQueueName(queueName)
-               .WithPrefetchCount(1)
-        );
+        _ = sp.MapQueue(queueName, ([FromServices] ExampleService svc, ExampleMessage msg) => svc.TestAsync(msg)).WithPrefetch(1);
+
 
         var hostedService = sp.GetRequiredService<IHostedService>();
 

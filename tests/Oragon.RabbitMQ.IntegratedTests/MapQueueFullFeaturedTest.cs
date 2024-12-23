@@ -11,6 +11,7 @@ using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using DotNet.Testcontainers.Builders;
 using Oragon.RabbitMQ.TestsExtensions;
+using Oragon.RabbitMQ.Consumer.Dispatch;
 
 namespace Oragon.RabbitMQ.IntegratedTests;
 
@@ -43,7 +44,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
 
             this.WaitHandleRef.TryGetTarget(out EventWaitHandle? waitHandle);
 
-            waitHandle?.Set();
+            waitHandle!.Set();
 
             return Task.CompletedTask;
         }
@@ -88,7 +89,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
     [Fact(Timeout = 5000)]
     public async Task MapQueueBasicSuccessTest()
     {
-        const string queue = "hello";
+        const string queue = "MapQueueBasicSuccessTest";
 
         var originalMessage = new ExampleMessage() { Name = $"Teste - {Guid.NewGuid():D}", Age = 8 };
         ExampleMessage? receivedMessage = default;
@@ -113,31 +114,37 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
         services.AddScoped<Action<ExampleMessage>>((_) => (msg) => receivedMessage = msg);
         services.AddScoped((_) => waitHandleRef);
 
-        
+
 
         // Send a message to the channel.
         using var channel = await connection.CreateChannelAsync(new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true));
-        
+
         _ = await channel.QueueDeclareAsync(queue, false, false, false, null);
 
         await channel.BasicPublishAsync(string.Empty, queue, true, Encoding.Default.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(originalMessage)));
-        
+
 
         var sp = services.BuildServiceProvider();
 
-        sp.MapQueue<ExampleService, ExampleMessage>((config) =>
-            config
-                .WithDispatchInChildScope()
-                .WithAdapter((svc, msg) => svc.TestAsync(msg))
-                .WithQueueName(queue)
-                .WithPrefetchCount(1)
-        );
+        sp.MapQueue(queue, ([FromServices] ExampleService svc, ExampleMessage msg) => svc.TestAsync(msg))
+            .WithPrefetch(1);
+
 
         var hostedService = sp.GetRequiredService<IHostedService>();
 
         await hostedService.StartAsync(CancellationToken.None);
 
         waitHandleRef.TryGetTarget(out EventWaitHandle? waitHandle);
+
+        for(int i = 0; i < 10; i++)
+        {
+            if (waitHandle == null)
+            {
+                waitHandleRef.TryGetTarget(out waitHandle);
+                if (waitHandle != null) break;
+                await Task.Delay(200);
+            }
+        }
 
         _ = waitHandle.WaitOne(
             Debugger.IsAttached
@@ -154,6 +161,6 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
         Assert.Equal(originalMessage.Age, receivedMessage.Age);
     }
 
-   
+
 
 }

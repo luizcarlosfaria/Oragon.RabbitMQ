@@ -75,7 +75,7 @@ public static class AspireRabbitMQExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        var configSection = builder.Configuration.GetSection(configurationSectionName);
+        IConfigurationSection configSection = builder.Configuration.GetSection(configurationSectionName);
 
         var settings = new RabbitMQClientSettings();
         configSection.Bind(settings);
@@ -94,7 +94,7 @@ public static class AspireRabbitMQExtensions
 
             var factory = new ConnectionFactory();
 
-            var configurationOptionsSection = configSection.GetSection("ConnectionFactory");
+            IConfigurationSection configurationOptionsSection = configSection.GetSection("ConnectionFactory");
             configurationOptionsSection.Bind(factory);
 
             // the connection string from settings should win over the one from the ConnectionFactory section
@@ -172,7 +172,7 @@ public static class AspireRabbitMQExtensions
             {
                 ShouldHandle = static args =>
                 {
-                    var returnValue =
+                    ValueTask<bool> returnValue =
                         args.Outcome is { Exception: SocketException or BrokerUnreachableException }
                         ? PredicateResult.True()
                         : PredicateResult.False();
@@ -184,9 +184,9 @@ public static class AspireRabbitMQExtensions
                 Delay = TimeSpan.FromSeconds(5),
             });
         }
-        var resiliencePipeline = resiliencePipelineBuilder.Build();
+        ResiliencePipeline resiliencePipeline = resiliencePipelineBuilder.Build();
 
-        using var activity = s_activitySource.StartActivity("rabbitmq connect", ActivityKind.Client);
+        using Activity activity = s_activitySource.StartActivity("rabbitmq connect", ActivityKind.Client);
 
         return resiliencePipeline.Execute(factory =>
         {
