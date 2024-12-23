@@ -4,7 +4,7 @@
 using Dawn;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Oragon.RabbitMQ.Consumer.Dispatch;
+namespace Oragon.RabbitMQ.Consumer.ArgumentBinders;
 
 /// <summary>
 /// Represents an argument binder for an AMQP message.

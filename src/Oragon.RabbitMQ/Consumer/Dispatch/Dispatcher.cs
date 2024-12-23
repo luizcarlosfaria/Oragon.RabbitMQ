@@ -4,6 +4,9 @@
 using System.Reflection;
 using Dawn;
 using Oragon.RabbitMQ.Consumer.Actions;
+using Oragon.RabbitMQ.Consumer.ArgumentBinders;
+using Oragon.RabbitMQ.Consumer.Dispatch.Attributes;
+using Oragon.RabbitMQ.Consumer.ResultHandlers;
 
 namespace Oragon.RabbitMQ.Consumer.Dispatch;
 

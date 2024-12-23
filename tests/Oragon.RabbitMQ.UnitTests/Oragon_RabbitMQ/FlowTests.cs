@@ -9,6 +9,7 @@ using Oragon.RabbitMQ.TestsExtensions;
 using System.Text;
 using Oragon.RabbitMQ.Consumer.Dispatch;
 using Oragon.RabbitMQ.Consumer;
+using Oragon.RabbitMQ.Consumer.Dispatch.Attributes;
 
 namespace Oragon.RabbitMQ.UnitTests.Oragon_RabbitMQ;
 

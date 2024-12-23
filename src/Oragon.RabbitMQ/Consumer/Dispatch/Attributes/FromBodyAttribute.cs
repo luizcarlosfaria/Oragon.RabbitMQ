@@ -3,8 +3,9 @@
 
 using System.Reflection;
 using Dawn;
+using Oragon.RabbitMQ.Consumer.ArgumentBinders;
 
-namespace Oragon.RabbitMQ.Consumer.Dispatch;
+namespace Oragon.RabbitMQ.Consumer.Dispatch.Attributes;
 
 /// <summary>
 /// Represents an attribute that can be used to bind an argument to an AMQP message.

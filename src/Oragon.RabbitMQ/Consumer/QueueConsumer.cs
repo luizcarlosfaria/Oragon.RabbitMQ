@@ -12,6 +12,7 @@ using Oragon.RabbitMQ.Consumer.Actions;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using RabbitMQ.Client.Exceptions;
+using Oragon.RabbitMQ.Consumer.ArgumentBinders;
 
 namespace Oragon.RabbitMQ.Consumer;
 

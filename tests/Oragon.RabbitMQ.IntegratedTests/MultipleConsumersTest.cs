@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Oragon.RabbitMQ.TestsExtensions;
 using Oragon.RabbitMQ.Consumer.Dispatch;
 using Oragon.RabbitMQ.Consumer;
+using Oragon.RabbitMQ.Consumer.Dispatch.Attributes;
 
 namespace Oragon.RabbitMQ.IntegratedTests;
 

@@ -11,6 +11,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Oragon.RabbitMQ.Serialization;
 using Oragon.RabbitMQ.Consumer.Dispatch;
+using Oragon.RabbitMQ.Consumer.Dispatch.Attributes;
 
 namespace DotNetAspireApp.Worker.Areas;
 

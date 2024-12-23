@@ -4,19 +4,19 @@
 using Dawn;
 using Oragon.RabbitMQ.Consumer.Actions;
 
-namespace Oragon.RabbitMQ.Consumer.Dispatch;
-
+namespace Oragon.RabbitMQ.Consumer.ResultHandlers;
 
 /// <summary>
-/// Handles the result of a dispatched task that returns an IAMQPResult.
+/// Handles the result of a dispatched task.
 /// </summary>
-public class TaskOfAmqpResultResultHandler : IResultHandler
+public class TaskResultHandler : IResultHandler
 {
+
     /// <summary>
-    /// Handles the dispatched result, which can be either an IAMQPResult or a Task that returns an IAMQPResult.
+    /// Handles the dispatched result, which can be either an IAMQPResult or a Task.
     /// </summary>
-    /// <param name="dispatchResult">The result of the dispatch, either an IAMQPResult or a Task.</param>
-    /// <returns>The IAMQPResult after the task is awaited, or the original IAMQPResult if it was not a task.</returns>
+    /// <param name="dispatchResult"></param>
+    /// <returns></returns>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
     public async Task<IAMQPResult> Handle(object dispatchResult)
     {
@@ -27,19 +27,14 @@ public class TaskOfAmqpResultResultHandler : IResultHandler
             return simpleAmqpResult;
         }
 
-        var taskToWait = (Task)dispatchResult;
-
         try
         {
-            await taskToWait.ConfigureAwait(true);
+            await ((Task)dispatchResult).ConfigureAwait(true);
         }
         catch
         {
             return new NackResult(false);
         }
-
-        var result = (IAMQPResult)dispatchResult.GetType().GetProperty("Result").GetValue(dispatchResult);
-
-        return result;
+        return new AckResult();
     }
 }

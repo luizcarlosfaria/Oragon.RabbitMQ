@@ -3,7 +3,7 @@
 
 using Oragon.RabbitMQ.Consumer.Actions;
 
-namespace Oragon.RabbitMQ.Consumer.Dispatch;
+namespace Oragon.RabbitMQ.Consumer.ResultHandlers;
 
 /// <summary>
 /// Handle Void Results
