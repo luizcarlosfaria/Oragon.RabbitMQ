@@ -162,7 +162,11 @@ public class Dispatcher
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
     private object DispatchInternal(IAmqpContext context)
     {
-        var arguments = this.argumentBinders.Select(it => it.GetValue(context)).ToArray();
+        var arguments = new object[this.argumentBinders.Count];
+        for (int i = 0; i < this.argumentBinders.Count; i++)
+        {
+            arguments[i] = this.argumentBinders[i].GetValue(context);
+        }
         try
         {
             return this.handler.DynamicInvoke(arguments);

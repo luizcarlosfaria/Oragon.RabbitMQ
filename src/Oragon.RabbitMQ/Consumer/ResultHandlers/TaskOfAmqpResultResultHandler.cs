@@ -54,6 +54,14 @@ public class TaskOfAmqpResultResultHandler : IResultHandler
         {
             await taskToWait.ConfigureAwait(false);
         }
+        catch (TaskCanceledException)
+        {
+            return this.nack;
+        }
+        catch (OperationCanceledException)
+        {
+            return this.nack;
+        }
         catch
         {
             return this.nack;
