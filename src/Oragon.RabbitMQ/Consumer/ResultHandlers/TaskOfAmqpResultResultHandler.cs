@@ -1,6 +1,7 @@
 ﻿// Licensed to LuizCarlosFaria, gaGO.io, Mensageria .NET, Cloud Native .NET and ACADEMIA.DEV under one or more agreements.
 // The ACADEMIA.DEV licenses this file to you under the MIT license.
 
+using System.Reflection;
 using Dawn;
 using Oragon.RabbitMQ.Consumer.Actions;
 
@@ -12,6 +13,26 @@ namespace Oragon.RabbitMQ.Consumer.ResultHandlers;
 /// </summary>
 public class TaskOfAmqpResultResultHandler : IResultHandler
 {
+    private readonly IAMQPResult nack = new NackResult(false);
+    PropertyInfo resultProperty;
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="type"></param>
+    public TaskOfAmqpResultResultHandler(Type type)
+    {
+        _ = Guard.Argument(type).NotNull();
+
+        this.Type = type;
+        this.resultProperty = type.GetProperty("Result");
+    }
+
+    /// <summary>
+    /// Type
+    /// </summary>
+    public Type Type { get; }
+
     /// <summary>
     /// Handles the dispatched result, which can be either an IAMQPResult or a Task that returns an IAMQPResult.
     /// </summary>
@@ -20,7 +41,7 @@ public class TaskOfAmqpResultResultHandler : IResultHandler
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
     public async Task<IAMQPResult> Handle(object dispatchResult)
     {
-        _ = Guard.Argument(dispatchResult).NotNull();
+        ArgumentNullException.ThrowIfNull(dispatchResult, nameof(dispatchResult));
 
         if (dispatchResult is IAMQPResult simpleAmqpResult)
         {
@@ -31,14 +52,14 @@ public class TaskOfAmqpResultResultHandler : IResultHandler
 
         try
         {
-            await taskToWait.ConfigureAwait(true);
+            await taskToWait.ConfigureAwait(false);
         }
         catch
         {
-            return new NackResult(false);
+            return this.nack;
         }
 
-        var result = (IAMQPResult)dispatchResult.GetType().GetProperty("Result").GetValue(dispatchResult);
+        var result = (IAMQPResult)this.resultProperty.GetValue(dispatchResult);
 
         return result;
     }

@@ -12,6 +12,7 @@ using RabbitMQ.Client.Events;
 using Oragon.RabbitMQ.Serialization;
 using Oragon.RabbitMQ.Consumer.Dispatch;
 using Oragon.RabbitMQ.Consumer.Dispatch.Attributes;
+using Oragon.RabbitMQ.Consumer.Actions;
 
 namespace DotNetAspireApp.Worker.Areas;
 
@@ -28,39 +29,37 @@ public static class EmailServiceExtensions
     {
         var connectionFactory = host.Services.GetRequiredService<IConnectionFactory>();
 
-        using var connection = await connectionFactory.CreateConnectionAsync().ConfigureAwait(true);
+        using var connection = await connectionFactory.CreateConnectionAsync().ConfigureAwait(false);
 
-        using var channel = await connection.CreateChannelAsync().ConfigureAwait(true);
+        using var channel = await connection.CreateChannelAsync().ConfigureAwait(false);
 
-        await channel.ExchangeDeclareAsync("events", type: ExchangeType.Fanout, durable: true, autoDelete: false).ConfigureAwait(true);
+        await channel.ExchangeDeclareAsync("events", type: ExchangeType.Fanout, durable: true, autoDelete: false).ConfigureAwait(false);
 
-        _ = await channel.QueueDeclareAsync("events-managed", durable: true, exclusive: false, autoDelete: false).ConfigureAwait(true);
+        _ = await channel.QueueDeclareAsync("events-managed", durable: true, exclusive: false, autoDelete: false).ConfigureAwait(false);
 
-        _ = await channel.QueueDeclareAsync("events-unmanaged", durable: true, exclusive: false, autoDelete: false).ConfigureAwait(true);
+        _ = await channel.QueueDeclareAsync("events-unmanaged", durable: true, exclusive: false, autoDelete: false).ConfigureAwait(false);
 
-        await channel.QueueBindAsync("events-managed", "events", string.Empty).ConfigureAwait(true);
+        await channel.QueueBindAsync("events-managed", "events", string.Empty).ConfigureAwait(false);
 
-        await channel.QueueBindAsync("events-unmanaged", "events", string.Empty).ConfigureAwait(true);
+        await channel.QueueBindAsync("events-unmanaged", "events", string.Empty).ConfigureAwait(false);
     }
 
 
     public static void AddManagedEmailService(this IHost host)
     {
-        _ = host.MapQueue("events-managed", ([FromServices] EmailService svc, [FromBody] DoSomethingCommand cmd)
-            => svc.DoSomethingAsync(cmd).ConfigureAwait(false))
-            .WithPrefetch(DotNetAspireApp.Worker.Constants.Parallelism * DotNetAspireApp.Worker.Constants.PrefetchFactor)
-            ;
+        _ = host.MapQueue("events-managed", ([FromServices] EmailService svc, [FromBody] DoSomethingCommand cmd) => svc.DoSomethingAsync(cmd).ConfigureAwait(false))
+            .WithPrefetch(DotNetAspireApp.Worker.Constants.Parallelism * DotNetAspireApp.Worker.Constants.PrefetchFactor);
     }
 
     public static async Task AddUnmanagedEmailServiceAsync(this IHost host)
     {
         var connectionFactory = host.Services.GetRequiredService<IConnectionFactory>();
 
-        using var connection = await connectionFactory.CreateConnectionAsync().ConfigureAwait(true);
+        using var connection = await connectionFactory.CreateConnectionAsync().ConfigureAwait(false);
 
-        using var channel = await connection.CreateChannelAsync().ConfigureAwait(true);
+        using var channel = await connection.CreateChannelAsync().ConfigureAwait(false);
 
-        await channel.BasicQosAsync(0, DotNetAspireApp.Worker.Constants.Parallelism * DotNetAspireApp.Worker.Constants.PrefetchFactor, false).ConfigureAwait(true);
+        await channel.BasicQosAsync(0, DotNetAspireApp.Worker.Constants.Parallelism * DotNetAspireApp.Worker.Constants.PrefetchFactor, false).ConfigureAwait(false);
 
         var consumer = new AsyncEventingBasicConsumer(channel);
 
@@ -91,7 +90,7 @@ public static class EmailServiceExtensions
             }
         };
 
-        _ = await channel.BasicConsumeAsync(queue: "events-unmanaged", autoAck: false, consumerTag: "events-unmanaged-1", noLocal: false, exclusive: false, arguments: null, consumer: consumer).ConfigureAwait(true);
+        _ = await channel.BasicConsumeAsync(queue: "events-unmanaged", autoAck: false, consumerTag: "events-unmanaged-1", noLocal: false, exclusive: false, arguments: null, consumer: consumer).ConfigureAwait(false);
 
         var timeToDisplay = 1;
 
@@ -99,7 +98,7 @@ public static class EmailServiceExtensions
         while (true)
         {
             loopCount++;
-            await Task.Delay(1000).ConfigureAwait(true);
+            await Task.Delay(1000).ConfigureAwait(false);
         }
     }
 }

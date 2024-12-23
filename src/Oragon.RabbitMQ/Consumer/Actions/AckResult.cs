@@ -22,7 +22,7 @@ public class AckResult : IAMQPResult
     {
         _ = Guard.Argument(context).NotNull();
 
-        await context.Channel.BasicAckAsync(context.Request.DeliveryTag, false).ConfigureAwait(true);
+        await context.Channel.BasicAckAsync(context.Request.DeliveryTag, false).ConfigureAwait(false);
     }
 }
 

@@ -11,6 +11,10 @@ namespace Oragon.RabbitMQ.Consumer.ResultHandlers;
 /// </summary>
 public class TaskResultHandler : IResultHandler
 {
+    private readonly IAMQPResult ack = new AckResult();
+
+    private readonly IAMQPResult nack = new NackResult(false);
+
 
     /// <summary>
     /// Handles the dispatched result, which can be either an IAMQPResult or a Task.
@@ -20,6 +24,8 @@ public class TaskResultHandler : IResultHandler
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
     public async Task<IAMQPResult> Handle(object dispatchResult)
     {
+        ArgumentNullException.ThrowIfNull(dispatchResult, nameof(dispatchResult));
+
         _ = Guard.Argument(dispatchResult).NotNull();
 
         if (dispatchResult is IAMQPResult simpleAmqpResult)
@@ -29,12 +35,12 @@ public class TaskResultHandler : IResultHandler
 
         try
         {
-            await ((Task)dispatchResult).ConfigureAwait(true);
+            await ((Task)dispatchResult).ConfigureAwait(false);
         }
         catch
         {
-            return new NackResult(false);
+            return this.nack;
         }
-        return new AckResult();
+        return this.ack;
     }
 }

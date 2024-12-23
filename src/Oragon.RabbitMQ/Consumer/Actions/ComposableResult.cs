@@ -48,7 +48,7 @@ public class ComposableResult : IAMQPResult
     {
         foreach (IAMQPResult result in this.results)
         {
-            await result.ExecuteAsync(context).ConfigureAwait(true);
+            await result.ExecuteAsync(context).ConfigureAwait(false);
         }
     }
 }

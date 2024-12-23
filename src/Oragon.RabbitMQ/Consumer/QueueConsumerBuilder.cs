@@ -226,7 +226,7 @@ public class QueueConsumerBuilder : IQueueConsumerBuilder
         this.Validate();
         this.IsLocked = true;
         var queueConsumer = new QueueConsumer(this.ApplicationServiceProvider.GetRequiredService<ILogger<QueueConsumer>>(), this);
-        await queueConsumer.InitializeAsync(cancellationToken).ConfigureAwait(true);
+        await queueConsumer.InitializeAsync(cancellationToken).ConfigureAwait(false);
         return queueConsumer;
     }
 

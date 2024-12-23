@@ -125,7 +125,7 @@ public class Dispatcher
                 Type taskValueType = type.GenericTypeArguments[0];
                 if (taskValueType.IsAssignableTo(amqpResultType))
                 {
-                    return new TaskOfAmqpResultResultHandler();
+                    return new TaskOfAmqpResultResultHandler(type);
                 }
             }
             return new TaskResultHandler();
@@ -165,8 +165,7 @@ public class Dispatcher
         var arguments = this.argumentBinders.Select(it => it.GetValue(context)).ToArray();
         try
         {
-            var result = this.handler.DynamicInvoke(arguments);
-            return result;
+            return this.handler.DynamicInvoke(arguments);
         }
         catch
         {

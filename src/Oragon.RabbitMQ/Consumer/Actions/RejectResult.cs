@@ -22,6 +22,6 @@ public class RejectResult(bool requeue) : IAMQPResult
     {
         _ = Guard.Argument(context).NotNull();
 
-        await context.Channel.BasicRejectAsync(context.Request.DeliveryTag, this.Requeue).ConfigureAwait(true);
+        await context.Channel.BasicRejectAsync(context.Request.DeliveryTag, this.Requeue).ConfigureAwait(false);
     }
 }

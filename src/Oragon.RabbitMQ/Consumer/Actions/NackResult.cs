@@ -27,6 +27,6 @@ public class NackResult(bool requeue) : IAMQPResult
     {
         _ = Guard.Argument(context).NotNull();
 
-        await context.Channel.BasicNackAsync(context.Request.DeliveryTag, false, this.Requeue).ConfigureAwait(true);
+        await context.Channel.BasicNackAsync(context.Request.DeliveryTag, false, this.Requeue).ConfigureAwait(false);
     }
 }

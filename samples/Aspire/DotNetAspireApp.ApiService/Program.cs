@@ -52,8 +52,8 @@ app.MapPost("/enqueue", (DoSomethingRequest req, CancellationToken cancellationT
 {
     _ = Task.Run(async () =>
     {
-        using var connection = await connectionFactory.CreateConnectionAsync("ApiService - enqueue", CancellationToken.None).ConfigureAwait(true);
-        using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
+        using var connection = await connectionFactory.CreateConnectionAsync("ApiService - enqueue", CancellationToken.None).ConfigureAwait(false);
+        using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
 
         for (int i = 1; i <= req.quantity; i++)
         {
@@ -64,7 +64,7 @@ app.MapPost("/enqueue", (DoSomethingRequest req, CancellationToken cancellationT
 
             var body = serializer.Serialize(basicProperties: properties, message: command);
 
-            await channel.BasicPublishAsync("events", string.Empty, false, properties, body).ConfigureAwait(true);
+            await channel.BasicPublishAsync("events", string.Empty, false, properties, body).ConfigureAwait(false);
 
         };
     });

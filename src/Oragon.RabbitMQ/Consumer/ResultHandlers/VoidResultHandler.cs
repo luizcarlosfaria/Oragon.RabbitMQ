@@ -10,6 +10,8 @@ namespace Oragon.RabbitMQ.Consumer.ResultHandlers;
 /// </summary>
 public class VoidResultHandler : IResultHandler
 {
+    private readonly IAMQPResult ack = new AckResult();
+
     /// <summary>
     /// Handle a task
     /// </summary>
@@ -19,6 +21,6 @@ public class VoidResultHandler : IResultHandler
     {
         return dispatchResult is IAMQPResult simpleAmqpResult
             ? Task.FromResult(simpleAmqpResult)
-            : Task.FromResult<IAMQPResult>(new AckResult());
+            : Task.FromResult<IAMQPResult>(this.ack);
     }
 }

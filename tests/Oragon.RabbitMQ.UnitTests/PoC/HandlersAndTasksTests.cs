@@ -152,7 +152,7 @@ public class HandlersAndTasksTests
                 Type taskValueType = type.GenericTypeArguments[0];
                 if (taskValueType.IsAssignableTo(amqpResultType))
                 {
-                    return new TaskOfAmqpResultResultHandler();
+                    return new TaskOfAmqpResultResultHandler(type);
                 }
             }
             return new TaskResultHandler();

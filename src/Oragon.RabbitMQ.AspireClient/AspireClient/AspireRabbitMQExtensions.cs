@@ -192,7 +192,7 @@ public static class AspireRabbitMQExtensions
         {
             Console.WriteLine("Criando conexão com o RabbitMQ factory.CreateConnection() ------------------------- ");
 
-            return factory.CreateConnectionAsync().ConfigureAwait(true).GetAwaiter().GetResult();
+            return factory.CreateConnectionAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 
         }, factory);
     }
