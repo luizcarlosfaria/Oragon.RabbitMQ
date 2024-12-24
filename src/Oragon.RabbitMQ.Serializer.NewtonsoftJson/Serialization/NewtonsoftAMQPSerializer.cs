@@ -2,6 +2,7 @@ using Dawn;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
@@ -23,11 +24,11 @@ public class NewtonsoftAMQPSerializer(JsonSerializerSettings options) : IAMQPSer
     /// Deserialize a message using System.Text.Json
     /// </summary>
     /// <typeparam name="TMessage"></typeparam>
-    /// <param name="basicDeliver"></param>    
+    /// <param name="eventArgs"></param>    
     /// <returns></returns>
     public TMessage Deserialize<TMessage>(BasicDeliverEventArgs eventArgs)
     {
-        _ = Guard.Argument(eventArgs).NotNull();
+        ArgumentNullException.ThrowIfNull(eventArgs);
 
         var bytes = eventArgs.Body.ToArray();
         if (bytes.Length > 0)
@@ -44,13 +45,13 @@ public class NewtonsoftAMQPSerializer(JsonSerializerSettings options) : IAMQPSer
     /// <summary>
     /// Deserialize a message using System.Text.Json
     /// </summary>
-    /// <param name="basicDeliver"></param>
+    /// <param name="eventArgs"></param>    
     /// <param name="type"></param>    
     /// <returns></returns>
     public object Deserialize(BasicDeliverEventArgs eventArgs, Type type)
     {
-        _ = Guard.Argument(eventArgs).NotNull();
-        _ = Guard.Argument(type).NotNull();
+        ArgumentNullException.ThrowIfNull(eventArgs);
+        ArgumentNullException.ThrowIfNull(type);
 
         var bytes = eventArgs.Body.ToArray();
         if (bytes.Length > 0)
@@ -74,6 +75,8 @@ public class NewtonsoftAMQPSerializer(JsonSerializerSettings options) : IAMQPSer
     /// <returns></returns>
     public byte[] Serialize<TMessage>(BasicProperties basicProperties, TMessage message)
     {
+        ArgumentNullException.ThrowIfNull(basicProperties);
+
         return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message, this.options));
     }
 
@@ -85,6 +88,8 @@ public class NewtonsoftAMQPSerializer(JsonSerializerSettings options) : IAMQPSer
     /// <returns></returns>
     public byte[] Serialize(BasicProperties basicProperties, object message)
     {
+        ArgumentNullException.ThrowIfNull(basicProperties);
+
         return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message, this.options));
     }
 }

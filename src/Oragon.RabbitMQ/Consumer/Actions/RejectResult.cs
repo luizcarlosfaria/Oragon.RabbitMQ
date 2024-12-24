@@ -20,7 +20,7 @@ public class RejectResult(bool requeue) : IAMQPResult
     /// <returns></returns>
     public virtual async Task ExecuteAsync(IAmqpContext context)
     {
-        _ = Guard.Argument(context).NotNull();
+        ArgumentNullException.ThrowIfNull(context, nameof(context));
 
         await context.Channel.BasicRejectAsync(context.Request.DeliveryTag, this.Requeue).ConfigureAwait(false);
     }

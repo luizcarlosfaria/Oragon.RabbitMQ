@@ -29,7 +29,8 @@ public class SystemTextJsonAMQPSerializer(JsonSerializerOptions options) : IAMQP
     /// <returns></returns>
     public TMessage Deserialize<TMessage>(BasicDeliverEventArgs eventArgs)
     {
-        _ = Guard.Argument(eventArgs).NotNull();
+        ArgumentNullException.ThrowIfNull(eventArgs);
+
 
         var bytes = eventArgs.Body.ToArray();
         if (bytes.Length > 0)
@@ -51,8 +52,8 @@ public class SystemTextJsonAMQPSerializer(JsonSerializerOptions options) : IAMQP
     /// <returns></returns>
     public object Deserialize(BasicDeliverEventArgs eventArgs, Type type)
     {
-        _ = Guard.Argument(eventArgs).NotNull();
-        _ = Guard.Argument(type).NotNull();
+        ArgumentNullException.ThrowIfNull(eventArgs);
+        ArgumentNullException.ThrowIfNull(type);
 
         var bytes = eventArgs.Body.ToArray();
         if (bytes.Length > 0)
@@ -76,6 +77,8 @@ public class SystemTextJsonAMQPSerializer(JsonSerializerOptions options) : IAMQP
     /// <returns></returns>
     public byte[] Serialize<TMessage>(BasicProperties basicProperties, TMessage message)
     {
+        ArgumentNullException.ThrowIfNull(basicProperties);
+
         return Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message, this.options));
     }
 
@@ -87,6 +90,8 @@ public class SystemTextJsonAMQPSerializer(JsonSerializerOptions options) : IAMQP
     /// <returns></returns>
     public byte[] Serialize(BasicProperties basicProperties, object message)
     {
+        ArgumentNullException.ThrowIfNull(basicProperties);
+
         return Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message, this.options));
     }
 }

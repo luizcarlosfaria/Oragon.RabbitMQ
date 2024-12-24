@@ -46,6 +46,8 @@ public class ComposableResult : IAMQPResult
     /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task ExecuteAsync(IAmqpContext context)
     {
+        ArgumentNullException.ThrowIfNull(context, nameof(context));
+
         foreach (IAMQPResult result in this.results)
         {
             await result.ExecuteAsync(context).ConfigureAwait(false);

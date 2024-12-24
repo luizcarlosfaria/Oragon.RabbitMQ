@@ -32,7 +32,7 @@ public class MessageObjectArgumentBinder : IAmqpArgumentBinder
     /// <returns></returns>
     public object GetValue(IAmqpContext context)
     {
-        _ = Guard.Argument(context).NotNull();
+        ArgumentNullException.ThrowIfNull(context, nameof(context));
 
         return context.MessageObject;
     }

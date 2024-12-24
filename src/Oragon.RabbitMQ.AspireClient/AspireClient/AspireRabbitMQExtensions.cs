@@ -163,22 +163,17 @@ public static class AspireRabbitMQExtensions
         }
     }
 
-    private static IConnection CreateConnection(IConnectionFactory factory, int retryCount)
+    private static IConnection CreateConnection(IConnectionFactory connectionFactory, int retryCount)
     {
         var resiliencePipelineBuilder = new ResiliencePipelineBuilder();
         if (retryCount > 0)
         {
             resiliencePipelineBuilder = resiliencePipelineBuilder.AddRetry(new RetryStrategyOptions
             {
-                ShouldHandle = static args =>
-                {
-                    ValueTask<bool> returnValue =
-                        args.Outcome is { Exception: SocketException or BrokerUnreachableException }
-                        ? PredicateResult.True()
-                        : PredicateResult.False();
-
-                    return returnValue;
-                },
+                ShouldHandle = new PredicateBuilder()
+                                    .Handle<SocketException>()
+                                    .Handle<BrokerUnreachableException>(),
+                UseJitter = true, 
                 BackoffType = DelayBackoffType.Exponential,
                 MaxRetryAttempts = retryCount,
                 Delay = TimeSpan.FromSeconds(5),
@@ -186,15 +181,15 @@ public static class AspireRabbitMQExtensions
         }
         ResiliencePipeline resiliencePipeline = resiliencePipelineBuilder.Build();
 
-        using Activity activity = s_activitySource.StartActivity("rabbitmq connect", ActivityKind.Client);
+        using Activity activity = s_activitySource.StartActivity("Rabbitmq connect", ActivityKind.Client);
 
         return resiliencePipeline.Execute(factory =>
         {
             Console.WriteLine("Criando conexão com o RabbitMQ factory.CreateConnection() ------------------------- ");
 
-            return factory.CreateConnectionAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+            return factory.CreateConnectionAsync().ConfigureAwait(true).GetAwaiter().GetResult();
 
-        }, factory);
+        }, connectionFactory);
     }
 
 }

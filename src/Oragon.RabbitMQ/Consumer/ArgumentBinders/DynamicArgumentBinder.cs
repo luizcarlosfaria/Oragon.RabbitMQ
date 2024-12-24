@@ -28,7 +28,7 @@ public class DynamicArgumentBinder : IAmqpArgumentBinder
     /// <returns></returns>
     public object GetValue(IAmqpContext context)
     {
-        _ = Guard.Argument(context).NotNull();
+        ArgumentNullException.ThrowIfNull(context, nameof(context));
 
         var result = this.func(context);
 

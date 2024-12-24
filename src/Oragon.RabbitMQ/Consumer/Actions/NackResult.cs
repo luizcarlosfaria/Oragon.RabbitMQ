@@ -25,7 +25,7 @@ public class NackResult(bool requeue) : IAMQPResult
     /// <returns></returns>
     public virtual async Task ExecuteAsync(IAmqpContext context)
     {
-        _ = Guard.Argument(context).NotNull();
+        ArgumentNullException.ThrowIfNull(context, nameof(context));
 
         await context.Channel.BasicNackAsync(context.Request.DeliveryTag, false, this.Requeue).ConfigureAwait(false);
     }

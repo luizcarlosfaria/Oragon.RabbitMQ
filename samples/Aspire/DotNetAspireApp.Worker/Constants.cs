@@ -5,7 +5,7 @@ namespace DotNetAspireApp.Worker;
 
 public static class Constants
 {
-    public const int Parallelism = 500;
+    public static ushort ConsumerDispatchConcurrency = 4;
 
-    public const int PrefetchFactor = 16;
+    public static ushort Prefetch => (ushort)(Environment.ProcessorCount * 8 * 100);
 }

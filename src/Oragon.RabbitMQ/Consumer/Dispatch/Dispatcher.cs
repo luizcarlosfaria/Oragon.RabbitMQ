@@ -156,6 +156,8 @@ public class Dispatcher
     /// <returns></returns>
     public Task<IAMQPResult> DispatchAsync(IAmqpContext context)
     {
+        ArgumentNullException.ThrowIfNull(context, nameof(context));
+
         return this.resultHandler.Handle(this.DispatchInternal(context));
     }
 

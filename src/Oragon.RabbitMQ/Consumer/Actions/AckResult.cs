@@ -20,7 +20,7 @@ public class AckResult : IAMQPResult
     /// <returns></returns>
     public virtual async Task ExecuteAsync(IAmqpContext context)
     {
-        _ = Guard.Argument(context).NotNull();
+        ArgumentNullException.ThrowIfNull(context, nameof(context));
 
         await context.Channel.BasicAckAsync(context.Request.DeliveryTag, false).ConfigureAwait(false);
     }

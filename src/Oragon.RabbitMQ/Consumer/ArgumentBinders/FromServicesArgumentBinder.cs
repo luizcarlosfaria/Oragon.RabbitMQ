@@ -3,6 +3,7 @@
 
 using Dawn;
 using Microsoft.Extensions.DependencyInjection;
+using Polly;
 
 namespace Oragon.RabbitMQ.Consumer.ArgumentBinders;
 
@@ -30,7 +31,7 @@ public class FromServicesArgumentBinder(Type parameterType, string serviceKey = 
     /// <returns></returns>
     public object GetValue(IAmqpContext context)
     {
-        _ = Guard.Argument(context).NotNull();
+        ArgumentNullException.ThrowIfNull(context, nameof(context));
 
         return this.GetValue(context.ServiceProvider);
     }
@@ -42,7 +43,7 @@ public class FromServicesArgumentBinder(Type parameterType, string serviceKey = 
     /// <returns></returns>
     public object GetValue(IServiceProvider serviceProvider)
     {
-        _ = Guard.Argument(serviceProvider).NotNull();
+        ArgumentNullException.ThrowIfNull(serviceProvider, nameof(serviceProvider));
 
         return string.IsNullOrWhiteSpace(this.ServiceKey)
             ? serviceProvider.GetRequiredService(this.ParameterType)

@@ -1,4 +1,4 @@
-﻿// Licensed to LuizCarlosFaria, gaGO.io, Mensageria .NET, Cloud Native .NET and ACADEMIA.DEV under one or more agreements.
+// Licensed to LuizCarlosFaria, gaGO.io, Mensageria .NET, Cloud Native .NET and ACADEMIA.DEV under one or more agreements.
 // The ACADEMIA.DEV licenses this file to you under the MIT license.
 
 using Dawn;
@@ -19,7 +19,7 @@ public class ReplyResult(object objectToReply) : IAMQPResult
     /// <returns>A task that represents the asynchronous operation.</returns>
     public Task ExecuteAsync(IAmqpContext context)
     {
-        _ = Guard.Argument(context).NotNull();
+        ArgumentNullException.ThrowIfNull(context, nameof(context));
 
         var replyBasicProperties = new BasicProperties
         {
