@@ -4,8 +4,10 @@
 
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Oragon.RabbitMQ.Abstractions\Oragon.RabbitMQ.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\src\Oragon.RabbitMQ.AspireClient\Oragon.RabbitMQ.AspireClient.csproj" />
-    <ProjectReference Include="..\..\..\src\Oragon.RabbitMQ.MinimalConsumer\Oragon.RabbitMQ.MinimalConsumer.csproj" />    
+    <ProjectReference Include="..\..\..\src\Oragon.RabbitMQ.Serializer.NewtonsoftJson\Oragon.RabbitMQ.Serializer.NewtonsoftJson.csproj" />
+    <ProjectReference Include="..\..\..\src\Oragon.RabbitMQ.Serializer.SystemTextJson\Oragon.RabbitMQ.Serializer.SystemTextJson.csproj" />    
     <ProjectReference Include="..\DotNetAspireApp.Common\DotNetAspireApp.Common.csproj" />
     <ProjectReference Include="..\DotNetAspireApp.ServiceDefaults\DotNetAspireApp.ServiceDefaults.csproj" />
   </ItemGroup>

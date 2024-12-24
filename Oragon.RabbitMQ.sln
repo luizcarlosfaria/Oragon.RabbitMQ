@@ -2,8 +2,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34310.174
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Oragon.RabbitMQ.MinimalConsumer", "src\Oragon.RabbitMQ.MinimalConsumer\Oragon.RabbitMQ.MinimalConsumer.csproj", "{8E87D9EC-99DD-45E4-873D-EF38F1299760}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Oragon.RabbitMQ.Abstractions", "src\Oragon.RabbitMQ.Abstractions\Oragon.RabbitMQ.Abstractions.csproj", "{FED927D0-CF78-4629-8135-2DC185D61D2E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Oragon.RabbitMQ", "src\Oragon.RabbitMQ\Oragon.RabbitMQ.csproj", "{93E485CD-96A0-4389-BF32-D5CF267950C8}"
@@ -75,10 +73,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8E87D9EC-99DD-45E4-873D-EF38F1299760}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8E87D9EC-99DD-45E4-873D-EF38F1299760}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8E87D9EC-99DD-45E4-873D-EF38F1299760}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8E87D9EC-99DD-45E4-873D-EF38F1299760}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FED927D0-CF78-4629-8135-2DC185D61D2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FED927D0-CF78-4629-8135-2DC185D61D2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FED927D0-CF78-4629-8135-2DC185D61D2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -140,7 +134,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{8E87D9EC-99DD-45E4-873D-EF38F1299760} = {1E36D008-C06F-4C9A-9712-6F2B3C34B2E6}
 		{FED927D0-CF78-4629-8135-2DC185D61D2E} = {1E36D008-C06F-4C9A-9712-6F2B3C34B2E6}
 		{93E485CD-96A0-4389-BF32-D5CF267950C8} = {1E36D008-C06F-4C9A-9712-6F2B3C34B2E6}
 		{26FF5258-CF22-415C-A578-FCE3F8B02EF0} = {BA980939-3879-4FB5-98E8-563D3DFE0F45}
