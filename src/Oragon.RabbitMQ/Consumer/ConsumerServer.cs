@@ -90,18 +90,13 @@ public class ConsumerServer : IHostedService, IDisposable
         {
             if (disposing)
             {
-                // TODO: dispose managed state (managed objects)
                 foreach (IHostedAmqpConsumer consumer in this.internalConsumers.NewReverseList())
                 {
                     consumer.DisposeAsync().AsTask().GetAwaiter().GetResult();
 
                     _ = this.internalConsumers.Remove(consumer);
                 }
-
-            }
-
-            // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-            // TODO: set large fields to null
+            }            
             this.disposedValue = true;
         }
     }
