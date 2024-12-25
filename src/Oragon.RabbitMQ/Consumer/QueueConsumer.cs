@@ -122,40 +122,46 @@ public class QueueConsumer : IHostedAmqpConsumer
         IConnection connection2 = await this.parameters.ConnectionFactory(this.parameters.ApplicationServiceProvider, cancellationToken).ConfigureAwait(false);
         var mustReuseConnection = connection1 == connection2;
 
-        if (!mustReuseConnection)
+        try
         {
-            await connection2.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
-        }
-        
-        using IChannel testChannel = await this.parameters.ChannelFactory(connection1, cancellationToken).ConfigureAwait(false);
-
-        QueueDeclareOk queue = await testChannel.QueueDeclarePassiveAsync(this.parameters.QueueName, cancellationToken).ConfigureAwait(false);
-
-        await testChannel.CloseAsync(cancellationToken).ConfigureAwait(false);
-
-        if (!mustReuseConnection)
-        {
-            await connection1.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
-        }
-
-        using IServiceScope scope = this.parameters.ApplicationServiceProvider.CreateScope();
-
-        foreach (FromServicesArgumentBinder binder in this.dispatcher.GetArgumentBindersOfType<FromServicesArgumentBinder>())
-        {
-            try
+            if (!mustReuseConnection)
             {
-                var service = binder.GetValue(scope.ServiceProvider);
+                await connection2.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+                connection2 = null;
             }
-            catch (Exception)
+
+            using IChannel testChannel = await this.parameters.ChannelFactory(connection1, cancellationToken).ConfigureAwait(false);
+
+            QueueDeclareOk queue = await testChannel.QueueDeclarePassiveAsync(this.parameters.QueueName, cancellationToken).ConfigureAwait(false);
+
+            await testChannel.CloseAsync(cancellationToken).ConfigureAwait(false);
+
+            using IServiceScope scope = this.parameters.ApplicationServiceProvider.CreateScope();
+
+            foreach (FromServicesArgumentBinder binder in this.dispatcher.GetArgumentBindersOfType<FromServicesArgumentBinder>())
             {
-                var exceptionMessage = $"Error on get service {binder.ParameterType} ";
-                if (!string.IsNullOrWhiteSpace(binder.ServiceKey))
+                try
                 {
-                    exceptionMessage += $" with key '{binder.ServiceKey}'";
+                    var service = binder.GetValue(scope.ServiceProvider);
                 }
-                throw new InvalidOperationException(exceptionMessage);
-            }
+                catch (Exception)
+                {
+                    var exceptionMessage = $"Error on get service {binder.ParameterType} ";
+                    if (!string.IsNullOrWhiteSpace(binder.ServiceKey))
+                    {
+                        exceptionMessage += $" with key '{binder.ServiceKey}'";
+                    }
+                    throw new InvalidOperationException(exceptionMessage);
+                }
 
+            }
+        }
+        finally
+        {
+            if (!mustReuseConnection)
+            {
+                await connection1.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
         }
 
     }
