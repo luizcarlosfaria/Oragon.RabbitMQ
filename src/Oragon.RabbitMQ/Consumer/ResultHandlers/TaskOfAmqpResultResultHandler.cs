@@ -1,4 +1,4 @@
-﻿// Licensed to LuizCarlosFaria, gaGO.io, Mensageria .NET, Cloud Native .NET and ACADEMIA.DEV under one or more agreements.
+// Licensed to LuizCarlosFaria, gaGO.io, Mensageria .NET, Cloud Native .NET and ACADEMIA.DEV under one or more agreements.
 // The ACADEMIA.DEV licenses this file to you under the MIT license.
 
 using System.Reflection;
@@ -14,7 +14,7 @@ namespace Oragon.RabbitMQ.Consumer.ResultHandlers;
 public class TaskOfAmqpResultResultHandler : IResultHandler
 {
     private readonly IAMQPResult nack = new NackResult(false);
-    PropertyInfo resultProperty;
+    private readonly PropertyInfo resultProperty;
 
     /// <summary>
     /// Constructor

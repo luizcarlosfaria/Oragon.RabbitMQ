@@ -38,7 +38,7 @@ public class Dispatcher
 
         this.argumentBinders = this.handler.Method.GetParameters().Select(this.BuildArgumentBinder).ToList();
 
-        var messageObjectCount = this.argumentBinders.Where(it => it is MessageObjectArgumentBinder).Count();
+        var messageObjectCount = this.argumentBinders.Count(it => it is MessageObjectArgumentBinder);
 
         if (messageObjectCount > 1) throw new InvalidOperationException("Only one parameter can be a message object");
 
