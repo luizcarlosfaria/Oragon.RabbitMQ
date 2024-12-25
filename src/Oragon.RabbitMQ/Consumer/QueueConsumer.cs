@@ -118,13 +118,25 @@ public class QueueConsumer : IHostedAmqpConsumer
     /// </summary>
     public async Task ValidateAsync(CancellationToken cancellationToken)
     {
-        IConnection connection = await this.parameters.ConnectionFactory(this.parameters.ApplicationServiceProvider, cancellationToken).ConfigureAwait(false);
-        using IChannel channel = await this.parameters.ChannelFactory(connection, cancellationToken).ConfigureAwait(false);
+        IConnection connection1 = await this.parameters.ConnectionFactory(this.parameters.ApplicationServiceProvider, cancellationToken).ConfigureAwait(false);
+        IConnection connection2 = await this.parameters.ConnectionFactory(this.parameters.ApplicationServiceProvider, cancellationToken).ConfigureAwait(false);
+        var mustReuseConnection = connection1 == connection2;
 
-        QueueDeclareOk queue = await channel.QueueDeclarePassiveAsync(this.parameters.QueueName, cancellationToken).ConfigureAwait(false);
+        if (!mustReuseConnection)
+        {
+            await connection2.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
+        
+        using IChannel testChannel = await this.parameters.ChannelFactory(connection1, cancellationToken).ConfigureAwait(false);
 
-        await channel.CloseAsync(cancellationToken).ConfigureAwait(false);
+        QueueDeclareOk queue = await testChannel.QueueDeclarePassiveAsync(this.parameters.QueueName, cancellationToken).ConfigureAwait(false);
 
+        await testChannel.CloseAsync(cancellationToken).ConfigureAwait(false);
+
+        if (!mustReuseConnection)
+        {
+            await connection1.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
 
         using IServiceScope scope = this.parameters.ApplicationServiceProvider.CreateScope();
 
