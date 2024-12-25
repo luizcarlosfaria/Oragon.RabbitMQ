@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
+using DotNetAspireApp.ApiService;
 using DotNetAspireApp.Common.Messages.Commands;
 using Microsoft.AspNetCore.Mvc;
 using Oragon.RabbitMQ;
@@ -10,6 +11,8 @@ using RabbitMQ.Client.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+builder.Services.AddTransient<MessagePublisher>();
 
 builder.Services.AddSingleton<IAMQPSerializer>(sp => new SystemTextJsonAMQPSerializer(JsonSerializerOptions.Default));
 
@@ -49,52 +52,30 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 });
 
+int progressBarWidth = 20;
 
-app.MapPost("/enqueue", (DoSomethingRequest req, CancellationToken cancellationToken, [FromServices] IAMQPSerializer serializer, [FromServices] IConnectionFactory connectionFactory)
+app.MapPost("/enqueue", (DoSomethingRequest req, CancellationToken cancellationToken, [FromServices] MessagePublisher messagePublisher)
     =>
 {
     _ = Task.Run(async () =>
     {
-        using var connection = await connectionFactory.CreateConnectionAsync("ApiService - enqueue", CancellationToken.None).ConfigureAwait(false);
-        using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
-
-
-
-        bool isBlocked = false;
-
-        connection.ConnectionBlockedAsync += delegate (object sender, ConnectionBlockedEventArgs @event)
-        {
-            Volatile.Write(ref isBlocked, true);
-            return Task.CompletedTask;
-        };
-        connection.ConnectionUnblockedAsync += delegate (object sender, AsyncEventArgs @event)
-        {
-            Volatile.Write(ref isBlocked, false);
-            return Task.CompletedTask;
-        };
-
+        Console.WriteLine($"{messagePublisher.Id} | Starting to publish {req.quantity:n0}");
         for (int i = 1; i <= req.quantity; i++)
         {
-            for (int retryWait = 0; Volatile.Read(ref isBlocked) && retryWait < 90; retryWait++)
-            {
-                Console.WriteLine("Connection is blocked. Waiting... ");
-                await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
-                if (!Volatile.Read(ref isBlocked)) break;
-            }
-
             var command = new DoSomethingCommand(req.Text, i, req.quantity);
 
-            var properties = channel.CreateBasicProperties().EnsureHeaders().SetDurable(true);
+            await messagePublisher.PublishAsync(command, "events", string.Empty, default).ConfigureAwait(false);
 
-            var body = serializer.Serialize(basicProperties: properties, message: command);
+            if (i % (req.quantity / progressBarWidth) == 0) // Update progress bar
+            {
+                int progress = (i * progressBarWidth / req.quantity);
+                Console.WriteLine($"{messagePublisher.Id} | [{new string('#', progress)}{new string(' ', progressBarWidth - progress)}] {i * 100 / req.quantity}%");
+            }
 
-            await channel.BasicPublishAsync("events", string.Empty, false, properties, body).ConfigureAwait(false);
-
-        };
-
-        await channel.CloseAsync().ConfigureAwait(false);
-        await connection.CloseAsync().ConfigureAwait(false);
-
+        }
+        Console.WriteLine($"{messagePublisher.Id} | Done ({req.quantity:n0} messages!)");
+        await messagePublisher.DisposeAsync().ConfigureAwait(false);
+        Console.WriteLine($"{messagePublisher.Id} | END ({req.quantity:n0} messages!)");
     });
 
     return "ok";
