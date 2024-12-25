@@ -39,7 +39,7 @@ public class NewtonsoftAMQPSerializerTests
     }
 
     [Fact]
-    public void DesserializationTest()
+    public void DeserializationTest()
     {
         var activitySource = new ActivitySource("test");
 
@@ -68,7 +68,7 @@ public class NewtonsoftAMQPSerializerTests
     }
 
     [Fact]
-    public void DesserializationNullTest()
+    public void DeserializationNullTest()
     {
         var activitySource = new ActivitySource("test");
 
@@ -93,7 +93,7 @@ public class NewtonsoftAMQPSerializerTests
     }
 
     [Fact]
-    public void DesserializationEmptyTest()
+    public void DeserializationEmptyTest()
     {
         var activitySource = new ActivitySource("test");
 
@@ -119,7 +119,7 @@ public class NewtonsoftAMQPSerializerTests
 
 
     [Fact]
-    public void DesserializationSpaceTest()
+    public void DeserializationSpaceTest()
     {
         var activitySource = new ActivitySource("test");
 
@@ -148,7 +148,7 @@ public class NewtonsoftAMQPSerializerTests
     [InlineData([@"{ ""Name"": ""Oragon.RabbitMQ"", ""Age"": 1 }", "Oragon.RabbitMQ", 1])]
     [InlineData([@"{ ""name"": ""Oragon.RabbitMQ"", ""age"": 2 }", "Oragon.RabbitMQ", 2])]
     [InlineData([@"{ ""name"": ""Oragon.RabbitMQ"", ""Age"": ""3"" }", "Oragon.RabbitMQ", 3])]
-    public void TheoryOfDesserializationTest(string json, string expectedName, int expectedAge)
+    public void TheoryOfDeserializationTest(string json, string expectedName, int expectedAge)
     {
         byte[] jsonInBytes = Encoding.UTF8.GetBytes(json);
 

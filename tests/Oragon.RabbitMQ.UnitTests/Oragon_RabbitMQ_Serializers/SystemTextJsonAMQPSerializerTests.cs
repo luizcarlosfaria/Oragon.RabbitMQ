@@ -41,7 +41,7 @@ public class SystemTextJsonAMQPSerializerTests
     }
 
     [Fact]
-    public void DesserializationTest()
+    public void DeserializationTest()
     {
         var activitySource = new ActivitySource("test");
 
@@ -70,7 +70,7 @@ public class SystemTextJsonAMQPSerializerTests
     }
 
     [Fact]
-    public void DesserializationNullTest()
+    public void DeserializationNullTest()
     {
         var activitySource = new ActivitySource("test");
 
@@ -95,7 +95,7 @@ public class SystemTextJsonAMQPSerializerTests
     }
 
     [Fact]
-    public void DesserializationEmptyTest()
+    public void DeserializationEmptyTest()
     {
         var activitySource = new ActivitySource("test");
 
@@ -121,7 +121,7 @@ public class SystemTextJsonAMQPSerializerTests
 
 
     [Fact]
-    public void DesserializationSpaceTest()
+    public void DeserializationSpaceTest()
     {
         var activitySource = new ActivitySource("test");
 
@@ -152,7 +152,7 @@ public class SystemTextJsonAMQPSerializerTests
     [InlineData([@"{ ""Name"": ""Oragon.RabbitMQ"", ""Age"": 1 }", "Oragon.RabbitMQ", 1, null])]
     [InlineData([@"{ ""name"": ""Oragon.RabbitMQ"", ""age"": 2 }", "Oragon.RabbitMQ", 2, null])]
     [InlineData([@"{ ""name"": ""Oragon.RabbitMQ"", ""Age"": ""3"" }", "Oragon.RabbitMQ", 3, null])]
-    public void TheoryOfDesserializationTest(string json, string expectedName, int expectedAge, Type exceptionType)
+    public void TheoryOfDeserializationTest(string json, string expectedName, int expectedAge, Type exceptionType)
     {
         var jsonInBytes = Encoding.UTF8.GetBytes(json);
 

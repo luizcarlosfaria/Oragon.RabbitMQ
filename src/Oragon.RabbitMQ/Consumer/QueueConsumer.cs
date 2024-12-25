@@ -227,7 +227,7 @@ public class QueueConsumer : IHostedAmqpConsumer
     }
 
 
-    private static readonly Action<ILogger, Exception, Exception> s_logErrorOnDesserialize = LoggerMessage.Define<Exception>(LogLevel.Error, new EventId(1, "MessageObject rejected during deserialization"), "MessageObject rejected during deserialization {ExceptionDetails}");
+    private static readonly Action<ILogger, Exception, Exception> s_logErrorOnDeserialize = LoggerMessage.Define<Exception>(LogLevel.Error, new EventId(1, "MessageObject rejected during deserialization"), "MessageObject rejected during deserialization {ExceptionDetails}");
 
 
     /// <summary>
@@ -253,7 +253,7 @@ public class QueueConsumer : IHostedAmqpConsumer
         {
             returnValue = false;
 
-            s_logErrorOnDesserialize(this.logger, exception, exception);
+            s_logErrorOnDeserialize(this.logger, exception, exception);
         }
 
         return returnValue;
