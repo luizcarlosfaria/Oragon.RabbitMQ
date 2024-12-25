@@ -6,7 +6,6 @@ using Oragon.RabbitMQ.Serialization;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
-using Oragon.RabbitMQ.Consumer.Dispatch;
 using Oragon.RabbitMQ.Consumer.Dispatch.Attributes;
 
 namespace Oragon.RabbitMQ.UnitTests.Oragon_RabbitMQ;

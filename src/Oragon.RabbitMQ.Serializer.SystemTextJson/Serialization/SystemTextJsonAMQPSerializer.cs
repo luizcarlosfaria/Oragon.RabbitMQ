@@ -1,4 +1,3 @@
-using Dawn;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Diagnostics.CodeAnalysis;

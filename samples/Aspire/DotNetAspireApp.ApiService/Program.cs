@@ -1,13 +1,9 @@
-using System.Reflection;
 using System.Text.Json;
 using DotNetAspireApp.ApiService;
 using DotNetAspireApp.Common.Messages.Commands;
 using Microsoft.AspNetCore.Mvc;
-using Oragon.RabbitMQ;
 using Oragon.RabbitMQ.AspireClient;
 using Oragon.RabbitMQ.Serialization;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 

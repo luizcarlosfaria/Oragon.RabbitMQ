@@ -1,5 +1,3 @@
-using Dawn;
-
 namespace Oragon.RabbitMQ.Consumer.Actions;
 
 /// <summary>

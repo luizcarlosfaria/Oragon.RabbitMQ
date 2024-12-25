@@ -7,7 +7,6 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Oragon.RabbitMQ.TestsExtensions;
 using System.Text;
-using Oragon.RabbitMQ.Consumer.Dispatch;
 using Oragon.RabbitMQ.Consumer;
 using Oragon.RabbitMQ.Consumer.Dispatch.Attributes;
 

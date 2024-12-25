@@ -1,9 +1,5 @@
 using Moq;
-using Oragon.RabbitMQ.Consumer.Actions;
 using Oragon.RabbitMQ.Consumer;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
-using Oragon.RabbitMQ.Serialization;
 using Oragon.RabbitMQ.Consumer.ArgumentBinders;
 using Microsoft.Extensions.DependencyInjection;
 

@@ -1,5 +1,4 @@
 using Moq;
-using Oragon.RabbitMQ.Consumer.Actions;
 using Oragon.RabbitMQ.Consumer;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;

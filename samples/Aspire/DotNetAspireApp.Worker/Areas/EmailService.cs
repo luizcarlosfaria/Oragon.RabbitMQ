@@ -6,14 +6,7 @@
 // The ACADEMIA.DEV licenses this file to you under the MIT license.
 
 using DotNetAspireApp.Common.Messages.Commands;
-using Oragon.RabbitMQ;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
-using Oragon.RabbitMQ.Serialization;
-using Oragon.RabbitMQ.Consumer.Dispatch;
-using Oragon.RabbitMQ.Consumer.Dispatch.Attributes;
-using Oragon.RabbitMQ.Consumer.Actions;
-using System.Threading.RateLimiting;
 
 namespace DotNetAspireApp.Worker.Areas;
 

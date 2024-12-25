@@ -9,7 +9,7 @@ namespace Oragon.RabbitMQ.Serialization;
 public interface IAMQPSerializer
 {
     /// <summary>
-    /// Desserialize a message from a BasicDeliverEventArgs
+    /// Deserialize a message from a BasicDeliverEventArgs
     /// </summary>
     /// <typeparam name="TMessage"></typeparam>
     /// <param name="eventArgs"></param>
@@ -18,7 +18,7 @@ public interface IAMQPSerializer
 
 
     /// <summary>
-    /// Desserialize a message from a BasicDeliverEventArgs
+    /// Deserialize a message from a BasicDeliverEventArgs
     /// </summary>
     /// <param name="eventArgs"></param>
     /// <param name="type"></param>

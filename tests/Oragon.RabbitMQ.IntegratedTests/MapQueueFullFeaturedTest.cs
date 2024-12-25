@@ -10,7 +10,6 @@ using Microsoft.Extensions.Hosting;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Oragon.RabbitMQ.TestsExtensions;
-using Oragon.RabbitMQ.Consumer.Dispatch;
 using Oragon.RabbitMQ.Consumer.Dispatch.Attributes;
 
 namespace Oragon.RabbitMQ.IntegratedTests;
