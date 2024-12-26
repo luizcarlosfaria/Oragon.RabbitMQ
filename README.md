@@ -1,4 +1,3 @@
-
 ![Card](https://raw.githubusercontent.com/luizcarlosfaria/Oragon.RabbitMQ/master/src/Assets/opengraph-card.png) 
 
 # Oragon.RabbitMQ 
@@ -16,11 +15,7 @@
 [![GitHub last commit](https://img.shields.io/github/last-commit/luizcarlosfaria/Oragon.RabbitMQ)](https://github.com/luizcarlosfaria/Oragon.RabbitMQ/commits/)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/Oragon.RabbitMQ)](https://www.nuget.org/packages/Oragon.RabbitMQ/) [![GitHub Repo stars](https://img.shields.io/github/stars/luizcarlosfaria/Oragon.RabbitMQ)](https://github.com/luizcarlosfaria/Oragon.RabbitMQ)
 
-
 [![Roadmap](https://img.shields.io/badge/Roadmap-%23ff6600?logo=github&logoColor=%23000000&label=GitHub&labelColor=%23f0f0f0)](https://github.com/users/luizcarlosfaria/projects/3/views/3)
-
-
-
 
 ## Official Release 
 
@@ -29,9 +24,7 @@
 ## Others
 
 [![GitHub Tag](https://img.shields.io/github/v/tag/luizcarlosfaria/Oragon.RabbitMQ)](https://github.com/luizcarlosfaria/Oragon.RabbitMQ/tags)
-
 [![GitHub Release](https://img.shields.io/github/v/release/luizcarlosfaria/Oragon.RabbitMQ)](https://github.com/luizcarlosfaria/Oragon.RabbitMQ/releases)
-
 [![MyGet Version](https://img.shields.io/myget/oragon/vpre/Oragon.RabbitMQ?logo=myget&label=myget)](https://www.myget.org/feed/Packages/oragon)
 
 ## Tech / Skill
@@ -39,18 +32,14 @@
 ![C#](https://img.shields.io/badge/c%23-%23239120.svg?style=for-the-badge&logo=csharp&logoColor=white)
 ![.Net](https://img.shields.io/badge/.NET-5C2D91?style=for-the-badge&logo=.net&logoColor=white)
 ![Visual Studio](https://img.shields.io/badge/Visual%20Studio-5C2D91.svg?style=for-the-badge&logo=visual-studio&logoColor=white)
-
 [![Jenkins](https://img.shields.io/badge/jenkins-%232C5263.svg?style=for-the-badge&logo=jenkins&logoColor=white)](https://jenkins.oragon.io/job/oragon/job/Oragon.RabbitMQ/)
-
 [![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/luizcarlosfaria)
 
 Opinionated and Simplified Minimal APIs for Consuming Messages from RabbitMQ, Ensuring No Crucial Configurations Are Hidden.
 
 # What is Oragon.RabbitMQ?
 
-## Oragon.RabbitMQ is a Minimal API implementation to Consume RabbitMQ Queues.
-
-Oragon.RabbitMQ provides everything you need to create resilient RabbitMQ consumers without the need to study numerous books and articles or introduce unknown risks to your environment.
+Oragon.RabbitMQ is a Minimal API implementation to consume RabbitMQ queues. It provides everything you need to create resilient RabbitMQ consumers without the need to study numerous books and articles or introduce unknown risks to your environment.
 
 ## Get Started
 
@@ -77,27 +66,26 @@ dotnet add package Oragon.RabbitMQ.Serializer.NewtonsoftJson
 ```cs
 var builder = WebApplication.CreateBuilder(args); //or Host.CreateApplicationBuilder(args);
 
-.../*your dependencies configuration*/...
+// ...existing code...
 
 builder.AddRabbitMQConsumer();
 
 /*Pick only one*/
 
-    /*For JSON.NET*/
-    builder.Services.AddSingleton<IAMQPSerializer>(sp => new SystemTextJsonAMQPSerializer(new JsonSerializerOptions(JsonSerializerDefaults.General){ ... }));
+// For JSON.NET
+builder.Services.AddSingleton<IAMQPSerializer>(sp => new SystemTextJsonAMQPSerializer(new JsonSerializerOptions(JsonSerializerDefaults.General){ ... }));
 
-    /*For Newtonsoft Json .Net*/
-    builder.Services.AddSingleton<IAMQPSerializer>(sp => new NewtonsoftAMQPSerializer(new JsonSerializerSettings(){ ... }));
+// For Newtonsoft Json .Net
+builder.Services.AddSingleton<IAMQPSerializer>(sp => new NewtonsoftAMQPSerializer(new JsonSerializerSettings(){ ... }));
 
-
+// ...existing code...
 ```
 
-
 ### Configuring IConnectionFactory and IConnection
-The consumer will use the dependency injection to get a valid instance of **RabbitMQ.Client.IConnection**. If you does not provider one, above you can see how to create a connection configuration.
+The consumer will use dependency injection to get a valid instance of **RabbitMQ.Client.IConnection**. If you do not provide one, you can create a connection configuration as shown below.
 
 ```cs
-...
+// ...existing code...
 builder.Services.AddSingleton<IConnectionFactory>(sp => new ConnectionFactory()
 {
     Uri = new Uri("amqp://rabbitmq:5672"),
@@ -105,21 +93,18 @@ builder.Services.AddSingleton<IConnectionFactory>(sp => new ConnectionFactory()
 });
 
 builder.Services.AddSingleton(sp => sp.GetRequiredService<IConnectionFactory>().CreateConnectionAsync().GetAwaiter().GetResult());
-...
-
+// ...existing code...
 ```
+
 ### .NET ASPIRE
-If you are using **.NET Aspire**, replace `Aspire.RabbitMQ.Client` by `Oragon.RabbitMQ.AspireClient` package. 
+If you are using **.NET Aspire**, replace `Aspire.RabbitMQ.Client` with the `Oragon.RabbitMQ.AspireClient` package. 
 
-Today `Oragon.RabbitMQ.AspireClient` support for RabbitMQ.Client 7.x instead today `Aspire.RabbitMQ.Client` support 6.x.
-
-When `Aspire.RabbitMQ.Client` supports  RabbitMQ.Client 7.x, `Oragon.RabbitMQ.AspireClient` package will be marked as deprecated.
+Today, `Oragon.RabbitMQ.AspireClient` supports RabbitMQ.Client 7.x, while `Aspire.RabbitMQ.Client` supports 6.x. When `Aspire.RabbitMQ.Client` supports RabbitMQ.Client 7.x, the `Oragon.RabbitMQ.AspireClient` package will be marked as deprecated.
 
 ```cs
-...
+// ...existing code...
 builder.AddRabbitMQClient("rabbitmq");
-...
-
+// ...existing code...
 ```
 
 # 🎯 Map your Queue 🎯
@@ -127,7 +112,7 @@ builder.AddRabbitMQClient("rabbitmq");
 To map your queue using this package, follow these steps:
 
 1. **Build the application:**
-    First, you need to build your application using the builder pattern. This initializes the application and prepares it for further configuration.
+    First, build your application using the builder pattern. This initializes the application and prepares it for further configuration.
     ```cs
     var app = builder.Build();
     ```
@@ -140,11 +125,13 @@ To map your queue using this package, follow these steps:
     app.MapQueue("queueName", ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => 
         svc.DoSomethingAsync(msg));
     ```
+
     #### Example 2
     ```cs
     app.MapQueue("queueName", async ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => 
         await svc.DoSomethingAsync(msg).ConfigureAwait(false));
     ```
+
     #### Example 3
     ```cs
     app.MapQueue("queueName", async ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => {
@@ -154,20 +141,17 @@ To map your queue using this package, follow these steps:
         if (svc.CanXpto(msg))
         {
             await svc.DoXptoAsync(msg);
-
             returnValue = new AckResult();
-
-        } else {
-
+        } 
+        else 
+        {
             returnValue = new RejectResult(requeue: true);
-
         }
         return returnValue;
-        
     });
     ```
 
-    #### Example 3
+    #### Example 4
     ```cs
     app.MapQueue("queueName", async ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => {
         
@@ -180,28 +164,24 @@ To map your queue using this package, follow these steps:
         }
         catch(Exception ex)
         {
-            //Log this exception
+            // Log this exception
             returnValue = new NackResult(requeue: true);
         }
         
         return returnValue;
-        
     });
-    ```    
-    
+    ```
 
 3. **Run the application:**
     Finally, run the application to start processing messages from the queue.
     ```cs
     app.Run();
     ```
-    
 
 ---
 
 ## Full Example
 ```cs
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddRabbitMQConsumer();
@@ -220,23 +200,21 @@ app.MapQueue("queueName", ([FromServices] BusinessService svc, BusinessCommandOr
     svc.DoSomethingAsync(msg));
 
 app.Run();
-
 ```
+
 # Concepts
 
 ## Decoupling Business Logic from Infrastructure
 
-This approach is designed to decouple RabbitMQ consumers from business logic, ensuring that business code remains unaware of the queue consumption context.
-
-The result is incredibly simple, decoupled, agnostic, more reusable, and highly testable code.
+This approach is designed to decouple RabbitMQ consumers from business logic, ensuring that business code remains unaware of the queue consumption context. The result is incredibly simple, decoupled, agnostic, more reusable, and highly testable code.
 
 ## Opinionated Design: Why?
 
 This consumer is focused on creating a resilient consumer using manual acknowledgments.
 
--  The automatic flow produces a `BasicReject` without requeue when serialization failures (e.g., incorrectly formatted messages),  you must use dead-lettering to ensure that your message will not be lost.
--  The automatic flow produces a `BasicNack` without requeue for processing failures. You must use dead-lettering to ensure that your message will not be lost.
--  The automatic flow produces a `BasicAck` for sucess. If you need more control return an instance of `IAMQPResult` to control this behavior.
+- The automatic flow produces a `BasicReject` without requeue when serialization failures (e.g., incorrectly formatted messages), you must use dead-lettering to ensure that your message will not be lost.
+- The automatic flow produces a `BasicNack` without requeue for processing failures. You must use dead-lettering to ensure that your message will not be lost.
+- The automatic flow produces a `BasicAck` for success. If you need more control, return an instance of `IAMQPResult` to control this behavior.
 - Minimal API design style made with minimum and cached reflection
 - Extensible with support for custom serializers and encoders
 
@@ -244,17 +222,16 @@ This consumer is focused on creating a resilient consumer using manual acknowled
 
 ### AMQP Flow Control
 
-Autoflow use Ack, Nack and Reject automatically, but you can control the flow.
+Autoflow uses Ack, Nack, and Reject automatically, but you can control the flow.
 
-Inside `Oragon.RabbitMQ.Consumer.Actions` namespace you can find some results:
+Inside the `Oragon.RabbitMQ.Consumer.Actions` namespace, you can find some results:
 - AckResult (`new AckResult();`)
 - ComposableResult (`new ComposableResult(params IAMQPResult[] results);`)
 - NackResult (`new NackResult(bool requeue);`)
 - RejectResult (`new RejectResult(bool requeue);`)
 - ReplyResult (`new ReplyResult(object objectToReply);`) ⚠️EXPERIMENTAL⚠️
 
-Above, you can see how it can work for you:
-
+Example:
 ```cs
 app.MapQueue("queueName", ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => {
     
@@ -263,43 +240,41 @@ app.MapQueue("queueName", ([FromServices] BusinessService svc, BusinessCommandOr
     if (svc.CanXpto(msg))
     {
         svc.DoXpto(msg);
-
         returnValue = new AckResult();
-
-    } else {
-
+    } 
+    else 
+    {
         returnValue = new RejectResult(requeue: true);
-
     }
     return returnValue;
 })
 .WithPrefetch(2000)
 .WithDispatchConcurrency(4);
 ```
-### Async os No
+
+### Async or Not
 ```cs
 app.MapQueue("queueName", async ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => {
 
     if (await svc.CanXpto(msg))
     {
        await svc.DoXpto(msg);
-
        return new AckResult();
-
-    } else {
-
+    } 
+    else 
+    {
         return new RejectResult(requeue: true);
-        
     }
 })
 .WithPrefetch(2000)
 .WithDispatchConcurrency(4);
 ```
+
 ### Model Binder Examples
 
 ### Special Types
 
-For this types, model binder will set correct current instance without need a special attribute.
+For these types, the model binder will set the correct current instance without needing a special attribute.
 
 - RabbitMQ.Client.IConnection
 - RabbitMQ.Client.IChannel
@@ -313,17 +288,17 @@ For this types, model binder will set correct current instance without need a sp
 Some string parameters are considered special, and the model binder will use a name to set the correct current string from the consumer.
 
 #### Queue Name
-The model binder will set a name of queue that the consumer are consuming.
+The model binder will set the name of the queue that the consumer is consuming.
 - queue
 - queueName
 
 #### Routing Key
-The model binder will set a routing key from the amqp message.
+The model binder will set a routing key from the AMQP message.
 - routing
 - routingKey
 
 #### Exchange Name
-The model binder will set a exchange name from the amqp message.
+The model binder will set an exchange name from the AMQP message.
 - exchange
 - exchangeName
 
@@ -332,12 +307,9 @@ The model binder will set a consumer tag from the actual consumer.
 - consumer
 - consumerTag
 
-
 ## Telemetry
 
-For version 1.0.0 I've removed all implementations of automatic telemetry and OpenTelemetry. 
-It will be available as soon as possible.
-
+For version 1.0.0, I've removed all implementations of automatic telemetry and OpenTelemetry. It will be available as soon as possible.
 
 ## Stages and Requirements for Launch 
 - [x] Migrate Demo to Library Project
@@ -359,4 +331,3 @@ It will be available as soon as possible.
 - [x] Test CI/CD Flow: MyGet Packages without Symbols
 - [x] Test CI/CD Flow: Nuget Packages without Symbols
 - [x] Change original behavior based on lambda expressions to dynamic delegate.
-
