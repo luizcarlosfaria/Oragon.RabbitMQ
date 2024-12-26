@@ -248,7 +248,7 @@ public class QueueConsumer : IHostedAmqpConsumer
     /// <param name="type"></param>
     /// <param name="incomingMessage">The deserialized incomingMessage.</param>
     /// <returns><c>true</c> if deserialization is successful; otherwise, <c>false</c>.</returns>
-    [SuppressMessage("Design", "CA1031", Justification = "Tratamento de exceçào global, isolando uma micro-operação")]
+    [SuppressMessage("Design", "CA1031", Justification = "Tratamento de exceção global, isolando uma micro-operação")]
     private bool TryDeserialize(BasicDeliverEventArgs eventArgs, Type type, out object incomingMessage)
     {
         _ = Guard.Argument(eventArgs).NotNull();

@@ -16,7 +16,7 @@ namespace Oragon.RabbitMQ.Consumer.Dispatch;
 public class Dispatcher
 {
     private readonly Delegate handler;
-    private readonly List<IAmqpArgumentBinder> argumentBinders = [];
+    private readonly List<IAmqpArgumentBinder> argumentBinders;
     private readonly IResultHandler resultHandler;
 
     /// <summary>
