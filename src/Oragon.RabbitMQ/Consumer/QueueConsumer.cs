@@ -95,6 +95,17 @@ public class QueueConsumer : IHostedAmqpConsumer
     /// Waits for the queue creation asynchronously.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    // Add this static field to define the LoggerMessage delegate
+    private static readonly Action<ILogger, string, TimeSpan, Exception> s_logQueueNotFound = LoggerMessage.Define<string, TimeSpan>(
+        LogLevel.Warning,
+        new EventId(2, nameof(WaitQueueCreationAsync)),
+        "Queue {QueueName} not found... We will try in {Tempo}."
+    );
+
+    /// <summary>
+    /// Waits for the queue creation asynchronously.
+    /// </summary>
+    /// <returns></returns>
     protected virtual async Task WaitQueueCreationAsync()
     {
         _ = await Policy
@@ -102,7 +113,7 @@ public class QueueConsumer : IHostedAmqpConsumer
             .WaitAndRetryAsync(5, retryAttempt =>
             {
                 var timeToWait = TimeSpan.FromSeconds(Math.Pow(2, retryAttempt));
-                this.logger.LogWarning("Queue {QueueName} not found... We will try in {Tempo}.", this.parameters.QueueName, timeToWait);
+                s_logQueueNotFound(this.logger, this.parameters.QueueName, timeToWait, null);
                 return timeToWait;
             })
             .ExecuteAsync(async () =>

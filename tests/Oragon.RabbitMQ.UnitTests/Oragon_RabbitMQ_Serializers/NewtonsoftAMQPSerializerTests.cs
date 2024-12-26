@@ -1,7 +1,6 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Diagnostics;
 using System.Text;
 using Newtonsoft.Json;
 using Oragon.RabbitMQ.Serialization;
@@ -22,8 +21,6 @@ public class NewtonsoftAMQPSerializerTests
     [Fact]
     public void SerializationTest()
     {
-        var activitySource = new ActivitySource("test");
-
         var targetBasicProperties = new BasicProperties();
 
         var sourceObject = new Teste() { Name = "Oragon.RabbitMQ", Age = 2 };
@@ -41,8 +38,6 @@ public class NewtonsoftAMQPSerializerTests
     [Fact]
     public void DeserializationTest()
     {
-        var activitySource = new ActivitySource("test");
-
         var basicProperties = new BasicProperties();
 
         var sourceObject = new Teste() { Name = "Oragon.RabbitMQ", Age = 2 };
@@ -70,8 +65,6 @@ public class NewtonsoftAMQPSerializerTests
     [Fact]
     public void DeserializationNullTest()
     {
-        var activitySource = new ActivitySource("test");
-
         var basicProperties = new BasicProperties();
 
         byte[] reference = [];
@@ -95,8 +88,6 @@ public class NewtonsoftAMQPSerializerTests
     [Fact]
     public void DeserializationEmptyTest()
     {
-        var activitySource = new ActivitySource("test");
-
         var basicProperties = new BasicProperties();
 
         var reference = Encoding.UTF8.GetBytes("");
@@ -121,8 +112,6 @@ public class NewtonsoftAMQPSerializerTests
     [Fact]
     public void DeserializationSpaceTest()
     {
-        var activitySource = new ActivitySource("test");
-
         var basicProperties = new BasicProperties();
 
         var reference = Encoding.UTF8.GetBytes(" ");

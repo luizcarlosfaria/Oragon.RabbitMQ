@@ -70,14 +70,11 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
         };
     }
 
-    private async Task<IConnection> CreateConnectionAsync()
+    private async Task<IConnection?> CreateConnectionAsync()
     {
-        IConnection connection = null;
+        IConnection? connection = null;
 
-        await SafeRunner.ExecuteWithRetry<global::RabbitMQ.Client.Exceptions.BrokerUnreachableException>(async () =>
-        {
-            connection = await this.CreateConnectionFactory().CreateConnectionAsync();
-        }).ConfigureAwait(true);
+        await SafeRunner.ExecuteWithRetry<global::RabbitMQ.Client.Exceptions.BrokerUnreachableException>(async () => connection = await this.CreateConnectionFactory().CreateConnectionAsync().ConfigureAwait(false)).ConfigureAwait(true);
 
         return connection;
     }
@@ -106,7 +103,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
         // Singleton dependencies
         services.AddSingleton(new ActivitySource("test"));
         services.AddSingleton<IAMQPSerializer>(sp => new NewtonsoftAMQPSerializer(null));
-        services.AddSingleton(connection);
+        services.AddSingleton(connection ?? throw new InvalidOperationException("Connection is null"));
 
         // Scoped dependencies
         services.AddScoped<ExampleService>();
@@ -116,26 +113,26 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
 
 
         // Send a message to the channel.
-        using var channel = await connection.CreateChannelAsync(new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true));
+        using IChannel channel = await connection.CreateChannelAsync(new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true));
 
         _ = await channel.QueueDeclareAsync(queue, false, false, false, null);
 
         await channel.BasicPublishAsync(string.Empty, queue, true, Encoding.Default.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(originalMessage)));
 
 
-        var sp = services.BuildServiceProvider();
+        ServiceProvider sp = services.BuildServiceProvider();
 
         sp.MapQueue(queue, ([FromServices] ExampleService svc, ExampleMessage msg) => svc.TestAsync(msg))
             .WithPrefetch(1);
 
 
-        var hostedService = sp.GetRequiredService<IHostedService>();
+        IHostedService hostedService = sp.GetRequiredService<IHostedService>();
 
         await hostedService.StartAsync(CancellationToken.None);
 
         waitHandleRef.TryGetTarget(out EventWaitHandle? waitHandle);
 
-        for(int i = 0; i < 10; i++)
+        for (var i = 0; i < 10; i++)
         {
             if (waitHandle == null)
             {
@@ -144,6 +141,8 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
                 await Task.Delay(200);
             }
         }
+
+        Assert.NotNull(waitHandle);
 
         _ = waitHandle.WaitOne(
             Debugger.IsAttached

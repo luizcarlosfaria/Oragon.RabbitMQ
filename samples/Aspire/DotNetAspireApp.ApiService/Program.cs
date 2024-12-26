@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Oragon.RabbitMQ.AspireClient;
 using Oragon.RabbitMQ.Serialization;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 
 builder.Services.AddTransient<MessagePublisher>();
@@ -25,7 +25,7 @@ builder.AddServiceDefaults();
 // Add services to the container.
 builder.Services.AddProblemDetails();
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler();
@@ -37,7 +37,7 @@ var summaries = new[]
 
 app.MapGet("/weatherforecast", () =>
 {
-    var forecast = Enumerable.Range(1, 5).Select(index =>
+    WeatherForecast[] forecast = Enumerable.Range(1, 5).Select(index =>
         new WeatherForecast
         (
             DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
@@ -48,7 +48,7 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 });
 
-int progressBarWidth = 20;
+var progressBarWidth = 20;
 
 app.MapPost("/enqueue", (DoSomethingRequest req, CancellationToken cancellationToken, [FromServices] MessagePublisher messagePublisher)
     =>
@@ -56,7 +56,7 @@ app.MapPost("/enqueue", (DoSomethingRequest req, CancellationToken cancellationT
     _ = Task.Run(async () =>
     {
         Console.WriteLine($"{messagePublisher.Id} | Starting to publish {req.quantity:n0}");
-        for (int i = 1; i <= req.quantity; i++)
+        for (var i = 1; i <= req.quantity; i++)
         {
             var command = new DoSomethingCommand(req.Text, i, req.quantity);
 
@@ -64,7 +64,7 @@ app.MapPost("/enqueue", (DoSomethingRequest req, CancellationToken cancellationT
 
             if (i % (req.quantity / progressBarWidth) == 0) // Update progress bar
             {
-                int progress = (i * progressBarWidth / req.quantity);
+                var progress = (i * progressBarWidth / req.quantity);
                 Console.WriteLine($"{messagePublisher.Id} | [{new string('#', progress)}{new string(' ', progressBarWidth - progress)}] {i * 100 / req.quantity}%");
             }
 

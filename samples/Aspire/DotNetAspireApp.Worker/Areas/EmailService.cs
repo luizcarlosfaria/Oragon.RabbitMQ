@@ -15,11 +15,11 @@ public static class EmailServiceExtensions
 
     public static async Task ConfigureRabbitMQAsync(this IHost host)
     {
-        var connectionFactory = host.Services.GetRequiredService<IConnectionFactory>();
+        IConnectionFactory connectionFactory = host.Services.GetRequiredService<IConnectionFactory>();
 
-        using var connection = await connectionFactory.CreateConnectionAsync().ConfigureAwait(false);
+        using IConnection connection = await connectionFactory.CreateConnectionAsync().ConfigureAwait(false);
 
-        using var channel = await connection.CreateChannelAsync().ConfigureAwait(false);
+        using IChannel channel = await connection.CreateChannelAsync().ConfigureAwait(false);
 
         await channel.ExchangeDeclareAsync("events", type: ExchangeType.Fanout, durable: true, autoDelete: false).ConfigureAwait(false);
 
@@ -33,12 +33,12 @@ public static class EmailServiceExtensions
     }
 
 
-  
+
 }
 
 public class EmailService
 {
-    public async Task DoSomethingAsync(DoSomethingCommand command)
+    public Task DoSomethingAsync(DoSomethingCommand command)
     {
         //enviar email
 
@@ -49,5 +49,7 @@ public class EmailService
         //Console.WriteLine($"End   {command.Seq} | {command.Max} | {command.Text}");
 
         //return Task.CompletedTask;
+
+        return Task.CompletedTask;
     }
 }

@@ -96,7 +96,7 @@ public class ConsumerServer : IHostedService, IDisposable
 
                     _ = this.internalConsumers.Remove(consumer);
                 }
-            }            
+            }
             this.disposedValue = true;
         }
     }

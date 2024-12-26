@@ -21,7 +21,7 @@ public class MessagePublisher
         this.serializer = serializer;
     }
 
-    
+
     #region Connection Management
 
     private IConnection? connection;
@@ -103,16 +103,16 @@ public class MessagePublisher
 
     public async Task PublishAsync<T>(T message, string exchange, string routingKey, CancellationToken cancellationToken)
     {
-        for (int retryWait = 0; this.isBlocked && retryWait < 90; retryWait++)
+        for (var retryWait = 0; this.isBlocked && retryWait < 90; retryWait++)
         {
             Console.WriteLine($"{this.Id} Connection is blocked. Waiting 5s... ");
-            await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+            await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken).ConfigureAwait(false);
             if (!this.isBlocked) break;
         }
 
-        var channel = await this.GetOrCreateChannelAsync().ConfigureAwait(false);
+        IChannel channel = await this.GetOrCreateChannelAsync().ConfigureAwait(false);
 
-        var properties = channel.CreateBasicProperties().EnsureHeaders().SetDurable(true);
+        BasicProperties properties = channel.CreateBasicProperties().EnsureHeaders().SetDurable(true);
 
         var body = this.serializer.Serialize(basicProperties: properties, message: message);
 

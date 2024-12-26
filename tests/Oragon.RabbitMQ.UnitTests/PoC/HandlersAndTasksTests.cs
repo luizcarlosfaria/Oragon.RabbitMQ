@@ -6,13 +6,12 @@ using Oragon.RabbitMQ.Consumer;
 using Oragon.RabbitMQ.Consumer.Actions;
 using Oragon.RabbitMQ.Consumer.Dispatch;
 using Oragon.RabbitMQ.Consumer.Dispatch.Attributes;
-using Oragon.RabbitMQ.Consumer.ResultHandlers;
 
 namespace Oragon.RabbitMQ.UnitTests.PoC;
 
 public class SampleRequest
 {
-    public object ReturnValue { get; set; }
+    public object? ReturnValue { get; set; }
 
     public bool ThrowException { get; set; }
 }
@@ -92,13 +91,13 @@ public class HandlersAndTasksTests
 
         foreach (var currentDelegate in delegates)
         {
-            await this.DispatchWithSuccess(currentDelegate);
-            await this.DispatchForFailure(currentDelegate);
+            await DispatchWithSuccess(currentDelegate);
+            await DispatchForFailure(currentDelegate);
         }
 
     }
 
-    private async Task DispatchWithSuccess(Delegate delegateToHandle)
+    private static async Task DispatchWithSuccess(Delegate delegateToHandle)
     {
         Mock<IServiceProvider> serviceProviderMock = new Mock<IServiceProvider>();
         _ = serviceProviderMock.Setup(it => it.GetService(typeof(SampleService))).Returns(new SampleService());
@@ -109,7 +108,7 @@ public class HandlersAndTasksTests
 
         var dispatcher = new Dispatcher(delegateToHandle);
 
-        IAMQPResult amqpResult = await dispatcher.DispatchAsync(amqpContextMock.Object);
+        IAMQPResult amqpResult = await dispatcher.DispatchAsync(amqpContextMock.Object).ConfigureAwait(false);
 
         Type[] typesOk = [typeof(AckResult), typeof(RejectResult)];
         Type[] typesNOk = [typeof(NackResult), typeof(ReplyResult)];
@@ -118,7 +117,7 @@ public class HandlersAndTasksTests
         Assert.DoesNotContain(amqpResult.GetType(), typesNOk);
     }
 
-    private async Task DispatchForFailure(Delegate delegateToHandle)
+    private static async Task DispatchForFailure(Delegate delegateToHandle)
     {
         Mock<IServiceProvider> serviceProviderMock = new Mock<IServiceProvider>();
         _ = serviceProviderMock.Setup(it => it.GetService(typeof(SampleService))).Returns(new SampleService());
@@ -129,42 +128,13 @@ public class HandlersAndTasksTests
 
         var dispatcher = new Dispatcher(delegateToHandle);
 
-        IAMQPResult amqpResult = await dispatcher.DispatchAsync(amqpContextMock.Object);
+        IAMQPResult amqpResult = await dispatcher.DispatchAsync(amqpContextMock.Object).ConfigureAwait(false);
 
         Type[] typesOk = [typeof(NackResult)];
         Type[] typesNOk = [typeof(AckResult), typeof(RejectResult), typeof(ReplyResult)];
 
         Assert.Contains(amqpResult.GetType(), typesOk);
         Assert.DoesNotContain(amqpResult.GetType(), typesNOk);
-    }
-
-    private IResultHandler GetHandler(Type type)
-    {
-        var amqpResultType = typeof(IAMQPResult);
-        var taskOfAmqpResultType = typeof(Task<IAMQPResult>);
-        var taskType = typeof(Task);
-
-        bool isTask = type.IsAssignableTo(taskType);
-        if (isTask)
-        {
-            if (type.IsGenericType && type.GenericTypeArguments.Length == 1)
-            {
-                Type taskValueType = type.GenericTypeArguments[0];
-                if (taskValueType.IsAssignableTo(amqpResultType))
-                {
-                    return new TaskOfAmqpResultResultHandler(type);
-                }
-            }
-            return new TaskResultHandler();
-        }
-        else if (type == typeof(void))
-        {
-            return new VoidResultHandler();
-        }
-        else
-        {
-            return new GenericResultHandler();
-        }
     }
 
 

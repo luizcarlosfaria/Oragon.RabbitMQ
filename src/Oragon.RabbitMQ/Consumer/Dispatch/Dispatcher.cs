@@ -165,7 +165,7 @@ public class Dispatcher
     private object DispatchInternal(IAmqpContext context)
     {
         var arguments = new object[this.argumentBinders.Count];
-        for (int i = 0; i < this.argumentBinders.Count; i++)
+        for (var i = 0; i < this.argumentBinders.Count; i++)
         {
             arguments[i] = this.argumentBinders[i].GetValue(context);
         }
