@@ -31,7 +31,7 @@ public class AckResultTests
 
         _ = contextMock.Setup(it => it.Request).Returns(basicDeliverEventArgs);
 
-        var ackResult = new AckResult();
+        var ackResult = AckResult.ForSuccess;
 
         // Act
         await ackResult.ExecuteAsync(contextMock.Object);

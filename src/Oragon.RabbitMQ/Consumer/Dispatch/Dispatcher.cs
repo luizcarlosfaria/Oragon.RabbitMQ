@@ -175,7 +175,7 @@ public class Dispatcher
         }
         catch
         {
-            return new NackResult(false);
+            return NackResult.WithoutRequeue;
         }
 
     }

@@ -3,13 +3,35 @@ namespace Oragon.RabbitMQ.Consumer.Actions;
 /// <summary>
 /// Create a instance of RejectResult that will reject the message
 /// </summary>
-/// <param name="requeue"></param>
-public class RejectResult(bool requeue) : IAMQPResult
+public class RejectResult : IAMQPResult
 {
+
+    /// <summary>
+    /// Singleton instance of RejectResult with requeue
+    /// </summary>
+    public static RejectResult WithRequeue { get; } = new RejectResult(true);
+
+    /// <summary>
+    /// Singleton instance of RejectResult without requeue
+    /// </summary>
+    public static RejectResult WithoutRequeue { get; } = new RejectResult(false);
+
+
+
     /// <summary>
     /// Define if the message should be requeued
     /// </summary>
-    public bool Requeue { get; } = requeue;
+    public bool Requeue { get; }
+
+
+    /// <summary>
+    /// Create a instance of RejectResult
+    /// </summary>
+    /// <param name="requeue"></param>
+    private RejectResult(bool requeue)
+    {
+        this.Requeue = requeue;
+    }
 
     /// <summary>
     /// Perform ack on channel

@@ -217,7 +217,7 @@ public class QueueConsumer : IHostedAmqpConsumer
             IAMQPResult result =
                 canProceed
                 ? await this.dispatcher.DispatchAsync(context).ConfigureAwait(false)
-                : new RejectResult(false);
+                : RejectResult.WithoutRequeue;
 
             await result.ExecuteAsync(context).ConfigureAwait(false);
         }

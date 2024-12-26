@@ -31,7 +31,7 @@ public class RejectResultTests
 
         _ = contextMock.Setup(it => it.Request).Returns(basicDeliverEventArgs);
 
-        var rejectResult = new RejectResult(true);
+        var rejectResult = RejectResult.WithRequeue;
 
         // Act
         await rejectResult.ExecuteAsync(contextMock.Object);

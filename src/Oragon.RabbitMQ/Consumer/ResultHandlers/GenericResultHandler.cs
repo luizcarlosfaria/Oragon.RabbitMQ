@@ -11,9 +11,6 @@ namespace Oragon.RabbitMQ.Consumer.ResultHandlers;
 public class GenericResultHandler : IResultHandler
 {
 
-    private readonly IAMQPResult ack = new AckResult();
-
-
     /// <summary>
     /// Handles the dispatched result, which can be either an IAMQPResult or a Task that returns an IAMQPResult.
     /// </summary>
@@ -23,6 +20,6 @@ public class GenericResultHandler : IResultHandler
     {
         return dispatchResult is IAMQPResult simpleAmqpResult
             ? Task.FromResult(simpleAmqpResult)
-            : Task.FromResult(this.ack);
+            : Task.FromResult<IAMQPResult>(AckResult.ForSuccess);
     }
 }

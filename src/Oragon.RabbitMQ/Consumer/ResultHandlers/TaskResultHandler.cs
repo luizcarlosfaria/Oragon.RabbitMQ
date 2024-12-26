@@ -1,4 +1,4 @@
-﻿// Licensed to LuizCarlosFaria, gaGO.io, Mensageria .NET, Cloud Native .NET and ACADEMIA.DEV under one or more agreements.
+// Licensed to LuizCarlosFaria, gaGO.io, Mensageria .NET, Cloud Native .NET and ACADEMIA.DEV under one or more agreements.
 // The ACADEMIA.DEV licenses this file to you under the MIT license.
 
 using Dawn;
@@ -11,11 +11,7 @@ namespace Oragon.RabbitMQ.Consumer.ResultHandlers;
 /// </summary>
 public class TaskResultHandler : IResultHandler
 {
-    private readonly IAMQPResult ack = new AckResult();
-
-    private readonly IAMQPResult nack = new NackResult(false);
-
-
+   
     /// <summary>
     /// Handles the dispatched result, which can be either an IAMQPResult or a Task.
     /// </summary>
@@ -39,8 +35,8 @@ public class TaskResultHandler : IResultHandler
         }
         catch
         {
-            return this.nack;
+            return NackResult.WithoutRequeue;
         }
-        return this.ack;
+        return AckResult.ForSuccess;
     }
 }

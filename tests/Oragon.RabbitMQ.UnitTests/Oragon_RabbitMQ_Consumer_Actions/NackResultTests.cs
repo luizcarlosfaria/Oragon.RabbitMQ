@@ -31,7 +31,7 @@ public class NackResultTests
 
         _ = contextMock.Setup(it => it.Request).Returns(basicDeliverEventArgs);
 
-        var nackResult = new NackResult(true);
+        var nackResult = NackResult.WithRequeue;
 
         // Act
         await nackResult.ExecuteAsync(contextMock.Object);
@@ -54,7 +54,7 @@ public class NackResultTests
             routingKey: string.Empty,
             properties: default,
             body: default);
-        var nackResult = new NackResult(true);
+        var nackResult = NackResult.WithRequeue;
 
         // Act & Assert
         _ = await Assert.ThrowsAsync<ArgumentNullException>(() => nackResult.ExecuteAsync(null));

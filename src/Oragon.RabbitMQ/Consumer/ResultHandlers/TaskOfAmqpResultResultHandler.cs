@@ -13,7 +13,6 @@ namespace Oragon.RabbitMQ.Consumer.ResultHandlers;
 /// </summary>
 public class TaskOfAmqpResultResultHandler : IResultHandler
 {
-    private readonly IAMQPResult nack = new NackResult(false);
     private readonly PropertyInfo resultProperty;
 
     /// <summary>
@@ -56,15 +55,15 @@ public class TaskOfAmqpResultResultHandler : IResultHandler
         }
         catch (TaskCanceledException)
         {
-            return this.nack;
+            return NackResult.WithoutRequeue;
         }
         catch (OperationCanceledException)
         {
-            return this.nack;
+            return NackResult.WithoutRequeue;
         }
         catch
         {
-            return this.nack;
+            return NackResult.WithoutRequeue;
         }
 
         var result = (IAMQPResult)this.resultProperty.GetValue(dispatchResult);

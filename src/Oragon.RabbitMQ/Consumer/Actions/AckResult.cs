@@ -6,9 +6,15 @@ namespace Oragon.RabbitMQ.Consumer.Actions;
 public class AckResult : IAMQPResult
 {
     /// <summary>
+    /// Singleton instance of AckResult
+    /// </summary>
+    public static AckResult ForSuccess { get; } = new AckResult();
+
+
+    /// <summary>
     /// Create a instance of AckResult
     /// </summary>
-    public AckResult() { }
+    private AckResult() { }
 
 
     /// <summary>

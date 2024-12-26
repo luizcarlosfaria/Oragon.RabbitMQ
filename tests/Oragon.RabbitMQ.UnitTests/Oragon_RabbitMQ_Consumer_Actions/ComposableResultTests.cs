@@ -31,7 +31,7 @@ public class ComposableResultTests
 
         _ = contextMock.Setup(it => it.Request).Returns(basicDeliverEventArgs);
 
-        var result = new ComposableResult(new AckResult(), new RejectResult(false));
+        var result = new ComposableResult(AckResult.ForSuccess, RejectResult.WithoutRequeue);
 
         // Act
         await result.ExecuteAsync(contextMock.Object);

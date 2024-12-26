@@ -61,7 +61,7 @@ public class HandlersAndTasksTests
             //---------------------------------------------------------------------------------------------------------------
             async ([FromServices] SampleService svc, SampleRequest msg) => {
                 await svc.Teste2Async(msg).ConfigureAwait(true);
-                return new RejectResult(false);
+                return RejectResult.WithoutRequeue;
             },
             //---------------------------------------------------------------------------------------------------------------
 
@@ -82,7 +82,7 @@ public class HandlersAndTasksTests
             //---------------------------------------------------------------------------------------------------------------
             ([FromServices] SampleService svc, SampleRequest msg) => {
                 svc.Teste1(msg);
-                return new RejectResult(false);
+                return RejectResult.WithoutRequeue;
             },
             //---------------------------------------------------------------------------------------------------------------
         ];

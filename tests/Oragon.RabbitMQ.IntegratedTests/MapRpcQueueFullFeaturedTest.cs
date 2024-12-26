@@ -130,7 +130,7 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
         {
             ResponseMessage reply = await svc.TestRpcAsync(msg).ConfigureAwait(true);
 
-            return new ComposableResult(new AckResult(), new ReplyResult(reply));
+            return new ComposableResult(AckResult.ForSuccess, new ReplyResult(reply));
         }).WithPrefetch(1);
 
 
