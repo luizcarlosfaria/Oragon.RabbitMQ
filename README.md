@@ -48,27 +48,27 @@ Opinionated and Simplified Minimal APIs for Consuming Messages from RabbitMQ, En
 
 # What is Oragon.RabbitMQ?
 
-## Oragon.RabbitMQ is a Minimal API implementation for Consume RabbitMQ Queues.
+## Oragon.RabbitMQ is a Minimal API implementation to Consume RabbitMQ Queues.
 
 Oragon.RabbitMQ provides everything you need to create resilient RabbitMQ consumers without the need to study numerous books and articles or introduce unknown risks to your environment.
 
 ## Get Started
 
-#### Add Consumer and Serializer packages
+### Add Consumer Package
 ```bash
 dotnet add package Oragon.RabbitMQ
+```
+
+### Choose Serialization
+
+#### System.Text.Json
+```bash
 dotnet add package Oragon.RabbitMQ.Serializer.SystemTextJson
 ```
 
-### Implement your service
-```cs
-public class BusinessService
-{
-    public async Task DoSomethingAsync(BusinessCommandOrEvent commandOrEvent)
-    {
-        ... business core ...
-    }
-}
+#### Newtonsoft Json .Net
+```bash
+dotnet add package Oragon.RabbitMQ.Serializer.NewtonsoftJson
 ```
 
 ### Configuring Dependency Injection
@@ -81,14 +81,20 @@ var builder = WebApplication.CreateBuilder(args); //or Host.CreateApplicationBui
 
 builder.AddRabbitMQConsumer();
 
-builder.Services.AddSingleton<BusinessService>();
+/*Pick only one*/
 
-builder.Services.AddSingleton<IAMQPSerializer>(sp => new SystemTextJsonAMQPSerializer(new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.General){ ... }));
+    /*For JSON.NET*/
+    builder.Services.AddSingleton<IAMQPSerializer>(sp => new SystemTextJsonAMQPSerializer(new JsonSerializerOptions(JsonSerializerDefaults.General){ ... }));
+
+    /*For Newtonsoft Json .Net*/
+    builder.Services.AddSingleton<IAMQPSerializer>(sp => new NewtonsoftAMQPSerializer(new JsonSerializerSettings(){ ... }));
+
+
 ```
 
 
-#### Inject a valid IConnection on dependency injection
-The consumer will use the dependency injection to get an valid instance of **RabbitMQ.Client.IConnection**. If you does not provider one, above you can see how to create a connection configuration.
+### Configuring IConnectionFactory and IConnection
+The consumer will use the dependency injection to get a valid instance of **RabbitMQ.Client.IConnection**. If you does not provider one, above you can see how to create a connection configuration.
 
 ```cs
 ...
@@ -102,7 +108,12 @@ builder.Services.AddSingleton(sp => sp.GetRequiredService<IConnectionFactory>().
 ...
 
 ```
-If you are using **.NET Aspire**, you can use .NET Aspire with:
+### .NET ASPIRE
+If you are using **.NET Aspire**, replace `Aspire.RabbitMQ.Client` by `Oragon.RabbitMQ.AspireClient` package. 
+
+Today `Oragon.RabbitMQ.AspireClient` support for RabbitMQ.Client 7.x instead today `Aspire.RabbitMQ.Client` support 6.x.
+
+When `Aspire.RabbitMQ.Client` supports  RabbitMQ.Client 7.x, `Oragon.RabbitMQ.AspireClient` package will be marked as deprecated.
 
 ```cs
 ...
@@ -123,13 +134,62 @@ To map your queue using this package, follow these steps:
 
 2. **Map the queue:**
     Next, map your queue to a specific service and command/event. This step involves configuring how the service will handle incoming messages from the queue.
-    ```cs
 
+    #### Example 1
+    ```cs
     app.MapQueue("queueName", ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => 
         svc.DoSomethingAsync(msg));
-
     ```
+    #### Example 2
+    ```cs
+    app.MapQueue("queueName", async ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => 
+        await svc.DoSomethingAsync(msg).ConfigureAwait(false));
+    ```
+    #### Example 3
+    ```cs
+    app.MapQueue("queueName", async ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => {
+        
+        IAMQPResult returnValue;
+
+        if (svc.CanXpto(msg))
+        {
+            await svc.DoXptoAsync(msg);
+
+            returnValue = new AckResult();
+
+        } else {
+
+            returnValue = new RejectResult(requeue: true);
+
+        }
+        return returnValue;
+        
+    });
+    ```
+
+    #### Example 3
+    ```cs
+    app.MapQueue("queueName", async ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => {
+        
+        IAMQPResult returnValue;
+
+        try
+        {
+            await svc.DoXptoAsync(msg);
+            returnValue = new AckResult();
+        }
+        catch(Exception ex)
+        {
+            //Log this exception
+            returnValue = new NackResult(requeue: true);
+        }
+        
+        return returnValue;
+        
+    });
+    ```    
     
+
 3. **Run the application:**
     Finally, run the application to start processing messages from the queue.
     ```cs
@@ -176,7 +236,8 @@ This consumer is focused on creating a resilient consumer using manual acknowled
 
 -  The automatic flow produces a `BasicReject` without requeue when serialization failures (e.g., incorrectly formatted messages),  you must use dead-lettering to ensure that your message will not be lost.
 -  The automatic flow produces a `BasicNack` without requeue for processing failures. You must use dead-lettering to ensure that your message will not be lost.
-- Minimal API design style made without reflection
+-  The automatic flow produces a `BasicAck` for sucess. If you need more control return an instance of `IAMQPResult` to control this behavior.
+- Minimal API design style made with minimum and cached reflection
 - Extensible with support for custom serializers and encoders
 
 ## Flexible
@@ -192,7 +253,7 @@ Inside `Oragon.RabbitMQ.Consumer.Actions` namespace you can find some results:
 - RejectResult (`new RejectResult(bool requeue);`)
 - ReplyResult (`new ReplyResult(object objectToReply);`) ⚠️EXPERIMENTAL⚠️
 
-Above you can see how it's can work for you
+Above, you can see how it can work for you:
 
 ```cs
 app.MapQueue("queueName", ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => {
@@ -249,10 +310,10 @@ For this types, model binder will set correct current instance without need a sp
 
 ### Special Names
 
-For this names, model binder will use a name to set a set correct current string from consumer.
+Some string parameters are considered special, and the model binder will use a name to set the correct current string from the consumer.
 
-#### QueueName
-The model binder will set a queue that the consumer are consuming.
+#### Queue Name
+The model binder will set a name of queue that the consumer are consuming.
 - queue
 - queueName
 
@@ -266,24 +327,16 @@ The model binder will set a exchange name from the amqp message.
 - exchange
 - exchangeName
 
-
 #### Consumer Tag
 The model binder will set a consumer tag from the actual consumer.
 - consumer
 - consumerTag
 
 
+## Telemetry
 
-
-
-# RabbitMQ Tracing com OpenTelemetry
-
-Full support for OpenTelemetry on **publishing** or **consuming** RabbitMQ messages.
-
-<img src="./docs/playground.gif">
-
-
-Refactored to use RabbitMQ.Client 7x (with IChannel instead IModel)
+For version 1.0.0 I've removed all implementations of automatic telemetry and OpenTelemetry. 
+It will be available as soon as possible.
 
 
 ## Stages and Requirements for Launch 
