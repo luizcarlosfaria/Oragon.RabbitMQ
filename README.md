@@ -60,7 +60,7 @@ dotnet add package Oragon.RabbitMQ
 dotnet add package Oragon.RabbitMQ.Serializer.SystemTextJson
 ```
 
-### Implement your service (with or without interface)
+### Implement your service
 ```cs
 public class BusinessService
 {
@@ -102,7 +102,7 @@ builder.Services.AddSingleton(sp => sp.GetRequiredService<IConnectionFactory>().
 ...
 
 ```
-If you are using .NET Aspire, you can use .NET Aspire with:
+If you are using **.NET Aspire**, you can use .NET Aspire with:
 
 ```cs
 ...
@@ -124,20 +124,12 @@ To map your queue using this package, follow these steps:
 2. **Map the queue:**
     Next, map your queue to a specific service and command/event. This step involves configuring how the service will handle incoming messages from the queue.
     ```cs
-    app.MapQueue<BusinessService, BusinessCommandOrEvent>(config => config
-        .WithDispatchInRootScope()  // Use for singleton service
-        .WithDispatchInChildScope() // Use for scoped service
-        .WithAdapter((svc, msg) => svc.DoSomethingAsync(msg)) // Define how the service handles the message
-        .WithQueueName("events") // Set the queue name
-        .WithPrefetchCount(System.Environment.ProcessorCount * 16 * 10) // Set the prefetch count
-    );
-    ```
-    - `WithDispatchInRootScope()`: Use this for singleton services that should be instantiated once and shared across the application.
-    - `WithDispatchInChildScope()`: Use this for scoped services that should be instantiated per request or per message.
-    - `WithAdapter((svc, msg) => svc.DoSomethingAsync(msg))`: Define how the service handles the incoming message. This is where you specify the method to process the message.
-    - `WithQueueName("events")`: Set the name of the queue from which the messages will be consumed.
-    - `WithPrefetchCount(System.Environment.ProcessorCount * 16 * 10)`: Set the prefetch count to control how many messages the consumer can fetch at a time. This can help optimize performance.
 
+    app.MapQueue("queueName", ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => 
+        svc.DoSomethingAsync(msg));
+
+    ```
+    
 3. **Run the application:**
     Finally, run the application to start processing messages from the queue.
     ```cs
@@ -164,20 +156,12 @@ builder.Services.AddSingleton(sp => sp.GetRequiredService<IConnectionFactory>().
 
 var app = builder.Build();
 
-app.MapQueue<BusinessService, BusinessCommandOrEvent>(config => config
-    .WithDispatchInRootScope()  // ->  for singleton service
-    .WithDispatchInChildScope() // ->  for scoped service
-    .WithAdapter((svc, msg) => svc.DoSomethingAsync(msg))
-    .WithQueueName("queue")
-    .WithPrefetchCount(System.Environment.ProcessorCount * 16 * 10)
-);
+app.MapQueue("queueName", ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => 
+    svc.DoSomethingAsync(msg));
 
 app.Run();
 
 ```
-
-
-
 # Concepts
 
 ## Decoupling Business Logic from Infrastructure
@@ -190,10 +174,107 @@ The result is incredibly simple, decoupled, agnostic, more reusable, and highly 
 
 This consumer is focused on creating a resilient consumer using manual acknowledgments.
 
--  The flow produces a `BasicReject` without requeue for serialization failures (e.g., incorrectly formatted messages),  you will use dead-lettering to ensure these messages are not lost.
--  The flow produces a `BasicNack` with requeue for processing failures, allowing for message reprocessing.
+-  The automatic flow produces a `BasicReject` without requeue when serialization failures (e.g., incorrectly formatted messages),  you must use dead-lettering to ensure that your message will not be lost.
+-  The automatic flow produces a `BasicNack` without requeue for processing failures. You must use dead-lettering to ensure that your message will not be lost.
 - Minimal API design style made without reflection
 - Extensible with support for custom serializers and encoders
+
+## Flexible
+
+### AMQP Flow Control
+
+Autoflow use Ack, Nack and Reject automatically, but you can control the flow.
+
+Inside `Oragon.RabbitMQ.Consumer.Actions` namespace you can find some results:
+- AckResult (`new AckResult();`)
+- ComposableResult (`new ComposableResult(params IAMQPResult[] results);`)
+- NackResult (`new NackResult(bool requeue);`)
+- RejectResult (`new RejectResult(bool requeue);`)
+- ReplyResult (`new ReplyResult(object objectToReply);`) ⚠️EXPERIMENTAL⚠️
+
+Above you can see how it's can work for you
+
+```cs
+app.MapQueue("queueName", ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => {
+    
+    IAMQPResult returnValue;
+
+    if (svc.CanXpto(msg))
+    {
+        svc.DoXpto(msg);
+
+        returnValue = new AckResult();
+
+    } else {
+
+        returnValue = new RejectResult(requeue: true);
+
+    }
+    return returnValue;
+})
+.WithPrefetch(2000)
+.WithDispatchConcurrency(4);
+```
+### Async os No
+```cs
+app.MapQueue("queueName", async ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => {
+
+    if (await svc.CanXpto(msg))
+    {
+       await svc.DoXpto(msg);
+
+       return new AckResult();
+
+    } else {
+
+        return new RejectResult(requeue: true);
+        
+    }
+})
+.WithPrefetch(2000)
+.WithDispatchConcurrency(4);
+```
+### Model Binder Examples
+
+### Special Types
+
+For this types, model binder will set correct current instance without need a special attribute.
+
+- RabbitMQ.Client.IConnection
+- RabbitMQ.Client.IChannel
+- RabbitMQ.Client.Events.BasicDeliverEventArgs
+- RabbitMQ.Client.DeliveryModes
+- RabbitMQ.Client.IReadOnlyBasicProperties
+- System.IServiceProvider (scoped)
+
+### Special Names
+
+For this names, model binder will use a name to set a set correct current string from consumer.
+
+#### QueueName
+The model binder will set a queue that the consumer are consuming.
+- queue
+- queueName
+
+#### Routing Key
+The model binder will set a routing key from the amqp message.
+- routing
+- routingKey
+
+#### Exchange Name
+The model binder will set a exchange name from the amqp message.
+- exchange
+- exchangeName
+
+
+#### Consumer Tag
+The model binder will set a consumer tag from the actual consumer.
+- consumer
+- consumerTag
+
+
+
+
 
 # RabbitMQ Tracing com OpenTelemetry
 
@@ -212,8 +293,8 @@ Refactored to use RabbitMQ.Client 7x (with IChannel instead IModel)
 - [x] Core: Support Keyed Services
 - [x] Core: Support of new design of RabbitMQ.Client
 - [x] Create Samples
-- [ ] Review All SuppressMessageAttribute
-- [ ] Create Docs
+- [x] Review All SuppressMessageAttribute
+- [x] Create Docs
 - [ ] Benchmarks
 - [x] Automate Badges
 - [x] Add SonarCloud
@@ -224,5 +305,5 @@ Refactored to use RabbitMQ.Client 7x (with IChannel instead IModel)
 - [x] Test CI/CD Flow: MyGet Alpha Packages with Symbols
 - [x] Test CI/CD Flow: MyGet Packages without Symbols
 - [x] Test CI/CD Flow: Nuget Packages without Symbols
-
+- [x] Change original behavior based on lambda expressions to dynamic delegate.
 
