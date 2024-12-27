@@ -123,7 +123,23 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
         ServiceProvider sp = services.BuildServiceProvider();
 
         sp.MapQueue(queue, ([FromServices] ExampleService svc, ExampleMessage msg) => svc.TestAsync(msg))
-            .WithPrefetch(1);
+            .WithPrefetch(1)
+            .WithDispatchConcurrency(1)
+            .WithConsumerTag("MapQueueBasicSuccessTest")
+            .WithExclusive(true)
+            .WithConnection((sp, ct) => Task.FromResult(sp.GetRequiredService<IConnection>()))
+            .WithSerializer((sp) => sp.GetRequiredService<IAMQPSerializer>())
+            .WithChannel((connection, ct) =>
+            connection.CreateChannelAsync(
+                new CreateChannelOptions(
+                    publisherConfirmationsEnabled: false,
+                    publisherConfirmationTrackingEnabled: false,
+                    outstandingPublisherConfirmationsRateLimiter: null,
+                    consumerDispatchConcurrency: 1
+                ),
+                ct
+            ))
+            ;
 
 
         IHostedService hostedService = sp.GetRequiredService<IHostedService>();
