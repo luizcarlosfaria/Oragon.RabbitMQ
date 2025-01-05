@@ -8,7 +8,7 @@ public class BackendApiClient(HttpClient httpClient)
     {
         List<WeatherForecast>? forecasts = null;
 
-        await foreach (var forecast in httpClient.GetFromJsonAsAsyncEnumerable<WeatherForecast>("/weatherforecast", cancellationToken))
+        await foreach (var forecast in httpClient.GetFromJsonAsAsyncEnumerable<WeatherForecast>("/weatherforecast", cancellationToken).ConfigureAwait(false))
         {
             if (forecasts?.Count >= maxItems)
             {
@@ -26,7 +26,7 @@ public class BackendApiClient(HttpClient httpClient)
 
     public async Task EnqueueAsync(DoSomethingRequest request)
     {
-        _ = await httpClient.PostAsJsonAsync("/enqueue", request);
+        _ = await httpClient.PostAsJsonAsync("/enqueue", request).ConfigureAwait(false);
     }
 }
 

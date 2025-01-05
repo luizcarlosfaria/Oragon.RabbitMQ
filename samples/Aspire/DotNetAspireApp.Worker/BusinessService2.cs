@@ -11,7 +11,7 @@ public class BusinessService2
     {
         Console.WriteLine($"Consumer Recebeu | {command.Text}");
 
-        await Task.Delay(5000);
+        await Task.Delay(5000).ConfigureAwait(false);
 
         return command;
     }

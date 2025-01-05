@@ -130,13 +130,13 @@ public class MessagePublisher
         if (localChannel != null)
         {
             Console.WriteLine($"{this.Id} Closing Channel... ");
-            await localChannel.CloseAsync().ConfigureAwait(false);
+            await localChannel.CloseAsync(CancellationToken.None).ConfigureAwait(false);
         }
 
         if (localConnection != null)
         {
             Console.WriteLine($"{this.Id} Closing Connection... ");
-            await localConnection.CloseAsync().ConfigureAwait(false);
+            await localConnection.CloseAsync(CancellationToken.None).ConfigureAwait(false);
         }
 
         Console.WriteLine($"{this.Id} Everything is CLOSED!");
