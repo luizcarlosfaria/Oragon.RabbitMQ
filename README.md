@@ -43,24 +43,35 @@ Oragon.RabbitMQ is a Minimal API implementation to consume RabbitMQ queues. It p
 
 ## Get Started
 
-### Add Consumer Package
+### Step 1 | Add Consumer Package
+
+Add the principal package, Oragon.RabbitMQ for enabling consuming queues like Minimal API's.
+
 ```bash
 dotnet add package Oragon.RabbitMQ
 ```
 
-### Choose Serialization
+### Step 2 | Choose Serialization
+
+Pick one serializer: SystemTextJson or NewtonsoftJson
 
 #### System.Text.Json
+
+For System.Text.Json use Oragon.RabbitMQ.Serializer.SystemTextJson nuget package. It's ensuring latest performance and security issues resolved by Microsoft .NET Team.
+
 ```bash
 dotnet add package Oragon.RabbitMQ.Serializer.SystemTextJson
 ```
 
 #### Newtonsoft Json .Net
+
+If you have special needs that only JSON .NET solve, use the nuget package Oragon.RabbitMQ.Serializer.NewtonsoftJson
+
 ```bash
 dotnet add package Oragon.RabbitMQ.Serializer.NewtonsoftJson
 ```
 
-### Configuring Dependency Injection
+### Step 3 | Configuring Dependency Injection
 
 #### Basic Setup
 ```cs
@@ -72,10 +83,10 @@ builder.AddRabbitMQConsumer();
 
 /*Pick only one*/
 
-// For JSON.NET
+// For Oragon.RabbitMQ.Serializer.SystemTextJson
 builder.Services.AddSingleton<IAMQPSerializer>(sp => new SystemTextJsonAMQPSerializer(new JsonSerializerOptions(JsonSerializerDefaults.General){ ... }));
 
-// For Newtonsoft Json .Net
+// For Oragon.RabbitMQ.Serializer.NewtonsoftJson
 builder.Services.AddSingleton<IAMQPSerializer>(sp => new NewtonsoftAMQPSerializer(new JsonSerializerSettings(){ ... }));
 
 // ...existing code...
@@ -107,7 +118,7 @@ builder.AddRabbitMQClient("rabbitmq");
 // ...existing code...
 ```
 
-# 🎯 Map your Queue 🎯
+### Step 4 |  🎯 Map your Queue 🎯
 
 To map your queue using this package, follow these steps:
 
@@ -117,30 +128,75 @@ To map your queue using this package, follow these steps:
     var app = builder.Build();
     ```
 
+
+
 2. **Map the queue:**
     Next, map your queue to a specific service and command/event. This step involves configuring how the service will handle incoming messages from the queue.
 
-    #### Example 1
+     
     ```cs
-    app.MapQueue("queueName", ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => 
-        svc.DoSomethingAsync(msg));
+    public class BusinessService
+    {
+        public bool CanDoSomething(BusinessCommandOrEvent command)
+        {           
+            return /* Check if can process this message*/;
+        }
+
+
+        public void DoSomething(BusinessCommandOrEvent command)
+        {           
+            ...
+        }
+
+        public Task DoSomethingAsync(BusinessCommandOrEvent command)
+        {           
+            return Task.CompletedTask;
+        }
+    }
+
+    ```
+
+
+
+    #### Example 1
+
+    In this example, the success of execution causes an implicit AckResult to process an ack for message broker after processing the entire message.
+
+    ```cs
+    //Service Method Signature: void DoSomething(BusinessCommandOrEvent command)
+
+    app.MapQueue("queueName", ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) =>  svc.DoSomething(msg));
     ```
 
     #### Example 2
+
+    The same mechanism supports async/await code.
+
     ```cs
-    app.MapQueue("queueName", async ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => 
-        await svc.DoSomethingAsync(msg).ConfigureAwait(false));
+    //Service Method Signature: Task DoSomethingAsync(BusinessCommandOrEvent command)
+
+    app.MapQueue("queueName", async ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => await svc.DoSomethingAsync(msg).ConfigureAwait(false));
     ```
 
     #### Example 3
+
+    You can take control by returning an instance of IAMQPResult implementation. 
+    
+    We provide some built-in implementations like: AckResult, NackResult, RejectResult, ComposableResult and ReplyResult.
+
     ```cs
+
+    //Service Method Signature: 
+    //    bool CanDoSomething(BusinessCommandOrEvent command)
+    //    Task DoSomethingAsync(BusinessCommandOrEvent command)
+
     app.MapQueue("queueName", async ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => {
         
         IAMQPResult returnValue;
 
-        if (svc.CanXpto(msg))
+        if (svc.CanDoSomething(msg))
         {
-            await svc.DoXptoAsync(msg);
+            await svc.DoSomethingAsync(msg);
             returnValue = new AckResult();
         } 
         else 
@@ -152,14 +208,20 @@ To map your queue using this package, follow these steps:
     ```
 
     #### Example 4
+
+    Or changing the behavior of exception handling by handling yourself and returning a IAMQPResult valid implementation.
+
     ```cs
+    //Service Method Signature: 
+    //    Task DoSomethingAsync(BusinessCommandOrEvent command)
+
     app.MapQueue("queueName", async ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => {
         
         IAMQPResult returnValue;
 
         try
         {
-            await svc.DoXptoAsync(msg);
+            await svc.DoSomethingAsync(msg);
             returnValue = new AckResult();
         }
         catch(Exception ex)
