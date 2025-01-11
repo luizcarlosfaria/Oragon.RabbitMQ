@@ -41,6 +41,8 @@ Opinionated and Simplified Minimal APIs for Consuming Messages from RabbitMQ, En
 
 Oragon.RabbitMQ is a Minimal API implementation to consume RabbitMQ queues. It provides everything you need to create resilient RabbitMQ consumers without the need to study numerous books and articles or introduce unknown risks to your environment.
 
+All things about consuming queues is configurable in a friendly fluent and consistent way.
+
 ## Get Started
 
 ### Step 1 | Add Consumer Package
@@ -57,7 +59,7 @@ Pick one serializer: SystemTextJson or NewtonsoftJson
 
 #### System.Text.Json
 
-For System.Text.Json use Oragon.RabbitMQ.Serializer.SystemTextJson nuget package. It's ensuring latest performance and security issues resolved by Microsoft .NET Team.
+For **System.Text.Json** use **Oragon.RabbitMQ.Serializer.SystemTextJson** nuget package. It's ensuring latest performance and security issues resolved by Microsoft .NET Team.
 
 ```bash
 dotnet add package Oragon.RabbitMQ.Serializer.SystemTextJson
@@ -65,7 +67,7 @@ dotnet add package Oragon.RabbitMQ.Serializer.SystemTextJson
 
 #### Newtonsoft Json .Net
 
-If you have special needs that only JSON .NET solve, use the nuget package Oragon.RabbitMQ.Serializer.NewtonsoftJson
+If you have special needs that only JSON .NET solve, use the nuget package **Oragon.RabbitMQ.Serializer.NewtonsoftJson**.
 
 ```bash
 dotnet add package Oragon.RabbitMQ.Serializer.NewtonsoftJson
@@ -197,7 +199,7 @@ To map your queue using this package, follow these steps:
         if (svc.CanDoSomething(msg))
         {
             await svc.DoSomethingAsync(msg);
-            returnValue = new AckResult();
+            returnValue = AckResult.ForSuccess;
         } 
         else 
         {
@@ -222,7 +224,7 @@ To map your queue using this package, follow these steps:
         try
         {
             await svc.DoSomethingAsync(msg);
-            returnValue = new AckResult();
+            returnValue = AckResult.ForSuccess;
         }
         catch(Exception ex)
         {
@@ -287,10 +289,10 @@ This consumer is focused on creating a resilient consumer using manual acknowled
 Autoflow uses Ack, Nack, and Reject automatically, but you can control the flow.
 
 Inside the `Oragon.RabbitMQ.Consumer.Actions` namespace, you can find some results:
-- AckResult (`new AckResult();`)
+- AckResult (`new AckResult();`) Singleton: (`AckResult.ForSuccess`)
 - ComposableResult (`new ComposableResult(params IAMQPResult[] results);`)
-- NackResult (`new NackResult(bool requeue);`)
-- RejectResult (`new RejectResult(bool requeue);`)
+- NackResult (`new NackResult(bool requeue);`) Singleton: (`NackResult.WithRequeue` AND `NackResult.WithoutRequeue`)
+- RejectResult (`new RejectResult(bool requeue);`) Singleton: (`RejectResult.WithRequeue` AND `RejectResult.WithoutRequeue`)
 - ReplyResult (`new ReplyResult(object objectToReply);`) ⚠️EXPERIMENTAL⚠️
 
 Example:
@@ -302,11 +304,11 @@ app.MapQueue("queueName", ([FromServices] BusinessService svc, BusinessCommandOr
     if (svc.CanXpto(msg))
     {
         svc.DoXpto(msg);
-        returnValue = new AckResult();
+        returnValue = AckResult.ForSuccess;
     } 
     else 
     {
-        returnValue = new RejectResult(requeue: true);
+        returnValue = NackResult.WithRequeue;
     }
     return returnValue;
 })
@@ -321,11 +323,11 @@ app.MapQueue("queueName", async ([FromServices] BusinessService svc, BusinessCom
     if (await svc.CanXpto(msg))
     {
        await svc.DoXpto(msg);
-       return new AckResult();
+       return AckResult.ForSuccess;
     } 
     else 
     {
-        return new RejectResult(requeue: true);
+        return RejectResult.WithRequeue;
     }
 })
 .WithPrefetch(2000)
