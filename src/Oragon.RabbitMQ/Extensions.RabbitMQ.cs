@@ -8,7 +8,7 @@ using RabbitMQ.Client;
 namespace Oragon.RabbitMQ;
 
 /// <summary>
-/// Extensiosn for RabbitMQ
+/// Extensions for RabbitMQ
 /// </summary>
 public static class RabbitMQExtensions
 {
@@ -120,10 +120,6 @@ public static class RabbitMQExtensions
         return basicProperties;
     }
 
-    //private static string AsString(this object objectToConvert)
-    //{
-    //    return objectToConvert != null ? Encoding.UTF8.GetString((byte[])objectToConvert) : null;
-    //}
 
     /// <summary>
     /// Get a string from a dictionary
@@ -150,6 +146,12 @@ public static class RabbitMQExtensions
 
         return null;
     }
+
+
+    //private static string AsString(this object objectToConvert)
+    //{
+    //    return objectToConvert != null ? Encoding.UTF8.GetString((byte[])objectToConvert) : null;
+    //}
 
     //public static List<string> AsStringList(this object objectToConvert)
     //{
