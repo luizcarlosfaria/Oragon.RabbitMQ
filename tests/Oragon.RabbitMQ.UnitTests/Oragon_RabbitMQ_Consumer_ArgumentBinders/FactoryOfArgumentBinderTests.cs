@@ -10,8 +10,8 @@ using BasicDeliverEventArgs = global::RabbitMQ.Client.Events.BasicDeliverEventAr
 namespace Oragon.RabbitMQ.UnitTests.Oragon_RabbitMQ_Consumer_ArgumentBinders;
 public class FactoryOfArgumentBinderTests
 {
-    class Service { }
-    class Message
+    sealed class Service { }
+    sealed class Message
     {
         public string Data { get; set; }
     }

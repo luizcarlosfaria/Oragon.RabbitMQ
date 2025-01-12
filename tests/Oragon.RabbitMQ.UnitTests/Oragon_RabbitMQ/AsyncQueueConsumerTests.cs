@@ -56,7 +56,7 @@ public class AsyncQueueConsumerTests
             It.IsAny<string>(),
             true,
             false,
-            It.IsAny<IDictionary<string, object?>>(),
+            It.IsAny<IDictionary<string, object>>(),
             It.IsAny<IAsyncBasicConsumer>(),
             It.IsAny<CancellationToken>()))
             .Callback((string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, IDictionary<string, object> arguments, IAsyncBasicConsumer consumer, CancellationToken cancellationToken) => queueConsumer = (AsyncEventingBasicConsumer)consumer)
@@ -121,7 +121,7 @@ public class AsyncQueueConsumerTests
             It.IsAny<string>(),
             true,
             false,
-            It.IsAny<IDictionary<string, object?>>(),
+            It.IsAny<IDictionary<string, object>>(),
             It.IsAny<IAsyncBasicConsumer>(),
             It.IsAny<CancellationToken>()))
             .Callback((string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, IDictionary<string, object> arguments, IAsyncBasicConsumer consumer, CancellationToken cancellationToken) => queueConsumer = (AsyncEventingBasicConsumer)consumer)
@@ -191,7 +191,7 @@ public class AsyncQueueConsumerTests
             It.IsAny<string>(),
             true,
             false,
-            It.IsAny<IDictionary<string, object?>>(),
+            It.IsAny<IDictionary<string, object>>(),
             It.IsAny<IAsyncBasicConsumer>(),
             It.IsAny<CancellationToken>()))
             .Callback((string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, IDictionary<string, object> arguments, IAsyncBasicConsumer consumer, CancellationToken cancellationToken) => queueConsumer = (AsyncEventingBasicConsumer)consumer)

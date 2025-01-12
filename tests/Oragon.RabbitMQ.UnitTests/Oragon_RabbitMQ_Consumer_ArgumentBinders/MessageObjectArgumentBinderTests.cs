@@ -6,7 +6,8 @@ using Oragon.RabbitMQ.Consumer.ArgumentBinders;
 namespace Oragon.RabbitMQ.UnitTests.Oragon_RabbitMQ_Consumer_ArgumentBinders;
 public class MessageObjectArgumentBinderTests
 {
-    class Service { }
+    sealed class Service { }
+
     [Fact]
     public void MessageObjectArgumentBinderFlow()
     {

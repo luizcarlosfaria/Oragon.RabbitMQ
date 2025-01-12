@@ -8,7 +8,7 @@ using Oragon.RabbitMQ.Consumer.Dispatch.Attributes;
 namespace Oragon.RabbitMQ.UnitTests.Oragon_RabbitMQ_Consumer_ArgumentBinders;
 public class FromBodyArgumentBinderTests
 {
-    class Service { }
+    sealed class Service { }
 
     [Fact]
     public void FromServicesArgumentBinderFlow()

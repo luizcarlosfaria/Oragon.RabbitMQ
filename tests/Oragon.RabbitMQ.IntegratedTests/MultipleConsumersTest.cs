@@ -18,7 +18,7 @@ public class MultipleConsumersTest : IAsyncLifetime
 {
     public class ExampleMessage
     {
-        public string? Name { get; set; }
+        public string Name { get; set; }
         public int Age { get; set; }
     }
 
@@ -74,7 +74,7 @@ public class MultipleConsumersTest : IAsyncLifetime
 
         await SafeRunner.ExecuteWithRetry<global::RabbitMQ.Client.Exceptions.BrokerUnreachableException>(async () =>
         {
-            connection = await this.CreateConnectionFactory().CreateConnectionAsync();
+            connection = await this.CreateConnectionFactory().CreateConnectionAsync().ConfigureAwait(true);
         }).ConfigureAwait(true);
 
         return connection;
@@ -88,7 +88,7 @@ public class MultipleConsumersTest : IAsyncLifetime
 
         public Delegate Handler { get; } = handler;
 
-        public ExampleMessage? MessagReceived { get; set; }
+        public ExampleMessage MessagReceived { get; set; }
 
         // Signal the completion of message reception.
         public EventWaitHandle WaitHandle { get; } = new ManualResetEvent(false);
@@ -98,7 +98,7 @@ public class MultipleConsumersTest : IAsyncLifetime
     [Fact]
     public async Task MultipleQueuesTest()
     {
-        Pack? pack1 = null;
+        Pack pack1 = null;
         pack1 = new Pack(
             queueName: "queue1",
             messageToSend: new ExampleMessage() { Name = $"Teste - {Guid.NewGuid():D}", Age = 3 },
@@ -106,7 +106,7 @@ public class MultipleConsumersTest : IAsyncLifetime
             handler: ([FromServices("queue1")] ExampleService svc, ExampleMessage msg) => svc.TestAsync(msg)
             );
 
-        Pack? pack2 = null;
+        Pack pack2 = null;
         pack2 = new Pack(
            queueName: "queue2",
            messageToSend: new ExampleMessage() { Name = $"Teste - {Guid.NewGuid():D}", Age = 2 },

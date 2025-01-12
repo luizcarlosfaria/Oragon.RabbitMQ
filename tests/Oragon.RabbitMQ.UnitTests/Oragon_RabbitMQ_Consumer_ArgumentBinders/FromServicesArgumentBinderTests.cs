@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Oragon.RabbitMQ.UnitTests.Oragon_RabbitMQ_Consumer_ArgumentBinders;
 public class FromServicesArgumentBinderTests
 {
-    class Service { }
+    sealed class Service { }
 
     [Fact]
     public void FromServicesArgumentBinderFlow()
@@ -35,7 +35,7 @@ public class FromServicesArgumentBinderTests
         var service = new Service();
 
         var serviceProviderMock = new Mock<IKeyedServiceProvider>();
-        serviceProviderMock.Setup(it => it.GetRequiredKeyedService(It.IsAny<Type>(), It.Is<object?>(it => (string?)it == "aa"))).Returns(service).Verifiable(Times.Once());
+        serviceProviderMock.Setup(it => it.GetRequiredKeyedService(It.IsAny<Type>(), It.Is<object>(it => (string)it == "aa"))).Returns(service).Verifiable(Times.Once());
 
         var contextMock = new Mock<IAmqpContext>();
         contextMock.Setup(it => it.ServiceProvider).Returns(serviceProviderMock.Object).Verifiable(Times.Once());

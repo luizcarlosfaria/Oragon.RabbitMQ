@@ -56,7 +56,7 @@ public class DynamicArgumentBinderTests
 
         string testValue = Guid.NewGuid().ToString("D");
 
-        Dictionary<string, object?> headers = new Dictionary<string, object?>() { { "test", testValue } };
+        Dictionary<string, object> headers = new Dictionary<string, object>() { { "test", testValue } };
 
         var basicPropertiesMock = new Mock<IReadOnlyBasicProperties>();
         basicPropertiesMock.SetupGet(it => it.Headers).Returns(headers).Verifiable(Times.Once());
@@ -107,7 +107,7 @@ public class DynamicArgumentBinderTests
 
         string testValue = Guid.NewGuid().ToString("D");
 
-        Dictionary<string, object?>? headers = null;
+        Dictionary<string, object> headers = null;
 
         var basicPropertiesMock = new Mock<IReadOnlyBasicProperties>();
         basicPropertiesMock.SetupGet(it => it.Headers).Returns(headers).Verifiable(Times.Once());
