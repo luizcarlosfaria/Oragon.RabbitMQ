@@ -58,7 +58,7 @@ public class Dispatcher
         IAmqpArgumentBinderParameter[] attributes = parameter.GetCustomAttributes(true).OfType<IAmqpArgumentBinderParameter>().ToArray();
 
         return attributes.Length > 1
-            ? throw new InvalidOperationException($"The parameter {parameter.Name} has more than one attribute")
+            ? throw new InvalidOperationException($"The parameter {parameter.Name} has more than one IAmqpArgumentBinderParameter attribute")
             : attributes.Length == 0
             ? DiscoveryArgumentBinder(parameter)
             : attributes[0].Build(parameter);
@@ -84,6 +84,8 @@ public class Dispatcher
         if (parameter.ParameterType == Constants.DeliveryMode) return new DynamicArgumentBinder(context => context.Request.BasicProperties.DeliveryMode);
 
         if (parameter.ParameterType == Constants.ServiceProvider) return new DynamicArgumentBinder(context => context.ServiceProvider);
+
+        if (parameter.ParameterType == Constants.IAmqpContext) return new DynamicArgumentBinder(context => context);
 
         if (parameter.ParameterType == Constants.BasicPropertiesType) return new DynamicArgumentBinder(context => context.Request.BasicProperties);
 

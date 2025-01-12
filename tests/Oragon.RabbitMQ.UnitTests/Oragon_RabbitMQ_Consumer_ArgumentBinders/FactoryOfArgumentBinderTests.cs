@@ -28,7 +28,6 @@ public class FactoryOfArgumentBinderTests
         var serviceProviderMock = new Mock<IServiceProvider>();
         _ = serviceProviderMock.Setup(it => it.GetService(typeof(Service))).Returns(service);
 
-
         var connectionMock = new Mock<IConnection>();
         var channelMock = new Mock<IChannel>();
         var basicPropertiesMock = new Mock<IReadOnlyBasicProperties>();
@@ -55,7 +54,7 @@ public class FactoryOfArgumentBinderTests
         _ = contextMock.Setup(it => it.CancellationToken).Returns(cancellationToken);
         _ = contextMock.Setup(it => it.Request).Returns(request);
         _ = contextMock.Setup(it => it.MessageObject).Returns(message);
-
+        IAmqpContext currentContext = contextMock.Object;
 
         // Act
         Delegate handler = (
@@ -67,6 +66,7 @@ public class FactoryOfArgumentBinderTests
             IServiceProvider serviceProvider_arg,           //resolved by type
             IReadOnlyBasicProperties basicProperties_arg,   //resolved by type
             CancellationToken cancellationToken_arg,        //resolved by type
+            IAmqpContext context_arg,                       //resolved by type
             string queueName,                               //resolved by type and name
             string exchangeName,                            //resolved by type and name
             string routingKey,                              //resolved by type and name
@@ -78,6 +78,7 @@ public class FactoryOfArgumentBinderTests
             Assert.Same(connectionMock.Object, connection_arg);
             Assert.Same(channelMock.Object, channel_arg);
             Assert.Same(request, eventArgs_arg);
+            Assert.Same(currentContext, context_arg);
             Assert.Equal(DeliveryModes.Persistent, deliveryMode_arg);
             Assert.Same(serviceProviderMock.Object, serviceProvider_arg);
             Assert.Same(basicPropertiesMock.Object, basicProperties_arg);
@@ -94,7 +95,7 @@ public class FactoryOfArgumentBinderTests
         };
         var dispatcher = new Dispatcher(handler);
 
-        IAMQPResult result = await dispatcher.DispatchAsync(contextMock.Object);
+        IAMQPResult result = await dispatcher.DispatchAsync(currentContext);
 
         Assert.True(result is AckResult);
 
