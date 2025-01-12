@@ -195,7 +195,7 @@ public class QueueConsumer : IHostedAmqpConsumer
             consumer: this.asyncBasicConsumer,
             consumerTag: this.parameters.ConsumerTag,
             arguments: null,
-            exclusive: false,
+            exclusive: this.parameters.Exclusive,
             noLocal: true,
             cancellationToken: this.cancellationTokenSource.Token)
             .ConfigureAwait(false);
