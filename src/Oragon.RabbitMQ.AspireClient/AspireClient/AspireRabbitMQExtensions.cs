@@ -173,7 +173,7 @@ public static class AspireRabbitMQExtensions
                 ShouldHandle = new PredicateBuilder()
                                     .Handle<SocketException>()
                                     .Handle<BrokerUnreachableException>(),
-                UseJitter = true, 
+                UseJitter = true,
                 BackoffType = DelayBackoffType.Exponential,
                 MaxRetryAttempts = retryCount,
                 Delay = TimeSpan.FromSeconds(5),
