@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="./../../Global.Build.props" />
+  <Import Project="./../Oragon.RabbitMQ.Tests.props" />
   
   <PropertyGroup>
     <IsPackable>false</IsPackable>
