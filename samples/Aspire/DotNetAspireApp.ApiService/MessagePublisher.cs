@@ -10,36 +10,30 @@ namespace DotNetAspireApp.ApiService;
 
 public class MessagePublisher
 {
-    private static readonly ConcurrentQueue<(ConsoleColor ForegroundColor, ConsoleColor BackgroundColor)> colorQueue;
-    private static readonly object colorQueueLock = new object();
-
-    static MessagePublisher()
+    private static readonly ConcurrentQueue<(ConsoleColor ForegroundColor, ConsoleColor BackgroundColor)> colorQueue = new(new[]
     {
-        colorQueue = new ConcurrentQueue<(ConsoleColor, ConsoleColor)>(new[]
-        {
-            (ConsoleColor.Black, ConsoleColor.White),
-            (ConsoleColor.Blue, ConsoleColor.Yellow),
-            (ConsoleColor.Cyan, ConsoleColor.Red),
-            (ConsoleColor.DarkBlue, ConsoleColor.Gray),
-            (ConsoleColor.DarkCyan, ConsoleColor.Magenta),
-            (ConsoleColor.DarkGray, ConsoleColor.Green),
-            (ConsoleColor.DarkGreen, ConsoleColor.Cyan),
-            (ConsoleColor.DarkMagenta, ConsoleColor.DarkYellow),
-            (ConsoleColor.DarkRed, ConsoleColor.DarkGray),
-            (ConsoleColor.DarkYellow, ConsoleColor.DarkBlue),
-            (ConsoleColor.Gray, ConsoleColor.DarkGreen),
-            (ConsoleColor.Green, ConsoleColor.DarkCyan),
-            (ConsoleColor.Magenta, ConsoleColor.DarkRed),
-            (ConsoleColor.Red, ConsoleColor.DarkMagenta),
-            (ConsoleColor.White, ConsoleColor.Black),
-            (ConsoleColor.Yellow, ConsoleColor.DarkBlue),
-            (ConsoleColor.DarkBlue, ConsoleColor.White),
-            (ConsoleColor.DarkCyan, ConsoleColor.Yellow),
-            (ConsoleColor.DarkGray, ConsoleColor.Red),
-            (ConsoleColor.DarkGreen, ConsoleColor.Gray)
-        });
-    }
-
+        (ConsoleColor.Black, ConsoleColor.White),
+        (ConsoleColor.Blue, ConsoleColor.Yellow),
+        (ConsoleColor.Cyan, ConsoleColor.Red),
+        (ConsoleColor.DarkBlue, ConsoleColor.Gray),
+        (ConsoleColor.DarkCyan, ConsoleColor.Magenta),
+        (ConsoleColor.DarkGray, ConsoleColor.Green),
+        (ConsoleColor.DarkGreen, ConsoleColor.Cyan),
+        (ConsoleColor.DarkMagenta, ConsoleColor.DarkYellow),
+        (ConsoleColor.DarkRed, ConsoleColor.DarkGray),
+        (ConsoleColor.DarkYellow, ConsoleColor.DarkBlue),
+        (ConsoleColor.Gray, ConsoleColor.DarkGreen),
+        (ConsoleColor.Green, ConsoleColor.DarkCyan),
+        (ConsoleColor.Magenta, ConsoleColor.DarkRed),
+        (ConsoleColor.Red, ConsoleColor.DarkMagenta),
+        (ConsoleColor.White, ConsoleColor.Black),
+        (ConsoleColor.Yellow, ConsoleColor.DarkBlue),
+        (ConsoleColor.DarkBlue, ConsoleColor.White),
+        (ConsoleColor.DarkCyan, ConsoleColor.Yellow),
+        (ConsoleColor.DarkGray, ConsoleColor.Red),
+        (ConsoleColor.DarkGreen, ConsoleColor.Gray)
+    });
+    private static readonly object colorQueueLock = new();
 
     public static int Sequence { get; private set; }
 
