@@ -14,9 +14,10 @@ public class GenericResultHandler : IResultHandler
     /// <summary>
     /// Handles the dispatched result, which can be either an IAMQPResult or a Task that returns an IAMQPResult.
     /// </summary>
+    /// <param name="context"></param>
     /// <param name="dispatchResult"></param>
     /// <returns></returns>
-    public Task<IAMQPResult> Handle(object dispatchResult)
+    public Task<IAMQPResult> Handle(IAmqpContext context, object dispatchResult)
     {
         return dispatchResult is IAMQPResult simpleAmqpResult
             ? Task.FromResult(simpleAmqpResult)

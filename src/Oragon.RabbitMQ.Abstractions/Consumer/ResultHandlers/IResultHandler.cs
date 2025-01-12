@@ -17,8 +17,9 @@ public interface IResultHandler
     /// <summary>
     /// Handle a task
     /// </summary>
+    /// <param name="context"></param>
     /// <param name="dispatchResult"></param>
     /// <returns></returns>
-    Task<IAMQPResult> Handle(object dispatchResult);
+    Task<IAMQPResult> Handle(IAmqpContext context, object dispatchResult);
 
 }

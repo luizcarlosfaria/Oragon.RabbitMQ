@@ -11,14 +11,25 @@ namespace Oragon.RabbitMQ.Consumer.ResultHandlers;
 /// </summary>
 public class TaskResultHandler : IResultHandler
 {
-   
+    private readonly ConsumerParameters consumerParameters;
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="consumerParameters"></param>
+    public TaskResultHandler(ConsumerParameters consumerParameters)
+    {
+        this.consumerParameters = consumerParameters;
+    }
+
     /// <summary>
     /// Handles the dispatched result, which can be either an IAMQPResult or a Task.
     /// </summary>
+    /// <param name="context"></param>
     /// <param name="dispatchResult"></param>
     /// <returns></returns>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
-    public async Task<IAMQPResult> Handle(object dispatchResult)
+    public async Task<IAMQPResult> Handle(IAmqpContext context, object dispatchResult)
     {
         ArgumentNullException.ThrowIfNull(dispatchResult, nameof(dispatchResult));
 
@@ -33,9 +44,9 @@ public class TaskResultHandler : IResultHandler
         {
             await ((Task)dispatchResult).ConfigureAwait(false);
         }
-        catch
+        catch (Exception exception)
         {
-            return NackResult.WithoutRequeue;
+            return this.consumerParameters.ResultForProcessFailure(context, exception);
         }
         return AckResult.ForSuccess;
     }

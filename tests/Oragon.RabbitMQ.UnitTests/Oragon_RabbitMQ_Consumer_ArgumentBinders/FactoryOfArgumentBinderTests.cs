@@ -93,7 +93,10 @@ public class FactoryOfArgumentBinderTests
 
 
         };
-        var dispatcher = new Dispatcher(handler);
+
+        var queueConsumerBuilder = new ConsumerParameters(serviceProviderMock.Object, "oragon-rabbitmq-queueName", handler);
+
+        var dispatcher = new Dispatcher(queueConsumerBuilder);
 
         IAMQPResult result = await dispatcher.DispatchAsync(currentContext);
 

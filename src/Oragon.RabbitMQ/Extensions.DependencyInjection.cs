@@ -47,7 +47,7 @@ public static class DependencyInjectionExtensions
     /// <param name="host">IHost</param>
     /// <param name="queueName"></param>
     /// <param name="handler"></param>    
-    public static QueueConsumerBuilder MapQueue(this IHost host, string queueName, Delegate handler)
+    public static ConsumerParameters MapQueue(this IHost host, string queueName, Delegate handler)
     {
         _ = Guard.Argument(host).NotNull();
 
@@ -61,16 +61,18 @@ public static class DependencyInjectionExtensions
     /// <param name="queueName"></param>
     /// <param name="handler"></param>    
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "This is a factory, Dispose will be called by Consumer")]
-    public static QueueConsumerBuilder MapQueue(this IServiceProvider serviceProvider, string queueName, Delegate handler)
+    public static ConsumerParameters MapQueue(this IServiceProvider serviceProvider, string queueName, Delegate handler)
     {
         _ = Guard.Argument(serviceProvider).NotNull();
         _ = Guard.Argument(handler).NotNull();
         _ = Guard.Argument(queueName).NotNull().NotEmpty().NotWhiteSpace();
 
-        var queueConsumerBuilder = new QueueConsumerBuilder(serviceProvider, queueName, handler);
+        var queueConsumerBuilder = new ConsumerParameters(serviceProvider, queueName, handler);
 
         ConsumerServer consumerServer = serviceProvider.GetRequiredService<ConsumerServer>();
+
         consumerServer.AddConsumerBuilder(queueConsumerBuilder);
+
         return queueConsumerBuilder;
     }
 

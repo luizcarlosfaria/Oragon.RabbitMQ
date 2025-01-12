@@ -14,15 +14,17 @@ namespace Oragon.RabbitMQ.Consumer.ResultHandlers;
 public class TaskOfAmqpResultResultHandler : IResultHandler
 {
     private readonly PropertyInfo resultProperty;
+    private readonly ConsumerParameters consumerParameters;
 
     /// <summary>
     /// Constructor
     /// </summary>
+    /// <param name="consumerParameters"></param>
     /// <param name="type"></param>
-    public TaskOfAmqpResultResultHandler(Type type)
+    public TaskOfAmqpResultResultHandler(ConsumerParameters consumerParameters, Type type)
     {
         _ = Guard.Argument(type).NotNull();
-
+        this.consumerParameters = consumerParameters;
         this.Type = type;
         this.resultProperty = type.GetProperty("Result");
     }
@@ -35,10 +37,11 @@ public class TaskOfAmqpResultResultHandler : IResultHandler
     /// <summary>
     /// Handles the dispatched result, which can be either an IAMQPResult or a Task that returns an IAMQPResult.
     /// </summary>
+    /// <param name="context"></param>
     /// <param name="dispatchResult">The result of the dispatch, either an IAMQPResult or a Task.</param>
     /// <returns>The IAMQPResult after the task is awaited, or the original IAMQPResult if it was not a task.</returns>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
-    public async Task<IAMQPResult> Handle(object dispatchResult)
+    public async Task<IAMQPResult> Handle(IAmqpContext context, object dispatchResult)
     {
         ArgumentNullException.ThrowIfNull(dispatchResult, nameof(dispatchResult));
 
@@ -53,17 +56,9 @@ public class TaskOfAmqpResultResultHandler : IResultHandler
         {
             await taskToWait.ConfigureAwait(false);
         }
-        catch (TaskCanceledException)
+        catch (Exception exception)
         {
-            return NackResult.WithoutRequeue;
-        }
-        catch (OperationCanceledException)
-        {
-            return NackResult.WithoutRequeue;
-        }
-        catch
-        {
-            return NackResult.WithoutRequeue;
+            return this.consumerParameters.ResultForProcessFailure(context, exception);
         }
 
         var result = (IAMQPResult)this.resultProperty.GetValue(dispatchResult);
