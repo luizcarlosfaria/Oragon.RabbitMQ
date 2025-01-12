@@ -19,6 +19,7 @@ public static class Constants
     public static Type TaskOfIAMQPResult { get; } = typeof(Task<IAMQPResult>);
     public static Type BasicDeliverEventArgs { get; } = typeof(BasicDeliverEventArgs);
     public static Type ServiceProvider { get; } = typeof(IServiceProvider);
+    public static Type IAmqpContext { get; } = typeof(Consumer.IAmqpContext);
     public static Type BasicPropertiesType { get; } = typeof(IReadOnlyBasicProperties);
     public static Type CancellationToken { get; } = typeof(CancellationToken);
     public static Type VoidTaskResult { get; } = Type.GetType("System.Threading.Tasks.VoidTaskResult");
