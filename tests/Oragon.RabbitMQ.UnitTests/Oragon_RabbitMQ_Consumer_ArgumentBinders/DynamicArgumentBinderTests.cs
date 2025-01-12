@@ -86,6 +86,17 @@ public class DynamicArgumentBinderTests
     }
 
     [Fact]
+    public void FromHeaderBustBeStringFlow()
+    {
+        Delegate test = ([FromAmqpHeader("test")] int value) => string.Empty;
+        ParameterInfo parameterInfo = test.Method.GetParameters().First();
+        FromAmqpHeaderAttribute attr = parameterInfo.GetCustomAttribute<FromAmqpHeaderAttribute>() ?? throw new InvalidOperationException("Not Found!");
+
+        _ = Assert.Throws<InvalidOperationException>(() => attr.Build(parameterInfo));
+
+    }
+
+    [Fact]
     public void FromHeaderWithNullDictionaryFlow()
     {
         Delegate test = ([FromAmqpHeader("test")] string value) => string.Empty;

@@ -18,6 +18,7 @@ public class Dispatcher
     private readonly Delegate handler;
     private readonly List<IAmqpArgumentBinder> argumentBinders;
     private readonly IResultHandler resultHandler;
+    private readonly ConsumerParameters consumerParameters;
 
     /// <summary>
     /// Type of Message
@@ -32,9 +33,11 @@ public class Dispatcher
     /// <summary>
     /// Initialize the dispatcher
     /// </summary>
-    public Dispatcher(Delegate handler)
+    public Dispatcher(ConsumerParameters consumerParameters)
     {
-        this.handler = Guard.Argument(handler).NotNull().Value;
+        this.consumerParameters = Guard.Argument(consumerParameters).NotNull().Value;
+
+        this.handler = Guard.Argument(consumerParameters.Handler).NotNull().Value;
 
         this.argumentBinders = this.handler.Method.GetParameters().Select(this.BuildArgumentBinder).ToList();
 
@@ -48,7 +51,7 @@ public class Dispatcher
 
         this.MessageType = this.argumentBinders.OfType<MessageObjectArgumentBinder>().Single().Type;
 
-        this.resultHandler = FindBestResultHandler(type: this.ReturnType);
+        this.resultHandler = this.FindBestResultHandler();
     }
 
     private IAmqpArgumentBinder BuildArgumentBinder(ParameterInfo parameter)
@@ -107,34 +110,28 @@ public class Dispatcher
         return new MessageObjectArgumentBinder(parameter.ParameterType);
     }
 
-    /// <summary>
-    /// Find the best result handler
-    /// </summary>
-    /// <param name="type"></param>
-    /// <returns></returns>
-    private static IResultHandler FindBestResultHandler(Type type)
-    {
-        _ = Guard.Argument(type).NotNull();
 
+    private IResultHandler FindBestResultHandler()
+    {
         Type amqpResultType = typeof(IAMQPResult);
         Type taskType = typeof(Task);
 
-        var isTask = type.IsAssignableTo(taskType);
+        var isTask = this.ReturnType.IsAssignableTo(taskType);
         if (isTask)
         {
-            if (type.IsGenericType && type.GenericTypeArguments.Length == 1)
+            if (this.ReturnType.IsGenericType && this.ReturnType.GenericTypeArguments.Length == 1)
             {
-                Type taskValueType = type.GenericTypeArguments[0];
+                Type taskValueType = this.ReturnType.GenericTypeArguments[0];
                 if (taskValueType.IsAssignableTo(amqpResultType))
                 {
-                    return new TaskOfAmqpResultResultHandler(type);
+                    return new TaskOfAmqpResultResultHandler(this.consumerParameters, this.ReturnType);
                 }
             }
-            return new TaskResultHandler();
+            return new TaskResultHandler(this.consumerParameters);
         }
         else
         {
-            return type == typeof(void)
+            return this.ReturnType == typeof(void)
                 ? new VoidResultHandler()
                 : new GenericResultHandler();
         }
@@ -160,7 +157,7 @@ public class Dispatcher
     {
         ArgumentNullException.ThrowIfNull(context, nameof(context));
 
-        return this.resultHandler.Handle(this.DispatchInternal(context));
+        return this.resultHandler.Handle(context, this.DispatchInternal(context));
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
@@ -175,9 +172,9 @@ public class Dispatcher
         {
             return this.handler.DynamicInvoke(arguments);
         }
-        catch
+        catch(Exception exception)
         {
-            return NackResult.WithoutRequeue;
+            return this.consumerParameters.ResultForProcessFailure(context, exception);
         }
 
     }

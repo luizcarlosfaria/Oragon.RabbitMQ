@@ -23,7 +23,7 @@ namespace Oragon.RabbitMQ.Consumer;
 public class QueueConsumer : IHostedAmqpConsumer
 {
     private readonly ILogger logger;
-    private readonly QueueConsumerBuilder parameters;
+    private readonly ConsumerParameters parameters;
     private Dispatcher dispatcher;
     private AsyncEventingBasicConsumer asyncBasicConsumer;
     private IConnection connection;
@@ -53,7 +53,7 @@ public class QueueConsumer : IHostedAmqpConsumer
     /// </summary>
     /// <param name="logger"></param>
     /// <param name="queueConsumerBuilder"></param>
-    public QueueConsumer(ILogger logger, QueueConsumerBuilder queueConsumerBuilder)
+    public QueueConsumer(ILogger logger, ConsumerParameters queueConsumerBuilder)
     {
         this.logger = logger;
         this.parameters = queueConsumerBuilder;
@@ -68,7 +68,7 @@ public class QueueConsumer : IHostedAmqpConsumer
     {
         if (this.IsInitialized) throw new InvalidOperationException("The consumer is already initialized");
 
-        this.dispatcher = new Dispatcher(this.parameters.Handler);
+        this.dispatcher = new Dispatcher(this.parameters);
 
         await this.ValidateAsync(cancellationToken).ConfigureAwait(false);
 
@@ -210,14 +210,14 @@ public class QueueConsumer : IHostedAmqpConsumer
     {
         using (IServiceScope scope = this.parameters.ApplicationServiceProvider.CreateScope())
         {
-            var canProceed = this.TryDeserialize(eventArgs, this.dispatcher.MessageType, out var incomingMessage);
+            (bool canProceed, Exception exception) = this.TryDeserialize(eventArgs, this.dispatcher.MessageType, out var incomingMessage);
 
             IAmqpContext context = new AmqpContext(eventArgs, scope.ServiceProvider, this.serializer, this.connection, this.channel, this.parameters.QueueName, incomingMessage, this.cancellationTokenSource.Token);
 
             IAMQPResult result =
                 canProceed
                 ? await this.dispatcher.DispatchAsync(context).ConfigureAwait(false)
-                : RejectResult.WithoutRequeue;
+                : this.parameters.ResultForSerializationFailure(context, exception);
 
             await result.ExecuteAsync(context).ConfigureAwait(false);
         }
@@ -249,11 +249,10 @@ public class QueueConsumer : IHostedAmqpConsumer
     /// <param name="incomingMessage">The deserialized incomingMessage.</param>
     /// <returns><c>true</c> if deserialization is successful; otherwise, <c>false</c>.</returns>
     [SuppressMessage("Design", "CA1031", Justification = "Tratamento de exceção global, isolando uma micro-operação")]
-    private bool TryDeserialize(BasicDeliverEventArgs eventArgs, Type type, out object incomingMessage)
+    private (bool, Exception) TryDeserialize(BasicDeliverEventArgs eventArgs, Type type, out object incomingMessage)
     {
         _ = Guard.Argument(eventArgs).NotNull();
         _ = Guard.Argument(type).NotNull();
-        var returnValue = true;
 
         incomingMessage = default;
         try
@@ -262,12 +261,12 @@ public class QueueConsumer : IHostedAmqpConsumer
         }
         catch (Exception exception)
         {
-            returnValue = false;
-
             s_logErrorOnDeserialize(this.logger, exception, exception);
+
+            return (false, exception);
         }
 
-        return returnValue;
+        return (true, null);
     }
 
 

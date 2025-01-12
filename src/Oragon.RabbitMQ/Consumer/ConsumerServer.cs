@@ -28,8 +28,8 @@ public class ConsumerServer : IHostedService, IDisposable
     /// <summary>
     /// The consumers that will be started.
     /// </summary>
-    public IEnumerable<QueueConsumerBuilder> QueueConsumerBuilders => [.. this.internalQueueConsumerBuilders];
-    private readonly List<QueueConsumerBuilder> internalQueueConsumerBuilders = [];
+    public IEnumerable<IConsumerParameters> ConsumersBuilders => [.. this.internalConsumerBuilders];
+    private readonly List<IConsumerParameters> internalConsumerBuilders = [];
 
 
     /// <summary>
@@ -37,11 +37,11 @@ public class ConsumerServer : IHostedService, IDisposable
     /// </summary>
     /// <param name="builder"></param>
     /// <exception cref="InvalidOperationException"></exception>
-    public void AddConsumerBuilder(QueueConsumerBuilder builder)
+    public void AddConsumerBuilder(ConsumerParameters builder)
     {
         if (this.IsReadOnly) throw new InvalidOperationException("The ConsumerServer is in readonly state");
 
-        this.internalQueueConsumerBuilders.Add(builder);
+        this.internalConsumerBuilders.Add(builder);
     }
 
 
@@ -54,9 +54,9 @@ public class ConsumerServer : IHostedService, IDisposable
     {
         this.IsReadOnly = true;
 
-        foreach (QueueConsumerBuilder consumer in this.QueueConsumerBuilders)
+        foreach (ConsumerParameters consumer in this.ConsumersBuilders)
         {
-            this.internalConsumers.Add(await consumer.BuildAsync(cancellationToken).ConfigureAwait(false));
+            this.internalConsumers.Add(await consumer.BuildConsumerAsync(cancellationToken).ConfigureAwait(false));
         }
 
         foreach (IHostedAmqpConsumer consumer in this.internalConsumers)
