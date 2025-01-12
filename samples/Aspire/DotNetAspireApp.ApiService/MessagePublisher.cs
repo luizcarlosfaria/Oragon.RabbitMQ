@@ -91,15 +91,46 @@ public class MessagePublisher
         this.connection = newConnection;
         this.connection.ConnectionBlockedAsync += this.Connection_ConnectionBlockedAsync;
         this.connection.ConnectionUnblockedAsync += this.Connection_ConnectionUnblockedAsync;
+        this.connection.ConnectionShutdownAsync += this.Connection_ConnectionShutdownAsync;
 
         return newConnection;
     }
+
+    private async Task Connection_ConnectionShutdownAsync(object sender, RabbitMQ.Client.Events.ShutdownEventArgs @event)
+    {
+        this.isBlocked = true;
+
+        try
+        {
+            await this.ReleaseChannelAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            this.Log($"Release Channel by Connection Shutdown Cause error... {ex}");
+        }
+        this.channel = null;
+
+        try
+        {
+            await this.ReleaseConnectionAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            this.Log($"Release Connection by Connection Shutdown Cause error... {ex}");
+        }
+        this.connection = null;
+
+        this.isBlocked = false;
+
+    }
+
     private async Task ReleaseConnectionAsync()
     {
         if (this.connection != null)
         {
             this.connection.ConnectionBlockedAsync -= this.Connection_ConnectionBlockedAsync;
             this.connection.ConnectionUnblockedAsync -= this.Connection_ConnectionUnblockedAsync;
+            this.connection.ConnectionShutdownAsync -= this.Connection_ConnectionShutdownAsync;
             await this.connection.CloseAsync().ConfigureAwait(false);
             this.connection = null;
         }
