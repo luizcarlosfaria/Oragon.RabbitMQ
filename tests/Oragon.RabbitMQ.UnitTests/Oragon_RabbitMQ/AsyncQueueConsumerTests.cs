@@ -96,7 +96,7 @@ public class AsyncQueueConsumerTests
 
         var hostedService = sp.GetRequiredService<IHostedService>();
 
-        _ = await Assert.ThrowsAsync<InvalidOperationException>(async () => await hostedService.StartAsync(CancellationToken.None).ConfigureAwait(false));
+        _ = await Assert.ThrowsAsync<InvalidOperationException>(async () => await hostedService.StartAsync(CancellationToken.None).ConfigureAwait(true));
 
 
     }
@@ -162,7 +162,7 @@ public class AsyncQueueConsumerTests
         var hostedService = sp.GetRequiredService<IHostedService>();
 
 
-        _ = await Assert.ThrowsAsync<InvalidOperationException>(async () => await hostedService.StartAsync(CancellationToken.None).ConfigureAwait(false));
+        _ = await Assert.ThrowsAsync<InvalidOperationException>(async () => await hostedService.StartAsync(CancellationToken.None).ConfigureAwait(true));
 
 
     }
@@ -233,9 +233,11 @@ public class AsyncQueueConsumerTests
         var hostedService = sp.GetRequiredService<IHostedService>();
 
 
-        await hostedService.StartAsync(CancellationToken.None).ConfigureAwait(false);
+        await hostedService.StartAsync(CancellationToken.None).ConfigureAwait(true);
 
         await Task.Delay(TimeSpan.FromMilliseconds(500));
+
+        ArgumentNullException.ThrowIfNull(queueConsumer);
 
         await queueConsumer.HandleBasicDeliverAsync(consumerTag, 1, false, queueName, queueName, basicPropertiesMock.Object, Encoding.UTF8.GetBytes("{}"));
 
