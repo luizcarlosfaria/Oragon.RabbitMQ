@@ -26,7 +26,7 @@ public static class Program
             connectionFactory.ClientProvidedName = "DotNetAspireApp.Worker";
         });
 
-        _ = builder.Services.AddSingleton<IAMQPSerializer>(sp => new SystemTextJsonAMQPSerializer(JsonSerializerOptions.Default));
+        _ = builder.Services.AddAMQPSerializer(options: JsonSerializerOptions.Default);
 
         _ = builder.Services.AddSingleton<EmailService>();
 

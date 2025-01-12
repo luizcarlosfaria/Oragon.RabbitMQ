@@ -102,7 +102,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
 
         // Singleton dependencies
         services.AddSingleton(new ActivitySource("test"));
-        services.AddSingleton<IAMQPSerializer>(sp => new NewtonsoftAMQPSerializer(null));
+        services.AddNewtonsoftAMQPSerializer();
         services.AddSingleton(connection ?? throw new InvalidOperationException("Connection is null"));
 
         // Scoped dependencies

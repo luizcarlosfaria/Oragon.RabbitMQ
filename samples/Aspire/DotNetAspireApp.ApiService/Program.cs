@@ -2,15 +2,15 @@ using System.Text.Json;
 using DotNetAspireApp.ApiService;
 using DotNetAspireApp.Common.Messages.Commands;
 using Microsoft.AspNetCore.Mvc;
+using Oragon.RabbitMQ;
 using Oragon.RabbitMQ.AspireClient;
-using Oragon.RabbitMQ.Serialization;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 
 builder.Services.AddTransient<MessagePublisher>();
 
-builder.Services.AddSingleton<IAMQPSerializer>(sp => new SystemTextJsonAMQPSerializer(JsonSerializerOptions.Default));
+builder.Services.AddAMQPSerializer(options: JsonSerializerOptions.Default);
 
 builder.AddRabbitMQClient("rabbitmq", null, connectionFactory =>
 {

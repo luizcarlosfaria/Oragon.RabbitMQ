@@ -5,7 +5,6 @@ using RabbitMQ.Client;
 using System.Text;
 using Testcontainers.RabbitMq;
 using Microsoft.Extensions.DependencyInjection;
-using Oragon.RabbitMQ.Serialization;
 using Microsoft.Extensions.Hosting;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
@@ -125,7 +124,7 @@ public class MultipleConsumersTest : IAsyncLifetime
 
         // Singleton dependencies
         services.AddSingleton(new ActivitySource("test"));
-        services.AddSingleton<IAMQPSerializer>(sp => new NewtonsoftAMQPSerializer(null));
+        services.AddNewtonsoftAMQPSerializer();
         services.AddSingleton(sp => this.CreateConnectionAsync().GetAwaiter().GetResult());
 
         // Send a message to the channel.
