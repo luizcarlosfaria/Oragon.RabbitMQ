@@ -14,6 +14,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{6AAFD3EC-83DD-4D06-AD71-535673D08885}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{BA980939-3879-4FB5-98E8-563D3DFE0F45}"
+	ProjectSection(SolutionItems) = preProject
+		tests\Oragon.RabbitMQ.Tests.props = tests\Oragon.RabbitMQ.Tests.props
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Oragon.RabbitMQ.UnitTests", "tests\Oragon.RabbitMQ.UnitTests\Oragon.RabbitMQ.UnitTests.csproj", "{26FF5258-CF22-415C-A578-FCE3F8B02EF0}"
 EndProject
