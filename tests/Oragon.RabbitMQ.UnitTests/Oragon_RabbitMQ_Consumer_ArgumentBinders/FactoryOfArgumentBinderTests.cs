@@ -1,8 +1,6 @@
-using System.Threading;
 using Moq;
 using Oragon.RabbitMQ.Consumer;
 using Oragon.RabbitMQ.Consumer.Actions;
-using Oragon.RabbitMQ.Consumer.ArgumentBinders;
 using Oragon.RabbitMQ.Consumer.Dispatch;
 using Oragon.RabbitMQ.Consumer.Dispatch.Attributes;
 using RabbitMQ.Client;

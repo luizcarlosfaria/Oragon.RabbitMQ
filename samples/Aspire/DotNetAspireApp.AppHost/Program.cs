@@ -23,7 +23,7 @@ builder.AddProject<Projects.DotNetAspireApp_Web>("webfrontend")
 
 builder.AddProject<Projects.DotNetAspireApp_Worker>("worker")
     .WithReference(rabbitmq)
-    .WithReplicas(2)
+    .WithReplicas(4)
     ;
 
 builder.Build().Run();
