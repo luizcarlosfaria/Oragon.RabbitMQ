@@ -19,7 +19,7 @@ public static class SafeRunner
     /// <param name="maxRetryAttempts">The maximum number of retry attempts.</param>
     /// <param name="delayInSeconds">The delay between retry attempts in seconds.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    public static async Task ExecuteWithRetry<TException>(this Func<Task> taskToRun, Func<TException, bool>? predicate = null, int? maxRetryAttempts = 4, int? delayInSeconds = 3)
+    public static async Task ExecuteWithRetry<TException>(this Func<Task> taskToRun, Func<TException, bool> predicate = null, int? maxRetryAttempts = 4, int? delayInSeconds = 3)
         where TException : Exception
     {
         var predicateBuilder = predicate != null

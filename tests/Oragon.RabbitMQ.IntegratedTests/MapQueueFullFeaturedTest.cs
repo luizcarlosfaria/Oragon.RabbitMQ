@@ -18,7 +18,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
 {
     public class ExampleMessage
     {
-        public string? Name { get; set; }
+        public string Name { get; set; }
         public int Age { get; set; }
     }
 
@@ -41,9 +41,9 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
 
             this.CallbackToTests(message);
 
-            this.WaitHandleRef.TryGetTarget(out EventWaitHandle? waitHandle);
+            this.WaitHandleRef.TryGetTarget(out EventWaitHandle waitHandle);
 
-            waitHandle!.Set();
+            waitHandle.Set();
 
             return Task.CompletedTask;
         }
@@ -70,9 +70,9 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
         };
     }
 
-    private async Task<IConnection?> CreateConnectionAsync()
+    private async Task<IConnection> CreateConnectionAsync()
     {
-        IConnection? connection = null;
+        IConnection connection = null;
 
         await SafeRunner.ExecuteWithRetry<global::RabbitMQ.Client.Exceptions.BrokerUnreachableException>(async () => connection = await this.CreateConnectionFactory().CreateConnectionAsync().ConfigureAwait(false)).ConfigureAwait(true);
 
@@ -88,7 +88,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
         const string queue = "MapQueueBasicSuccessTest";
 
         var originalMessage = new ExampleMessage() { Name = $"Teste - {Guid.NewGuid():D}", Age = 8 };
-        ExampleMessage? receivedMessage = default;
+        ExampleMessage receivedMessage = default;
 
         // Create and establish a connection.
         using var connection = await this.CreateConnectionAsync().ConfigureAwait(true);
@@ -146,7 +146,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
 
         await hostedService.StartAsync(CancellationToken.None);
 
-        waitHandleRef.TryGetTarget(out EventWaitHandle? waitHandle);
+        waitHandleRef.TryGetTarget(out EventWaitHandle waitHandle);
 
         for (var i = 0; i < 10; i++)
         {
