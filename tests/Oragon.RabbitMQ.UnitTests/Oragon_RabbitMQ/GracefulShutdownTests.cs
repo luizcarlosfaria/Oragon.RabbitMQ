@@ -2,7 +2,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Oragon.RabbitMQ.Serialization;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Oragon.RabbitMQ.TestsExtensions;
@@ -89,7 +88,7 @@ public class GracefulShutdownTests
 
 
         _ = services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
-        _ = services.AddSingleton<IAMQPSerializer>(sp => new NewtonsoftAMQPSerializer(null));
+        _ = services.AddNewtonsoftAMQPSerializer();
         _ = services.AddScoped<ExampleService>();
         //-------------------------------------------------------
         var sp = services.BuildServiceProvider();
