@@ -42,7 +42,7 @@
     <TestsSharedDir>$(MSBuildThisFileDirectory)/tests/Shared/</TestsSharedDir>
     <PackageIconFullPath>$(AssetsDir)Oragon.RabbitMQ.png</PackageIconFullPath>
     <WarnOnPackingNonPackableProject>false</WarnOnPackingNonPackableProject>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
