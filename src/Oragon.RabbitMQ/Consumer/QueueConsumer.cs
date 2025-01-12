@@ -138,12 +138,11 @@ public class QueueConsumer : IHostedAmqpConsumer
             if (!mustReuseConnection)
             {
                 await connection2.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
-                connection2 = null;
             }
 
             using IChannel testChannel = await this.parameters.ChannelFactory(connection1, cancellationToken).ConfigureAwait(false);
 
-            QueueDeclareOk queue = await testChannel.QueueDeclarePassiveAsync(this.parameters.QueueName, cancellationToken).ConfigureAwait(false);
+            _ = await testChannel.QueueDeclarePassiveAsync(this.parameters.QueueName, cancellationToken).ConfigureAwait(false);
 
             await testChannel.CloseAsync(cancellationToken).ConfigureAwait(false);
 
@@ -153,7 +152,7 @@ public class QueueConsumer : IHostedAmqpConsumer
             {
                 try
                 {
-                    var service = binder.GetValue(scope.ServiceProvider);
+                    _ = binder.GetValue(scope.ServiceProvider);
                 }
                 catch (Exception)
                 {

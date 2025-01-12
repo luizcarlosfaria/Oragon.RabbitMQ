@@ -258,7 +258,7 @@ public class ConsumerParameters : IConsumerParameters
         this.ResultForSerializationFailure = amqpResult;
 
         return this;
-    } 
+    }
     #endregion
 
     #region ResultForProcessFailure / WhenProcessFail(IAMQPResult amqpResult)

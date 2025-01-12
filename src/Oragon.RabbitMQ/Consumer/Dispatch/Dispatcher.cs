@@ -172,7 +172,7 @@ public class Dispatcher
         {
             return this.handler.DynamicInvoke(arguments);
         }
-        catch(Exception exception)
+        catch (Exception exception)
         {
             return this.consumerParameters.ResultForProcessFailure(context, exception);
         }
