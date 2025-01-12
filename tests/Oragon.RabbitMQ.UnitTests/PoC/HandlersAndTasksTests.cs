@@ -11,7 +11,7 @@ namespace Oragon.RabbitMQ.UnitTests.PoC;
 
 public class SampleRequest
 {
-    public object? ReturnValue { get; set; }
+    public object ReturnValue { get; set; }
 
     public bool ThrowException { get; set; }
 }
