@@ -54,7 +54,7 @@ public class ConsumerServer : IHostedService, IDisposable
     {
         this.IsReadOnly = true;
 
-        foreach (ConsumerParameters consumer in this.ConsumersBuilders)
+        foreach (IConsumerParameters consumer in this.ConsumersBuilders)
         {
             this.internalConsumers.Add(await consumer.BuildConsumerAsync(cancellationToken).ConfigureAwait(false));
         }

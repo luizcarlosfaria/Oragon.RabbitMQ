@@ -2,7 +2,7 @@
 // The ACADEMIA.DEV licenses this file to you under the MIT license.
 
 namespace Oragon.RabbitMQ.IntegratedTests;
-internal class Constants
+internal sealed class Constants
 {
     public const string RabbitMQContainerImage = "rabbitmq:4-management-alpine";
 }

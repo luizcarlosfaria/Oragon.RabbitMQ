@@ -71,8 +71,10 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
 
         await SafeRunner.ExecuteWithRetry<global::RabbitMQ.Client.Exceptions.BrokerUnreachableException>(async () =>
         {
-            connection = await this.CreateConnectionFactory().CreateConnectionAsync();
+            connection = await this.CreateConnectionFactory().CreateConnectionAsync().ConfigureAwait(false);
         }).ConfigureAwait(true);
+
+        ArgumentNullException.ThrowIfNull(connection, nameof(connection));
 
         return connection;
     }
