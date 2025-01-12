@@ -53,26 +53,35 @@ var progressBarWidth = 20;
 app.MapPost("/enqueue", (DoSomethingRequest req, CancellationToken cancellationToken, [FromServices] MessagePublisher messagePublisher)
     =>
 {
-    _ = Task.Run(async () =>
+    Action<string> Log = (string message) =>
     {
-        Console.WriteLine($"{messagePublisher.Id} | Starting to publish {req.quantity:n0}");
-        for (var i = 1; i <= req.quantity; i++)
+        Console.ForegroundColor = messagePublisher.consoleColors.ForegroundColor;
+        Console.BackgroundColor = messagePublisher.consoleColors.BackgroundColor;
+        Console.WriteLine($"{messagePublisher.ConsoleId} {message}");
+        Console.ResetColor();
+    };
+
+
+    _ = Task.Run(async () =>
         {
-            var command = new DoSomethingCommand(req.Text, i, req.quantity);
-
-            await messagePublisher.PublishAsync(command, "events", string.Empty, default).ConfigureAwait(false);
-
-            if (i % (req.quantity / progressBarWidth) == 0) // Update progress bar
+            Log($"Starting to publish {req.quantity:n0}");
+            for (var i = 1; i <= req.quantity; i++)
             {
-                var progress = (i * progressBarWidth / req.quantity);
-                Console.WriteLine($"{messagePublisher.Id} | [{new string('#', progress)}{new string(' ', progressBarWidth - progress)}] {i * 100 / req.quantity}%");
-            }
+                var command = new DoSomethingCommand(req.Text, i, req.quantity);
 
-        }
-        Console.WriteLine($"{messagePublisher.Id} | Done ({req.quantity:n0} messages!)");
-        await messagePublisher.DisposeAsync().ConfigureAwait(false);
-        Console.WriteLine($"{messagePublisher.Id} | END ({req.quantity:n0} messages!)");
-    });
+                await messagePublisher.PublishAsync(command, "events", string.Empty, default).ConfigureAwait(false);
+
+                if (i % (req.quantity / progressBarWidth) == 0) // Update progress bar
+                {
+                    var progress = (i * progressBarWidth / req.quantity);
+                    Log($"[{new string('#', progress)}{new string(' ', progressBarWidth - progress)}] {i * 100 / req.quantity}%");
+                }
+
+            }
+            Log($"Done ({req.quantity:n0} messages!)");
+            await messagePublisher.DisposeAsync().ConfigureAwait(false);
+            Log($"END ({req.quantity:n0} messages!)");
+        });
 
     return "ok";
 });

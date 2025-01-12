@@ -1,6 +1,7 @@
 // Licensed to LuizCarlosFaria, gaGO.io, Mensageria .NET, Cloud Native .NET and ACADEMIA.DEV under one or more agreements.
 // The ACADEMIA.DEV licenses this file to you under the MIT license.
 
+using System.Collections.Concurrent;
 using Oragon.RabbitMQ;
 using Oragon.RabbitMQ.Serialization;
 using RabbitMQ.Client;
@@ -9,20 +10,78 @@ namespace DotNetAspireApp.ApiService;
 
 public class MessagePublisher
 {
+    private static readonly ConcurrentQueue<(ConsoleColor ForegroundColor, ConsoleColor BackgroundColor)> colorQueue;
+    private static readonly object colorQueueLock = new object();
+
+    static MessagePublisher()
+    {
+        colorQueue = new ConcurrentQueue<(ConsoleColor, ConsoleColor)>(new[]
+        {
+            (ConsoleColor.Black, ConsoleColor.White),
+            (ConsoleColor.Blue, ConsoleColor.Yellow),
+            (ConsoleColor.Cyan, ConsoleColor.Red),
+            (ConsoleColor.DarkBlue, ConsoleColor.Gray),
+            (ConsoleColor.DarkCyan, ConsoleColor.Magenta),
+            (ConsoleColor.DarkGray, ConsoleColor.Green),
+            (ConsoleColor.DarkGreen, ConsoleColor.Cyan),
+            (ConsoleColor.DarkMagenta, ConsoleColor.DarkYellow),
+            (ConsoleColor.DarkRed, ConsoleColor.DarkGray),
+            (ConsoleColor.DarkYellow, ConsoleColor.DarkBlue),
+            (ConsoleColor.Gray, ConsoleColor.DarkGreen),
+            (ConsoleColor.Green, ConsoleColor.DarkCyan),
+            (ConsoleColor.Magenta, ConsoleColor.DarkRed),
+            (ConsoleColor.Red, ConsoleColor.DarkMagenta),
+            (ConsoleColor.White, ConsoleColor.Black),
+            (ConsoleColor.Yellow, ConsoleColor.DarkBlue),
+            (ConsoleColor.DarkBlue, ConsoleColor.White),
+            (ConsoleColor.DarkCyan, ConsoleColor.Yellow),
+            (ConsoleColor.DarkGray, ConsoleColor.Red),
+            (ConsoleColor.DarkGreen, ConsoleColor.Gray)
+        });
+    }
+
+
+    public static int Sequence { get; private set; }
+
     private readonly IConnectionFactory connectionFactory;
     private readonly IAMQPSerializer serializer;
     private volatile bool isBlocked;
 
-    public string Id { get; } = Guid.NewGuid().ToString("D").Split('-').Last();
+    public string UId { get; } = Guid.NewGuid().ToString("D").Split('-').Last();
+    public int Id { get; private set; } = (++MessagePublisher.Sequence);
+
+    public string ConsoleId => $"{this.Id:000} | {this.UId}";
+
+    public readonly (ConsoleColor ForegroundColor, ConsoleColor BackgroundColor) consoleColors;
 
     public MessagePublisher(IConnectionFactory connectionFactory, IAMQPSerializer serializer)
     {
         this.connectionFactory = connectionFactory;
         this.serializer = serializer;
+
+        lock (colorQueueLock)
+        {
+            if (colorQueue.TryDequeue(out var colors))
+            {
+                this.consoleColors = colors;
+                colorQueue.Enqueue(colors);
+            }
+        }
+
     }
 
 
     #region Connection Management
+
+
+    private void Log(string message)
+    {
+        Console.ForegroundColor = this.consoleColors.ForegroundColor;
+        Console.BackgroundColor = this.consoleColors.BackgroundColor;
+        Console.WriteLine($"{this.ConsoleId} {message}");
+        Console.ResetColor();
+    }
+
 
     private IConnection? connection;
 
@@ -32,7 +91,7 @@ public class MessagePublisher
 
         await this.ReleaseConnectionAsync().ConfigureAwait(false);
 
-        Console.WriteLine($"{this.Id} Creating Connection... ");
+        this.Log($"Creating Connection... ");
         IConnection newConnection = await this.connectionFactory.CreateConnectionAsync("ApiService - enqueue", CancellationToken.None).ConfigureAwait(false);
 
         this.connection = newConnection;
@@ -54,14 +113,14 @@ public class MessagePublisher
 
     private Task Connection_ConnectionUnblockedAsync(object sender, RabbitMQ.Client.Events.AsyncEventArgs @event)
     {
-        Console.WriteLine($"{this.Id} Connection Unblocked");
+        this.Log($"Connection Unblocked");
         this.isBlocked = false;
         return Task.CompletedTask;
     }
 
     private Task Connection_ConnectionBlockedAsync(object sender, RabbitMQ.Client.Events.ConnectionBlockedEventArgs @event)
     {
-        Console.WriteLine($"{this.Id} Connection Blocked");
+        this.Log($"Connection Blocked");
         this.isBlocked = true;
         return Task.CompletedTask;
     }
@@ -80,7 +139,7 @@ public class MessagePublisher
 
         IConnection connection = await this.GetOrCreateConnectionAsync().ConfigureAwait(false);
 
-        Console.WriteLine($"{this.Id} Creating Channel... ");
+        this.Log($"Creating Channel... ");
 
         IChannel newChannel = await connection.CreateChannelAsync().ConfigureAwait(false);
 
@@ -92,7 +151,7 @@ public class MessagePublisher
     {
         if (this.channel != null)
         {
-            Console.WriteLine($"{this.Id} Releasing Channel... ");
+            this.Log($"Releasing Channel... ");
 
             await this.channel.CloseAsync().ConfigureAwait(false);
             this.channel = null;
@@ -105,7 +164,7 @@ public class MessagePublisher
     {
         for (var retryWait = 0; this.isBlocked && retryWait < 90; retryWait++)
         {
-            Console.WriteLine($"{this.Id} Connection is blocked. Waiting 5s... ");
+            this.Log($"Connection is blocked. Waiting 5s... ");
             await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken).ConfigureAwait(false);
             if (!this.isBlocked) break;
         }
@@ -129,31 +188,31 @@ public class MessagePublisher
 
         if (localChannel != null)
         {
-            Console.WriteLine($"{this.Id} Closing Channel... ");
+            this.Log($"Closing Channel... ");
             await localChannel.CloseAsync(CancellationToken.None).ConfigureAwait(false);
         }
 
         if (localConnection != null)
         {
-            Console.WriteLine($"{this.Id} Closing Connection... ");
+            this.Log($"Closing Connection... ");
             await localConnection.CloseAsync(CancellationToken.None).ConfigureAwait(false);
         }
 
-        Console.WriteLine($"{this.Id} Everything is CLOSED!");
+        this.Log($"Everything is CLOSED!");
 
         if (localChannel != null)
         {
-            Console.WriteLine($"{this.Id} Disposing Channel... ");
+            this.Log($"Disposing Channel... ");
             await localChannel.DisposeAsync().ConfigureAwait(false);
         }
 
         if (localConnection != null)
         {
-            Console.WriteLine($"{this.Id} Disposing Connection... ");
+            this.Log($"Disposing Connection... ");
             await localConnection.DisposeAsync().ConfigureAwait(false);
         }
 
-        Console.WriteLine($"{this.Id} Everything is DISPOSED!");
+        this.Log($"Everything is DISPOSED!");
 
         GC.SuppressFinalize(this);
     }
