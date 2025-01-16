@@ -10,7 +10,7 @@ namespace Oragon.RabbitMQ.UnitTests.Oragon_RabbitMQ_Consumer_Actions;
 public class DelayedResultTests
 {
     [Fact]
-    public async Task ExecuteAsync_ShouldPublishMessageWithTTLAndAcknowledgeOriginalMessage()
+    public async Task ExecuteAsync_ShouldPublishMessageWithTTLAndAcknowledgeOriginalMessageAsync()
     {
         // Arrange
         var channelMock = new Mock<IChannel>();
@@ -20,7 +20,7 @@ public class DelayedResultTests
 
         var originalMessageId = Guid.NewGuid().ToString("D");
         var delayedQueueName = "test-queue-delayed";
-        var ttl = 5000;
+        var ttl = TimeSpan.FromSeconds(5);
         var message = new { Text = "Test Message" };
 
         basicPropertiesMock.SetupGet(it => it.MessageId).Returns(originalMessageId);
@@ -53,7 +53,7 @@ public class DelayedResultTests
             exchange: string.Empty,
             routingKey: delayedQueueName,
             mandatory: true,
-            basicProperties: It.Is<BasicProperties>(bp => bp.Expiration == ttl.ToString() && bp.MessageId != null && bp.CorrelationId == originalMessageId),
+            basicProperties: It.Is<BasicProperties>(bp => bp.Expiration == ((int)ttl.TotalMilliseconds).ToString() && bp.MessageId != null && bp.CorrelationId == originalMessageId),
             body: It.IsAny<ReadOnlyMemory<byte>>(),
             cancellationToken: default), Times.Once);
 
