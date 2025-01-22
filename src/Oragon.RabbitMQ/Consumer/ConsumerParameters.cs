@@ -51,13 +51,13 @@ public class ConsumerParameters : IConsumerParameters
 
             .WithPrefetch(1)
 
-            .WhenSerializationFail((amqpContext, exception) => RejectResult.WithoutRequeue)
+            .WhenSerializationFail((amqpContext, exception) => AmqpResults.Reject(false))
 
-            .WhenProcessFail((amqpContext, exception) => NackResult.WithoutRequeue)
+            .WhenProcessFail((amqpContext, exception) => AmqpResults.Nack(false))
 
             .WithConnection((sp, ct) => Task.FromResult(sp.GetRequiredService<IConnection>()))
 
-            .WithSerializer((sp) => sp.GetRequiredService<IAMQPSerializer>())
+            .WithSerializer((sp) => sp.GetRequiredService<IAmqpSerializer>())
 
             .WithChannel((connection, ct) => connection.CreateChannelAsync(
                 new CreateChannelOptions(
@@ -191,19 +191,19 @@ public class ConsumerParameters : IConsumerParameters
     }
     #endregion
 
-    #region SerializerFactory / WithSerializer(Func<IServiceProvider, IAMQPSerializer> serializerFactory)
+    #region SerializerFactory / WithSerializer(Func<IServiceProvider, IAmqpSerializer> serializerFactory)
 
     /// <summary>
     /// Gets the serializer.
     /// </summary>
-    public Func<IServiceProvider, IAMQPSerializer> SerializerFactory { get; private set; }
+    public Func<IServiceProvider, IAmqpSerializer> SerializerFactory { get; private set; }
 
     /// <summary>
     /// Sets the serializer using a factory function.
     /// </summary>
     /// <param name="serializerFactory">The factory function to create the serializer.</param>
     /// <returns>The current instance of <see cref="ConsumerParameters"/>.</returns>
-    public IConsumerParameters WithSerializer(Func<IServiceProvider, IAMQPSerializer> serializerFactory)
+    public IConsumerParameters WithSerializer(Func<IServiceProvider, IAmqpSerializer> serializerFactory)
     {
         _ = Guard.Argument(serializerFactory).NotNull();
         _ = Guard.Argument(this.IsLocked).False();
@@ -237,12 +237,12 @@ public class ConsumerParameters : IConsumerParameters
     }
     #endregion
 
-    #region ResultForSerializationFailure / WhenSerializationFail(IAMQPResult amqpResult)
+    #region ResultForSerializationFailure / WhenSerializationFail(IAmqpResult amqpResult)
 
     /// <summary>
     /// Gets the ResultForSerializationFailure.
     /// </summary>
-    public Func<IAmqpContext, Exception, IAMQPResult> ResultForSerializationFailure { get; private set; }
+    public Func<IAmqpContext, Exception, IAmqpResult> ResultForSerializationFailure { get; private set; }
 
 
     /// <summary>
@@ -250,7 +250,7 @@ public class ConsumerParameters : IConsumerParameters
     /// </summary>
     /// <param name="amqpResult"></param>
     /// <returns></returns>
-    public IConsumerParameters WhenSerializationFail(Func<IAmqpContext, Exception, IAMQPResult> amqpResult)
+    public IConsumerParameters WhenSerializationFail(Func<IAmqpContext, Exception, IAmqpResult> amqpResult)
     {
         _ = Guard.Argument(amqpResult).NotNull();
         _ = Guard.Argument(this.IsLocked).False();
@@ -261,12 +261,12 @@ public class ConsumerParameters : IConsumerParameters
     }
     #endregion
 
-    #region ResultForProcessFailure / WhenProcessFail(IAMQPResult amqpResult)
+    #region ResultForProcessFailure / WhenProcessFail(IAmqpResult amqpResult)
 
     /// <summary>
     /// Gets the ResultForProcessFailure.
     /// </summary>
-    public Func<IAmqpContext, Exception, IAMQPResult> ResultForProcessFailure { get; private set; }
+    public Func<IAmqpContext, Exception, IAmqpResult> ResultForProcessFailure { get; private set; }
 
 
     /// <summary>
@@ -274,7 +274,7 @@ public class ConsumerParameters : IConsumerParameters
     /// </summary>
     /// <param name="amqpResult"></param>
     /// <returns></returns>
-    public IConsumerParameters WhenProcessFail(Func<IAmqpContext, Exception, IAMQPResult> amqpResult)
+    public IConsumerParameters WhenProcessFail(Func<IAmqpContext, Exception, IAmqpResult> amqpResult)
     {
         _ = Guard.Argument(amqpResult).NotNull();
         _ = Guard.Argument(this.IsLocked).False();

@@ -8,7 +8,7 @@ using RabbitMQ.Client.Events;
 namespace Oragon.RabbitMQ.Consumer;
 
 /// <summary>
-/// Represents the context for AMQP operations.
+/// Represents the context for Amqp operations.
 /// </summary>
 /// <remarks>
 /// Initializes a new instance of the <see cref="AmqpContext"/> class.
@@ -23,12 +23,12 @@ public class AmqpContext : IAmqpContext
     public BasicDeliverEventArgs Request { get; }
 
     /// <summary>
-    /// Gets the channel for AMQP operations.
+    /// Gets the channel for Amqp operations.
     /// </summary>
     public IChannel Channel { get; }
 
     /// <summary>
-    /// Gets the connection for AMQP operations.
+    /// Gets the connection for Amqp operations.
     /// </summary>
     public IConnection Connection { get; }
 
@@ -50,7 +50,7 @@ public class AmqpContext : IAmqpContext
     /// <summary>
     /// Gets the serializer.
     /// </summary>
-    public IAMQPSerializer Serializer { get; }
+    public IAmqpSerializer Serializer { get; }
 
     /// <summary>
     /// Gets the service provider.
@@ -70,7 +70,7 @@ public class AmqpContext : IAmqpContext
     /// <param name="cancellationToken"></param>
     public AmqpContext(BasicDeliverEventArgs delivery,
                              IServiceProvider serviceProvider,
-                             IAMQPSerializer serializer,
+                             IAmqpSerializer serializer,
                              IConnection connection,
                              IChannel channel,
                              string queueName,

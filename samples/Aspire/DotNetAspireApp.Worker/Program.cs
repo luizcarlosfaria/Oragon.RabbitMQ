@@ -26,7 +26,7 @@ public static class Program
             connectionFactory.ClientProvidedName = "DotNetAspireApp.Worker";
         });
 
-        _ = builder.Services.AddAMQPSerializer(options: JsonSerializerOptions.Default);
+        _ = builder.Services.AddAmqpSerializer(options: JsonSerializerOptions.Default);
 
         _ = builder.Services.AddSingleton<EmailService>();
 
@@ -50,7 +50,8 @@ public static class Program
 
     private static Task ConfigureManagedConsumer(this IHost host)
     {
-        _ = host.MapQueue("events-managed", ([FromServices] EmailService svc, [FromBody] DoSomethingCommand cmd) => svc.DoSomethingAsync(cmd).ConfigureAwait(false))
+        _ = host.MapQueue("events-managed", ([FromServices] EmailService svc, [FromBody] DoSomethingCommand cmd)
+            => svc.DoSomethingAsync(cmd).ConfigureAwait(false))
         .WithPrefetch(DotNetAspireApp.Worker.Constants.Prefetch)
         .WithDispatchConcurrency(DotNetAspireApp.Worker.Constants.ConsumerDispatchConcurrency);
 
@@ -67,7 +68,7 @@ public static class Program
         var channelOptions = new CreateChannelOptions(publisherConfirmationsEnabled: false,
                                                       publisherConfirmationTrackingEnabled: false,
                                                       outstandingPublisherConfirmationsRateLimiter: null,
-                                                      consumerDispatchConcurrency: 4);
+                                                      consumerDispatchConcurrency: DotNetAspireApp.Worker.Constants.ConsumerDispatchConcurrency);
 
         IChannel channel = await connection.CreateChannelAsync(channelOptions).ConfigureAwait(false);
 
@@ -75,7 +76,7 @@ public static class Program
 
         var consumer = new AsyncEventingBasicConsumer(channel);
 
-        IAMQPSerializer serializer = host.Services.GetRequiredService<IAMQPSerializer>();
+        IAmqpSerializer serializer = host.Services.GetRequiredService<IAmqpSerializer>();
 
         consumer.ReceivedAsync += async (sender, ea) =>
         {

@@ -14,7 +14,7 @@ namespace Oragon.RabbitMQ;
 /// <summary>
 /// Extensions for Dependency Injection
 /// </summary>
-public static class DependencyInjectionExtensions
+public static partial class DependencyInjectionExtensions
 {
 
     /// <summary>

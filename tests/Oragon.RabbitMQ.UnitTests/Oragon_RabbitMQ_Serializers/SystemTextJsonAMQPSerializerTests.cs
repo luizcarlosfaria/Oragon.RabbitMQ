@@ -11,7 +11,7 @@ using RabbitMQ.Client.Events;
 
 namespace Oragon.RabbitMQ.UnitTests.Oragon_RabbitMQ_Serializers;
 
-public class SystemTextJsonAMQPSerializerTests
+public class SystemTextJsonAmqpSerializerTests
 {
     private sealed class Teste
     {
@@ -27,7 +27,7 @@ public class SystemTextJsonAMQPSerializerTests
 
         var sourceObject = new Teste() { Name = "Oragon.RabbitMQ", Age = 2 };
 
-        var serializer = new SystemTextJsonAMQPSerializer(null);
+        var serializer = new SystemTextJsonAmqpSerializer(null);
 
         var serializerOutput = serializer.Serialize(targetBasicProperties, sourceObject);
 
@@ -46,7 +46,7 @@ public class SystemTextJsonAMQPSerializerTests
 
         var reference = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(sourceObject));
 
-        var serializer = new SystemTextJsonAMQPSerializer(null);
+        var serializer = new SystemTextJsonAmqpSerializer(null);
 
         var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
@@ -71,7 +71,7 @@ public class SystemTextJsonAMQPSerializerTests
 
         byte[] reference = [];
 
-        var serializer = new SystemTextJsonAMQPSerializer(null);
+        var serializer = new SystemTextJsonAmqpSerializer(null);
 
         var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
@@ -94,7 +94,7 @@ public class SystemTextJsonAMQPSerializerTests
 
         var reference = Encoding.UTF8.GetBytes("");
 
-        var serializer = new SystemTextJsonAMQPSerializer(null);
+        var serializer = new SystemTextJsonAmqpSerializer(null);
 
         var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
@@ -118,7 +118,7 @@ public class SystemTextJsonAMQPSerializerTests
 
         var reference = Encoding.UTF8.GetBytes(" ");
 
-        var serializer = new SystemTextJsonAMQPSerializer(null);
+        var serializer = new SystemTextJsonAmqpSerializer(null);
 
         var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
@@ -145,7 +145,7 @@ public class SystemTextJsonAMQPSerializerTests
     {
         var jsonInBytes = Encoding.UTF8.GetBytes(json);
 
-        IAMQPSerializer serializer = new SystemTextJsonAMQPSerializer(new JsonSerializerOptions()
+        IAmqpSerializer serializer = new SystemTextJsonAmqpSerializer(new JsonSerializerOptions()
         {
             PropertyNameCaseInsensitive = true,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,

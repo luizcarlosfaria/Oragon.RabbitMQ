@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Oragon.RabbitMQ.Consumer.ArgumentBinders;
 
 /// <summary>
-/// Represents an argument binder for an AMQP message.
+/// Represents an argument binder for an Amqp message.
 /// </summary>
 /// <param name="parameterType"></param>
 /// <param name="serviceKey"></param>

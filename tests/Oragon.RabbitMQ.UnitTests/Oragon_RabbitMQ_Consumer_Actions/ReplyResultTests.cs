@@ -30,8 +30,8 @@ public class ReplyResultTests
         basicPropertiesMock.SetupGet(it => it.MessageId).Returns(originalMessageId).Verifiable(Times.Once());
         basicPropertiesMock.SetupGet(it => it.ReplyTo).Returns(replyTo).Verifiable(Times.Once());
 
-        var amqpSerializer = new Mock<IAMQPSerializer>();
-        amqpSerializer.Setup(it => it.Serialize(It.IsAny<BasicProperties>(), It.Is<object>(dto => ((ResponseDTO)dto).Name == "Text1" && ((ResponseDTO)dto).Age == 4))).Returns(new byte[] { 1, 2, 3 }).Verifiable(Times.Once());
+        var amqpSerializer = new Mock<IAmqpSerializer>();
+        amqpSerializer.Setup(it => it.Serialize(It.IsAny<BasicProperties>(), It.Is<ResponseDTO>(dto => dto.Name == "Text1" && dto.Age == 4))).Returns(new byte[] { 1, 2, 3 }).Verifiable(Times.Once());
 
         var basicDeliverEventArgs = new BasicDeliverEventArgs(
                 consumerTag: Guid.NewGuid().ToString(),
@@ -48,7 +48,7 @@ public class ReplyResultTests
         contextMock.Setup(it => it.Request).Returns(basicDeliverEventArgs).Verifiable(Times.Exactly(2));
         contextMock.Setup(it => it.Serializer).Returns(amqpSerializer.Object).Verifiable(Times.Once());
 
-        var result = new ReplyResult(new ResponseDTO() { Name = "Text1", Age = 4 });
+        var result = AmqpResults.Reply(new ResponseDTO() { Name = "Text1", Age = 4 });
 
         // Act
         await result.ExecuteAsync(contextMock.Object);

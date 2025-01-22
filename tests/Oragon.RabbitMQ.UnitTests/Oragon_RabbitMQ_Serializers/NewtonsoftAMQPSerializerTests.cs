@@ -9,7 +9,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 namespace Oragon.RabbitMQ.UnitTests.Oragon_RabbitMQ_Serializers;
-public class NewtonsoftAMQPSerializerTests
+public class NewtonsoftAmqpSerializerTests
 {
     private sealed class Teste
     {
@@ -25,7 +25,7 @@ public class NewtonsoftAMQPSerializerTests
 
         var sourceObject = new Teste() { Name = "Oragon.RabbitMQ", Age = 2 };
 
-        var serializer = new NewtonsoftAMQPSerializer(null);
+        var serializer = new NewtonsoftAmqpSerializer(null);
 
         var serializerOutput = serializer.Serialize(targetBasicProperties, sourceObject);
 
@@ -44,7 +44,7 @@ public class NewtonsoftAMQPSerializerTests
 
         var reference = Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(sourceObject));
 
-        var serializer = new NewtonsoftAMQPSerializer(null);
+        var serializer = new NewtonsoftAmqpSerializer(null);
 
         var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
@@ -69,7 +69,7 @@ public class NewtonsoftAMQPSerializerTests
 
         byte[] reference = [];
 
-        var serializer = new NewtonsoftAMQPSerializer(null);
+        var serializer = new NewtonsoftAmqpSerializer(null);
 
         var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
@@ -92,7 +92,7 @@ public class NewtonsoftAMQPSerializerTests
 
         var reference = Encoding.UTF8.GetBytes("");
 
-        var serializer = new NewtonsoftAMQPSerializer(null);
+        var serializer = new NewtonsoftAmqpSerializer(null);
 
         var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
@@ -116,7 +116,7 @@ public class NewtonsoftAMQPSerializerTests
 
         var reference = Encoding.UTF8.GetBytes(" ");
 
-        var serializer = new NewtonsoftAMQPSerializer(null);
+        var serializer = new NewtonsoftAmqpSerializer(null);
 
         var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
@@ -142,7 +142,7 @@ public class NewtonsoftAMQPSerializerTests
         byte[] jsonInBytes = Encoding.UTF8.GetBytes(json);
 
        
-        IAMQPSerializer serializer = new NewtonsoftAMQPSerializer(new JsonSerializerSettings()
+        IAmqpSerializer serializer = new NewtonsoftAmqpSerializer(new JsonSerializerSettings()
         {
             NullValueHandling = NullValueHandling.Ignore
         });

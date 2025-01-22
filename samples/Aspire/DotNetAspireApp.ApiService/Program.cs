@@ -10,7 +10,7 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddTransient<MessagePublisher>();
 
-builder.Services.AddAMQPSerializer(options: JsonSerializerOptions.Default);
+builder.Services.AddAmqpSerializer(options: JsonSerializerOptions.Default);
 
 builder.AddRabbitMQClient("rabbitmq", null, connectionFactory =>
 {
@@ -83,7 +83,7 @@ app.MapPost("/enqueue", (DoSomethingRequest req, CancellationToken cancellationT
             Log($"END ({req.quantity:n0} messages!)");
         });
 
-    return "ok";
+    return Results.Ok();
 });
 
 

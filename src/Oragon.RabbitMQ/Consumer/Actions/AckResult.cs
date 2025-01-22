@@ -3,18 +3,15 @@ namespace Oragon.RabbitMQ.Consumer.Actions;
 /// <summary>
 /// Acknowledges the message
 /// </summary>
-public class AckResult : IAMQPResult
+public class AckResult : IAmqpResult
 {
-    /// <summary>
-    /// Singleton instance of AckResult
-    /// </summary>
-    public static AckResult ForSuccess { get; } = new AckResult();
+   
 
 
     /// <summary>
     /// Create a instance of AckResult
     /// </summary>
-    private AckResult() { }
+    internal AckResult() { }
 
 
     /// <summary>

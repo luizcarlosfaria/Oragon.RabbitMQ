@@ -8,7 +8,7 @@
 namespace Oragon.RabbitMQ.Consumer.ArgumentBinders;
 
 /// <summary>
-/// Represents an argument binder for an AMQP message.
+/// Represents an argument binder for an Amqp message.
 /// </summary>
 public interface IAmqpArgumentBinder
 {

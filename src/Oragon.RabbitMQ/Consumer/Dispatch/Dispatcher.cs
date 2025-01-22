@@ -113,7 +113,7 @@ public class Dispatcher
 
     private IResultHandler FindBestResultHandler()
     {
-        Type amqpResultType = typeof(IAMQPResult);
+        Type amqpResultType = typeof(IAmqpResult);
         Type taskType = typeof(Task);
 
         var isTask = this.ReturnType.IsAssignableTo(taskType);
@@ -153,7 +153,7 @@ public class Dispatcher
     /// </summary>
     /// <param name="context"></param>
     /// <returns></returns>
-    public Task<IAMQPResult> DispatchAsync(IAmqpContext context)
+    public Task<IAmqpResult> DispatchAsync(IAmqpContext context)
     {
         ArgumentNullException.ThrowIfNull(context, nameof(context));
 

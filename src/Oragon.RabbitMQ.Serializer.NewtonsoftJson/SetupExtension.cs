@@ -14,27 +14,27 @@ namespace Oragon.RabbitMQ;
 public static class SetupExtension
 {
     /// <summary>
-    /// Add the NewtonsoftAMQPSerializer to the services
+    /// Add the NewtonsoftAmqpSerializer to the services
     /// </summary>
     /// <param name="services"></param>
     /// <param name="key"></param>
     /// <param name="options"></param>
-    public static IServiceCollection AddAMQPSerializer(this IServiceCollection services, string key = null, JsonSerializerSettings options = null)
-        => AddNewtonsoftAMQPSerializer(services, key, options);
+    public static IServiceCollection AddAmqpSerializer(this IServiceCollection services, string key = null, JsonSerializerSettings options = null)
+        => AddNewtonsoftAmqpSerializer(services, key, options);
 
     /// <summary>
-    /// Add the NewtonsoftAMQPSerializer to the services
+    /// Add the NewtonsoftAmqpSerializer to the services
     /// </summary>
     /// <param name="services"></param>
     /// <param name="key"></param>
     /// <param name="options"></param>
-    public static IServiceCollection AddNewtonsoftAMQPSerializer(this IServiceCollection services, string key = null, JsonSerializerSettings options = null)
+    public static IServiceCollection AddNewtonsoftAmqpSerializer(this IServiceCollection services, string key = null, JsonSerializerSettings options = null)
     {
         ArgumentNullException.ThrowIfNull(services);
 
         return string.IsNullOrWhiteSpace(key)
-            ? services.AddSingleton<IAMQPSerializer>(sp => new NewtonsoftAMQPSerializer(options))
-            : services.AddKeyedSingleton<IAMQPSerializer>(key, (key, sp) => new NewtonsoftAMQPSerializer(options));
+            ? services.AddSingleton<IAmqpSerializer>(sp => new NewtonsoftAmqpSerializer(options))
+            : services.AddKeyedSingleton<IAmqpSerializer>(key, (key, sp) => new NewtonsoftAmqpSerializer(options));
     }
 }
 

@@ -201,7 +201,7 @@ public static class RabbitMQExtensions
     }
 
 
-    //public static bool TryReconstructException(this BasicProperties basicProperties, out AMQPRemoteException remoteException)
+    //public static bool TryReconstructException(this BasicProperties basicProperties, out AmqpRemoteException remoteException)
     //{
     //    remoteException = default;
     //    if (basicProperties?.Headers?.ContainsKey("exception.type") ?? false)
@@ -210,7 +210,7 @@ public static class RabbitMQExtensions
     //        var exceptionMessage = basicProperties.Headers.AsString("exception.message");
     //        var exceptionStackTrace = basicProperties.Headers.AsString("exception.stacktrace");
     //        var exceptionInstance = (Exception)Activator.CreateInstance(Type.GetType(exceptionTypeString) ?? typeof(Exception), exceptionMessage);
-    //        remoteException = new AMQPRemoteException("Remote Consumer report a exception during execution", exceptionStackTrace, exceptionInstance);
+    //        remoteException = new AmqpRemoteException("Remote Consumer report a exception during execution", exceptionStackTrace, exceptionInstance);
     //        return true;
     //    }
     //    return false;

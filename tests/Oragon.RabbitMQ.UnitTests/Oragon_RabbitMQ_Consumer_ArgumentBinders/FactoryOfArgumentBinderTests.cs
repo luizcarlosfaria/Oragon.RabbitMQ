@@ -98,7 +98,7 @@ public class FactoryOfArgumentBinderTests
 
         var dispatcher = new Dispatcher(queueConsumerBuilder);
 
-        IAMQPResult result = await dispatcher.DispatchAsync(currentContext);
+        IAmqpResult result = await dispatcher.DispatchAsync(currentContext);
 
         Assert.True(result is AckResult);
 

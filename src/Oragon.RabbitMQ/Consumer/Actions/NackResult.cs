@@ -6,17 +6,9 @@ namespace Oragon.RabbitMQ.Consumer.Actions;
 /// <remarks>
 /// Creates a new instance of <see cref="NackResult"/>
 /// </remarks>
-public class NackResult : IAMQPResult
+public class NackResult : IAmqpResult
 {
-    /// <summary>
-    /// Singleton instance of NackResult with requeue
-    /// </summary>
-    public static NackResult WithRequeue { get; } = new NackResult(true);
-
-    /// <summary>
-    /// Singleton instance of NackResult without requeue
-    /// </summary>
-    public static NackResult WithoutRequeue { get; } = new NackResult(false);
+    
 
 
     /// <summary>
@@ -25,7 +17,7 @@ public class NackResult : IAMQPResult
     public bool Requeue { get; }
 
     /// <param name="requeue"></param>
-    private NackResult(bool requeue)
+    internal NackResult(bool requeue)
     {
         this.Requeue = requeue;
     }

@@ -4,9 +4,9 @@ using RabbitMQ.Client.Events;
 namespace Oragon.RabbitMQ.Serialization;
 
 /// <summary>
-/// Define a implementation of a serializer for AMQP
+/// Define a implementation of a serializer for Amqp
 /// </summary>
-public interface IAMQPSerializer
+public interface IAmqpSerializer
 {
     /// <summary>
     /// Deserialize a message from a BasicDeliverEventArgs

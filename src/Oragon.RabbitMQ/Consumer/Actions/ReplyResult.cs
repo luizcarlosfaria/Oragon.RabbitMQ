@@ -5,16 +5,28 @@ using RabbitMQ.Client;
 
 namespace Oragon.RabbitMQ.Consumer.Actions;
 
+
 /// <summary>
-/// Initializes a new instance of the <see cref="ReplyResult"/> class with the specified reply.
+/// Represents a result that sends a reply to the sender.
 /// </summary>
-/// <param name="objectToReply">The reply to be sent.</param>
-public class ReplyResult(object objectToReply) : IAMQPResult
+/// <typeparam name="T">The type of the object to reply with.</typeparam>
+public class ReplyResult<T> : IAmqpResult
 {
+    private readonly T objectToReply;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ReplyResult{T}"/> class.
+    /// </summary>
+    /// <param name="objectToReply">The object to reply with.</param>
+    internal ReplyResult(T objectToReply)
+    {
+        this.objectToReply = objectToReply;
+    }
+
     /// <summary>
     /// Sends the reply to the sender.
     /// </summary>
-    /// <param name="context">The AMQP context in which to send the reply.</param>
+    /// <param name="context">The Amqp context in which to send the reply.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
     public Task ExecuteAsync(IAmqpContext context)
     {
@@ -31,6 +43,6 @@ public class ReplyResult(object objectToReply) : IAMQPResult
             routingKey: context.Request.BasicProperties.ReplyTo,
             mandatory: true,
             basicProperties: replyBasicProperties,
-            body: context.Serializer.Serialize(replyBasicProperties, objectToReply)).AsTask();
+            body: context.Serializer.Serialize(replyBasicProperties, this.objectToReply)).AsTask();
     }
 }

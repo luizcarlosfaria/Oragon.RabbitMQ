@@ -61,7 +61,7 @@ public class HandlersAndTasksTests
             //---------------------------------------------------------------------------------------------------------------
             async ([FromServices] SampleService svc, SampleRequest msg) => {
                 await svc.Teste2Async(msg).ConfigureAwait(true);
-                return RejectResult.WithoutRequeue;
+                return AmqpResults.Reject(false);
             },
             //---------------------------------------------------------------------------------------------------------------
 
@@ -82,7 +82,7 @@ public class HandlersAndTasksTests
             //---------------------------------------------------------------------------------------------------------------
             ([FromServices] SampleService svc, SampleRequest msg) => {
                 svc.Teste1(msg);
-                return RejectResult.WithoutRequeue;
+                return AmqpResults.Reject(false);
             },
             //---------------------------------------------------------------------------------------------------------------
         ];
@@ -110,10 +110,10 @@ public class HandlersAndTasksTests
 
         var dispatcher = new Dispatcher(queueConsumerBuilder);
 
-        IAMQPResult amqpResult = await dispatcher.DispatchAsync(amqpContextMock.Object).ConfigureAwait(false);
+        IAmqpResult amqpResult = await dispatcher.DispatchAsync(amqpContextMock.Object).ConfigureAwait(false);
 
         Type[] typesOk = [typeof(AckResult), typeof(RejectResult)];
-        Type[] typesNOk = [typeof(NackResult), typeof(ReplyResult)];
+        Type[] typesNOk = [typeof(NackResult), typeof(ReplyResult<>)];
 
         Assert.Contains(amqpResult.GetType(), typesOk);
         Assert.DoesNotContain(amqpResult.GetType(), typesNOk);
@@ -132,10 +132,10 @@ public class HandlersAndTasksTests
 
         var dispatcher = new Dispatcher(queueConsumerBuilder);
 
-        IAMQPResult amqpResult = await dispatcher.DispatchAsync(amqpContextMock.Object).ConfigureAwait(false);
+        IAmqpResult amqpResult = await dispatcher.DispatchAsync(amqpContextMock.Object).ConfigureAwait(false);
 
         Type[] typesOk = [typeof(NackResult)];
-        Type[] typesNOk = [typeof(AckResult), typeof(RejectResult), typeof(ReplyResult)];
+        Type[] typesNOk = [typeof(AckResult), typeof(RejectResult), typeof(ReplyResult<>)];
 
         Assert.Contains(amqpResult.GetType(), typesOk);
         Assert.DoesNotContain(amqpResult.GetType(), typesNOk);

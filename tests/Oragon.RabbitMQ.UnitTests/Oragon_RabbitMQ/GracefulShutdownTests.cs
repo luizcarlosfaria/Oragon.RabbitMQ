@@ -88,7 +88,7 @@ public class GracefulShutdownTests
 
 
         _ = services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
-        _ = services.AddNewtonsoftAMQPSerializer();
+        _ = services.AddNewtonsoftAmqpSerializer();
         _ = services.AddScoped<ExampleService>();
         //-------------------------------------------------------
         var sp = services.BuildServiceProvider();

@@ -104,7 +104,7 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
 
         // Singleton dependencies
         services.AddSingleton(new ActivitySource("test"));
-        services.AddNewtonsoftAMQPSerializer();
+        services.AddNewtonsoftAmqpSerializer();
         services.AddSingleton(connection);
 
         // Scoped dependencies
@@ -131,7 +131,7 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
         {
             ResponseMessage reply = await svc.TestRpcAsync(msg).ConfigureAwait(true);
 
-            return new ComposableResult(AckResult.ForSuccess, new ReplyResult(reply));
+            return AmqpResults.Compose(AmqpResults.Ack(), AmqpResults.Reply(reply));
         }).WithPrefetch(1);
 
 

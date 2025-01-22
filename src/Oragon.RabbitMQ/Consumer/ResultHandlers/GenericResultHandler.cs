@@ -6,21 +6,21 @@ using Oragon.RabbitMQ.Consumer.Actions;
 namespace Oragon.RabbitMQ.Consumer.ResultHandlers;
 
 /// <summary>
-/// Handles the result of a dispatched task that returns an IAMQPResult.
+/// Handles the result of a dispatched task that returns an IAmqpResult.
 /// </summary>
 public class GenericResultHandler : IResultHandler
 {
 
     /// <summary>
-    /// Handles the dispatched result, which can be either an IAMQPResult or a Task that returns an IAMQPResult.
+    /// Handles the dispatched result, which can be either an IAmqpResult or a Task that returns an IAmqpResult.
     /// </summary>
     /// <param name="context"></param>
     /// <param name="dispatchResult"></param>
     /// <returns></returns>
-    public Task<IAMQPResult> Handle(IAmqpContext context, object dispatchResult)
+    public Task<IAmqpResult> Handle(IAmqpContext context, object dispatchResult)
     {
-        return dispatchResult is IAMQPResult simpleAmqpResult
+        return dispatchResult is IAmqpResult simpleAmqpResult
             ? Task.FromResult(simpleAmqpResult)
-            : Task.FromResult<IAMQPResult>(AckResult.ForSuccess);
+            : Task.FromResult<IAmqpResult>(AmqpResults.Ack());
     }
 }

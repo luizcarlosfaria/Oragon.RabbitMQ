@@ -21,7 +21,7 @@ public class DynamicArgumentBinderTests
         var basicPropertiesMock = new Mock<IReadOnlyBasicProperties>();
         basicPropertiesMock.SetupGet(it => it.MessageId).Returns(originalMessageId).Verifiable(Times.Once());
 
-        var amqpSerializer = new Mock<IAMQPSerializer>();
+        var amqpSerializer = new Mock<IAmqpSerializer>();
 
         var basicDeliverEventArgs = new BasicDeliverEventArgs(
                 consumerTag: Guid.NewGuid().ToString(),
@@ -61,7 +61,7 @@ public class DynamicArgumentBinderTests
         var basicPropertiesMock = new Mock<IReadOnlyBasicProperties>();
         basicPropertiesMock.SetupGet(it => it.Headers).Returns(headers).Verifiable(Times.Once());
 
-        var amqpSerializer = new Mock<IAMQPSerializer>();
+        var amqpSerializer = new Mock<IAmqpSerializer>();
 
         var basicDeliverEventArgs = new BasicDeliverEventArgs(
                 consumerTag: Guid.NewGuid().ToString(),
@@ -112,7 +112,7 @@ public class DynamicArgumentBinderTests
         var basicPropertiesMock = new Mock<IReadOnlyBasicProperties>();
         basicPropertiesMock.SetupGet(it => it.Headers).Returns(headers).Verifiable(Times.Once());
 
-        var amqpSerializer = new Mock<IAMQPSerializer>();
+        var amqpSerializer = new Mock<IAmqpSerializer>();
 
         var basicDeliverEventArgs = new BasicDeliverEventArgs(
                 consumerTag: Guid.NewGuid().ToString(),

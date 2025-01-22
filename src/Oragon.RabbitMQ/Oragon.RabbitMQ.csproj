@@ -4,6 +4,9 @@
   <PropertyGroup>
     <Description>Provides a minimal API for RabbitMQ consumers, designed for simplicity and resilience. Enhance message handling with streamlined configuration and robust performance.</Description>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Extensions.DependencyInjection2.cs" />
+  </ItemGroup>
  
 
   <ItemGroup>

@@ -9,7 +9,7 @@ namespace Oragon.RabbitMQ.Consumer.ResultHandlers;
 
 
 /// <summary>
-/// Handles the result of a dispatched task that returns an IAMQPResult.
+/// Handles the result of a dispatched task that returns an IAmqpResult.
 /// </summary>
 public class TaskOfAmqpResultResultHandler : IResultHandler
 {
@@ -35,17 +35,17 @@ public class TaskOfAmqpResultResultHandler : IResultHandler
     public Type Type { get; }
 
     /// <summary>
-    /// Handles the dispatched result, which can be either an IAMQPResult or a Task that returns an IAMQPResult.
+    /// Handles the dispatched result, which can be either an IAmqpResult or a Task that returns an IAmqpResult.
     /// </summary>
     /// <param name="context"></param>
-    /// <param name="dispatchResult">The result of the dispatch, either an IAMQPResult or a Task.</param>
-    /// <returns>The IAMQPResult after the task is awaited, or the original IAMQPResult if it was not a task.</returns>
+    /// <param name="dispatchResult">The result of the dispatch, either an IAmqpResult or a Task.</param>
+    /// <returns>The IAmqpResult after the task is awaited, or the original IAmqpResult if it was not a task.</returns>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
-    public async Task<IAMQPResult> Handle(IAmqpContext context, object dispatchResult)
+    public async Task<IAmqpResult> Handle(IAmqpContext context, object dispatchResult)
     {
         ArgumentNullException.ThrowIfNull(dispatchResult, nameof(dispatchResult));
 
-        if (dispatchResult is IAMQPResult simpleAmqpResult)
+        if (dispatchResult is IAmqpResult simpleAmqpResult)
         {
             return simpleAmqpResult;
         }
@@ -61,7 +61,7 @@ public class TaskOfAmqpResultResultHandler : IResultHandler
             return this.consumerParameters.ResultForProcessFailure(context, exception);
         }
 
-        var result = (IAMQPResult)this.resultProperty.GetValue(dispatchResult);
+        var result = (IAmqpResult)this.resultProperty.GetValue(dispatchResult);
 
         return result;
     }

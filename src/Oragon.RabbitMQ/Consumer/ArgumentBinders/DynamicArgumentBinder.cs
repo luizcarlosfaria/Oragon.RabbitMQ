@@ -4,7 +4,7 @@
 namespace Oragon.RabbitMQ.Consumer.ArgumentBinders;
 
 /// <summary>
-/// Represents a dynamic argument binder for an AMQP message.
+/// Represents a dynamic argument binder for an Amqp message.
 /// </summary>
 public class DynamicArgumentBinder : IAmqpArgumentBinder
 {

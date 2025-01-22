@@ -16,10 +16,10 @@ public class VoidResultHandler : IResultHandler
     /// <param name="context"></param>
     /// <param name="dispatchResult"></param>
     /// <returns></returns>
-    public Task<IAMQPResult> Handle(IAmqpContext context, object dispatchResult)
+    public Task<IAmqpResult> Handle(IAmqpContext context, object dispatchResult)
     {
-        return dispatchResult is IAMQPResult simpleAmqpResult
+        return dispatchResult is IAmqpResult simpleAmqpResult
             ? Task.FromResult(simpleAmqpResult)
-            : Task.FromResult<IAMQPResult>(AckResult.ForSuccess);
+            : Task.FromResult<IAmqpResult>(AmqpResults.Ack());
     }
 }

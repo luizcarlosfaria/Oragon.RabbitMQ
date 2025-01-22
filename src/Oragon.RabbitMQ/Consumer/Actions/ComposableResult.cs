@@ -3,17 +3,17 @@
 
 namespace Oragon.RabbitMQ.Consumer.Actions;
 /// <summary>
-/// Represents a composable result that can execute multiple IAMQPResult instances sequentially.
+/// Represents a composable result that can execute multiple IAmqpResult instances sequentially.
 /// </summary>
-public class ComposableResult : IAMQPResult
+public class ComposableResult : IAmqpResult
 {
-    private readonly List<IAMQPResult> results;
+    private readonly List<IAmqpResult> results;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ComposableResult"/> class with the specified results.
     /// </summary>
     /// <param name="results">The results to be executed.</param>
-    public ComposableResult(params IAMQPResult[] results)
+    internal ComposableResult(params IAmqpResult[] results)
     {
         this.results = results?.ToList() ?? [];
     }
@@ -23,7 +23,7 @@ public class ComposableResult : IAMQPResult
     /// </summary>
     /// <param name="result"></param>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1030:Use events where appropriate", Justification = "<Pending>")]
-    public void AddOnTop(IAMQPResult result)
+    public void AddOnTop(IAmqpResult result)
     {
         this.results.Insert(0, result);
     }
@@ -33,7 +33,7 @@ public class ComposableResult : IAMQPResult
     /// </summary>
     /// <param name="result"></param>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1030:Use events where appropriate", Justification = "<Pending>")]
-    public void AddOnBottom(IAMQPResult result)
+    public void AddOnBottom(IAmqpResult result)
     {
         this.results.Add(result);
     }
@@ -42,13 +42,13 @@ public class ComposableResult : IAMQPResult
     /// <summary>
     /// Executes all the results sequentially in the provided context.
     /// </summary>
-    /// <param name="context">The AMQP context in which to execute the results.</param>
+    /// <param name="context">The Amqp context in which to execute the results.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task ExecuteAsync(IAmqpContext context)
     {
         ArgumentNullException.ThrowIfNull(context, nameof(context));
 
-        foreach (IAMQPResult result in this.results)
+        foreach (IAmqpResult result in this.results)
         {
             await result.ExecuteAsync(context).ConfigureAwait(false);
         }

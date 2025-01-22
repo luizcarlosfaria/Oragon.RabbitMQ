@@ -15,8 +15,8 @@ public static class Constants
     public static Type DeliveryMode { get; } = typeof(DeliveryModes);
     public static Type IConnection { get; } = typeof(IConnection);
     public static Type IChannel { get; } = typeof(IChannel);
-    public static Type IAMQPResult { get; } = typeof(IAMQPResult);
-    public static Type TaskOfIAMQPResult { get; } = typeof(Task<IAMQPResult>);
+    public static Type IAmqpResult { get; } = typeof(IAmqpResult);
+    public static Type TaskOfIAmqpResult { get; } = typeof(Task<IAmqpResult>);
     public static Type BasicDeliverEventArgs { get; } = typeof(BasicDeliverEventArgs);
     public static Type ServiceProvider { get; } = typeof(IServiceProvider);
     public static Type IAmqpContext { get; } = typeof(Consumer.IAmqpContext);

@@ -87,7 +87,7 @@ public class FlowTests
 
 
         _ = services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
-        _ = services.AddNewtonsoftAMQPSerializer();
+        _ = services.AddNewtonsoftAmqpSerializer();
         _ = services.AddScoped<ExampleService>();
         //-------------------------------------------------------
 
@@ -173,7 +173,7 @@ public class FlowTests
 
 
         _ = services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
-        _ = services.AddNewtonsoftAMQPSerializer();
+        _ = services.AddNewtonsoftAmqpSerializer();
         _ = services.AddScoped<ExampleService>();
         //-------------------------------------------------------
         var sp = services.BuildServiceProvider();
@@ -255,7 +255,7 @@ public class FlowTests
 
 
         _ = services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
-        _ = services.AddNewtonsoftAMQPSerializer();
+        _ = services.AddNewtonsoftAmqpSerializer();
         _ = services.AddScoped<ExampleService>();
         //-------------------------------------------------------
         var sp = services.BuildServiceProvider();

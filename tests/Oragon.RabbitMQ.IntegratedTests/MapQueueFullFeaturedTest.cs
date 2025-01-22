@@ -102,7 +102,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
 
         // Singleton dependencies
         services.AddSingleton(new ActivitySource("test"));
-        services.AddNewtonsoftAMQPSerializer();
+        services.AddNewtonsoftAmqpSerializer();
         services.AddSingleton(connection ?? throw new InvalidOperationException("Connection is null"));
 
         // Scoped dependencies
@@ -128,7 +128,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
             .WithConsumerTag("MapQueueBasicSuccessTest")
             .WithExclusive(true)
             .WithConnection((sp, ct) => Task.FromResult(sp.GetRequiredService<IConnection>()))
-            .WithSerializer((sp) => sp.GetRequiredService<IAMQPSerializer>())
+            .WithSerializer((sp) => sp.GetRequiredService<IAmqpSerializer>())
             .WithChannel((connection, ct) =>
             connection.CreateChannelAsync(
                 new CreateChannelOptions(

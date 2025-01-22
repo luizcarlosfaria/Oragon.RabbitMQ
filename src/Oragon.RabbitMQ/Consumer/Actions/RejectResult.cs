@@ -3,19 +3,10 @@ namespace Oragon.RabbitMQ.Consumer.Actions;
 /// <summary>
 /// Create a instance of RejectResult that will reject the message
 /// </summary>
-public class RejectResult : IAMQPResult
+public class RejectResult : IAmqpResult
 {
 
-    /// <summary>
-    /// Singleton instance of RejectResult with requeue
-    /// </summary>
-    public static RejectResult WithRequeue { get; } = new RejectResult(true);
-
-    /// <summary>
-    /// Singleton instance of RejectResult without requeue
-    /// </summary>
-    public static RejectResult WithoutRequeue { get; } = new RejectResult(false);
-
+    
 
 
     /// <summary>
@@ -28,7 +19,7 @@ public class RejectResult : IAMQPResult
     /// Create a instance of RejectResult
     /// </summary>
     /// <param name="requeue"></param>
-    private RejectResult(bool requeue)
+    internal RejectResult(bool requeue)
     {
         this.Requeue = requeue;
     }

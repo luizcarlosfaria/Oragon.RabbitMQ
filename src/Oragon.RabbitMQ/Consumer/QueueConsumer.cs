@@ -30,7 +30,7 @@ public class QueueConsumer : IHostedAmqpConsumer
     private IChannel channel;
     private string consumerTag;
     private CancellationTokenSource cancellationTokenSource;
-    private IAMQPSerializer serializer;
+    private IAmqpSerializer serializer;
 
     /// <summary>
     /// Gets a value indicating whether the consumer is consuming messages.
@@ -213,7 +213,7 @@ public class QueueConsumer : IHostedAmqpConsumer
 
             IAmqpContext context = new AmqpContext(eventArgs, scope.ServiceProvider, this.serializer, this.connection, this.channel, this.parameters.QueueName, incomingMessage, this.cancellationTokenSource.Token);
 
-            IAMQPResult result =
+            IAmqpResult result =
                 canProceed
                 ? await this.dispatcher.DispatchAsync(context).ConfigureAwait(false)
                 : this.parameters.ResultForSerializationFailure(context, exception);

@@ -8,7 +8,7 @@ using Oragon.RabbitMQ.Consumer.ArgumentBinders;
 namespace Oragon.RabbitMQ.Consumer.Dispatch.Attributes;
 
 /// <summary>
-/// Represents an attribute that can be used to bind an argument to an AMQP message.
+/// Represents an attribute that can be used to bind an argument to an Amqp message.
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter)]
 public sealed class FromAmqpHeaderAttribute : Attribute, IAmqpArgumentBinderParameter

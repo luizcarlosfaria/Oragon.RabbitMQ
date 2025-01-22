@@ -86,10 +86,10 @@ builder.AddRabbitMQConsumer();
 /*Pick only one*/
 
 // For Oragon.RabbitMQ.Serializer.SystemTextJson
-builder.Services.AddSingleton<IAMQPSerializer>(sp => new SystemTextJsonAMQPSerializer(new JsonSerializerOptions(JsonSerializerDefaults.General){ ... }));
+builder.Services.AddSingleton<IAmqpSerializer>(sp => new SystemTextJsonAmqpSerializer(new JsonSerializerOptions(JsonSerializerDefaults.General){ ... }));
 
 // For Oragon.RabbitMQ.Serializer.NewtonsoftJson
-builder.Services.AddSingleton<IAMQPSerializer>(sp => new NewtonsoftAMQPSerializer(new JsonSerializerSettings(){ ... }));
+builder.Services.AddSingleton<IAmqpSerializer>(sp => new NewtonsoftAmqpSerializer(new JsonSerializerSettings(){ ... }));
 
 // ...existing code...
 ```
@@ -182,7 +182,7 @@ To map your queue using this package, follow these steps:
 
     #### Example 3
 
-    You can take control by returning an instance of IAMQPResult implementation. 
+    You can take control by returning an instance of IAmqpResult implementation. 
     
     We provide some built-in implementations like: AckResult, NackResult, RejectResult, ComposableResult and ReplyResult.
 
@@ -194,12 +194,12 @@ To map your queue using this package, follow these steps:
 
     app.MapQueue("queueName", async ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => {
         
-        IAMQPResult returnValue;
+        IAmqpResult returnValue;
 
         if (svc.CanDoSomething(msg))
         {
             await svc.DoSomethingAsync(msg);
-            returnValue = AckResult.ForSuccess;
+            returnValue = AmqpResults.Ack();
         } 
         else 
         {
@@ -211,7 +211,7 @@ To map your queue using this package, follow these steps:
 
     #### Example 4
 
-    Or changing the behavior of exception handling by handling yourself and returning a IAMQPResult valid implementation.
+    Or changing the behavior of exception handling by handling yourself and returning a IAmqpResult valid implementation.
 
     ```cs
     //Service Method Signature: 
@@ -219,17 +219,17 @@ To map your queue using this package, follow these steps:
 
     app.MapQueue("queueName", async ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => {
         
-        IAMQPResult returnValue;
+        IAmqpResult returnValue;
 
         try
         {
             await svc.DoSomethingAsync(msg);
-            returnValue = AckResult.ForSuccess;
+            returnValue = AmqpResults.Ack();
         }
         catch(Exception ex)
         {
             // Log this exception
-            returnValue = new NackResult(requeue: true);
+            returnValue = AmqpResults.Nack(true);
         }
         
         return returnValue;
@@ -252,7 +252,7 @@ builder.AddRabbitMQConsumer();
 
 builder.Services.AddSingleton<BusinessService>();
 
-builder.Services.AddSingleton<IAMQPSerializer>(sp => new SystemTextJsonAMQPSerializer(new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.General){ ... }));
+builder.Services.AddSingleton<IAmqpSerializer>(sp => new SystemTextJsonAmqpSerializer(new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.General){ ... }));
 
 builder.Services.AddSingleton<IConnectionFactory>(sp => new ConnectionFactory(){ Uri = new Uri("amqp://rabbitmq:5672"), DispatchConsumersAsync = true });
 
@@ -278,37 +278,37 @@ This consumer is focused on creating a resilient consumer using manual acknowled
 
 - The automatic flow produces a `BasicReject` without requeue when serialization failures (e.g., incorrectly formatted messages), you must use dead-lettering to ensure that your message will not be lost.
 - The automatic flow produces a `BasicNack` without requeue for processing failures. You must use dead-lettering to ensure that your message will not be lost.
-- The automatic flow produces a `BasicAck` for success. If you need more control, return an instance of `IAMQPResult` to control this behavior.
+- The automatic flow produces a `BasicAck` for success. If you need more control, return an instance of `IAmqpResult` to control this behavior.
 - Minimal API design style made with minimum and cached reflection
 - Extensible with support for custom serializers and encoders
 
 ## Flexible
 
-### AMQP Flow Control
+### Amqp Flow Control
 
 Autoflow uses Ack, Nack, and Reject automatically, but you can control the flow.
 
 Inside the `Oragon.RabbitMQ.Consumer.Actions` namespace, you can find some results:
-- AckResult (`new AckResult();`) Singleton: (`AckResult.ForSuccess`)
-- ComposableResult (`new ComposableResult(params IAMQPResult[] results);`)
-- NackResult (`new NackResult(bool requeue);`) Singleton: (`NackResult.WithRequeue` AND `NackResult.WithoutRequeue`)
-- RejectResult (`new RejectResult(bool requeue);`) Singleton: (`RejectResult.WithRequeue` AND `RejectResult.WithoutRequeue`)
-- ReplyResult (`new ReplyResult(object objectToReply);`) ⚠️EXPERIMENTAL⚠️
+- AckResult (`AmqpResults.Ack();`)
+- NackResult (`AmqpResults.Nack(requeue: bool);`)
+- RejectResult (`AmqpResults.Reject(requeue: bool);`)
+- ReplyResult (`AmqpResults.Reply<T>(T objectToReply);`) ⚠️EXPERIMENTAL⚠️
+- ComposableResult (`AmqpResults.Compose(params IAmqpResult[] results);`)
 
 Example:
 ```cs
 app.MapQueue("queueName", ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => {
     
-    IAMQPResult returnValue;
+    IAmqpResult returnValue;
 
     if (svc.CanXpto(msg))
     {
         svc.DoXpto(msg);
-        returnValue = AckResult.ForSuccess;
+        returnValue = AmqpResults.Ack();
     } 
     else 
     {
-        returnValue = NackResult.WithRequeue;
+        returnValue = AmqpResults.Nack(true);
     }
     return returnValue;
 })
@@ -323,11 +323,11 @@ app.MapQueue("queueName", async ([FromServices] BusinessService svc, BusinessCom
     if (await svc.CanXpto(msg))
     {
        await svc.DoXpto(msg);
-       return AckResult.ForSuccess;
+       return AmqpResults.Ack();
     } 
     else 
     {
-        return RejectResult.WithRequeue;
+        return AmqpResults.Nack(true);
     }
 })
 .WithPrefetch(2000)
@@ -357,12 +357,12 @@ The model binder will set the name of the queue that the consumer is consuming.
 - queueName
 
 #### Routing Key
-The model binder will set a routing key from the AMQP message.
+The model binder will set a routing key from the Amqp message.
 - routing
 - routingKey
 
 #### Exchange Name
-The model binder will set an exchange name from the AMQP message.
+The model binder will set an exchange name from the Amqp message.
 - exchange
 - exchangeName
 

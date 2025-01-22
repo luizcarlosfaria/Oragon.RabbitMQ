@@ -38,7 +38,7 @@ public class MessagePublisher
     public static int Sequence { get; private set; }
 
     private readonly IConnectionFactory connectionFactory;
-    private readonly IAMQPSerializer serializer;
+    private readonly IAmqpSerializer serializer;
     private volatile bool isBlocked;
 
     public string UId { get; } = Guid.NewGuid().ToString("D").Split('-').Last();
@@ -48,7 +48,7 @@ public class MessagePublisher
 
     public readonly (ConsoleColor ForegroundColor, ConsoleColor BackgroundColor) consoleColors;
 
-    public MessagePublisher(IConnectionFactory connectionFactory, IAMQPSerializer serializer)
+    public MessagePublisher(IConnectionFactory connectionFactory, IAmqpSerializer serializer)
     {
         this.connectionFactory = connectionFactory;
         this.serializer = serializer;
