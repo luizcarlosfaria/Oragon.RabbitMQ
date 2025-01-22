@@ -86,10 +86,10 @@ builder.AddRabbitMQConsumer();
 /*Pick only one*/
 
 // For Oragon.RabbitMQ.Serializer.SystemTextJson
-builder.Services.AddSingleton<IAmqpSerializer>(sp => new SystemTextJsonAmqpSerializer(new JsonSerializerOptions(JsonSerializerDefaults.General){ ... }));
+builder.Services.AddAmqpSerializer(options: JsonSerializerOptions.Default);
 
 // For Oragon.RabbitMQ.Serializer.NewtonsoftJson
-builder.Services.AddSingleton<IAmqpSerializer>(sp => new NewtonsoftAmqpSerializer(new JsonSerializerSettings(){ ... }));
+builder.Services.AddAmqpSerializer(options: new JsonSerializerSettings{...});
 
 // ...existing code...
 ```
@@ -252,7 +252,7 @@ builder.AddRabbitMQConsumer();
 
 builder.Services.AddSingleton<BusinessService>();
 
-builder.Services.AddSingleton<IAmqpSerializer>(sp => new SystemTextJsonAmqpSerializer(new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.General){ ... }));
+builder.Services.AddAmqpSerializer(options: JsonSerializerOptions.Default);
 
 builder.Services.AddSingleton<IConnectionFactory>(sp => new ConnectionFactory(){ Uri = new Uri("amqp://rabbitmq:5672"), DispatchConsumersAsync = true });
 
