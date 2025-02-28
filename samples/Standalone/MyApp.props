@@ -1,0 +1,21 @@
+<Project>
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RootNamespace>MyApp</RootNamespace>
+    <!--<EnableNETAnalyzers>true</EnableNETAnalyzers>-->
+    <!--<AnalysisLevel>latest-all</AnalysisLevel>-->
+    <!--<TreatWarningsAsErrors>true</TreatWarningsAsErrors>-->
+    <!--<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>-->
+    <!--<GenerateDocumentationFile>true</GenerateDocumentationFile>-->
+
+  </PropertyGroup>
+
+
+</Project>

@@ -1,0 +1,27 @@
+@MyApp.HostApp_HostAddress = http://localhost:5138
+
+GET {{MyApp.HostApp_HostAddress}}/hello-world/
+Accept: application/json
+
+###
+
+POST {{MyApp.HostApp_HostAddress}}/purchase/
+Content-Type: application/json
+Accept: application/json
+
+{
+    "customerId": 1,
+    "products":[
+        {
+          "productId": 1,
+          "quantity": 2
+        },
+        {
+          "productId": 98,
+          "quantity": 3
+        }
+    ],
+    "paymentMethod": 1
+}
+
+###

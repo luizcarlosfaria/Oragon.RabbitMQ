@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="./../MyApp.props" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\MyApp.ApplicationContracts\MyApp.ApplicationContracts.csproj" />
+  </ItemGroup>
+
+</Project>
