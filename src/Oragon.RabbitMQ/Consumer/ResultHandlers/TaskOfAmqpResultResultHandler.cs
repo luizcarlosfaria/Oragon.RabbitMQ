@@ -14,17 +14,17 @@ namespace Oragon.RabbitMQ.Consumer.ResultHandlers;
 public class TaskOfAmqpResultResultHandler : IResultHandler
 {
     private readonly PropertyInfo resultProperty;
-    private readonly ConsumerDescriptor consumerParameters;
+    private readonly ConsumerDescriptor consumerDescriptor;
 
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="consumerParameters"></param>
+    /// <param name="consumerDescriptor"></param>
     /// <param name="type"></param>
-    public TaskOfAmqpResultResultHandler(ConsumerDescriptor consumerParameters, Type type)
+    public TaskOfAmqpResultResultHandler(ConsumerDescriptor consumerDescriptor, Type type)
     {
         _ = Guard.Argument(type).NotNull();
-        this.consumerParameters = consumerParameters;
+        this.consumerDescriptor = consumerDescriptor;
         this.Type = type;
         this.resultProperty = type.GetProperty("Result");
     }
@@ -58,7 +58,7 @@ public class TaskOfAmqpResultResultHandler : IResultHandler
         }
         catch (Exception exception)
         {
-            return this.consumerParameters.ResultForProcessFailure(context, exception);
+            return this.consumerDescriptor.ResultForProcessFailure(context, exception);
         }
 
         var result = (IAmqpResult)this.resultProperty.GetValue(dispatchResult);

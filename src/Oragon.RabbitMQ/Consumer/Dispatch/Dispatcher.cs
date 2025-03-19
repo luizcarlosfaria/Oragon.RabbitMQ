@@ -18,7 +18,7 @@ public class Dispatcher
     private readonly Delegate handler;
     private readonly List<IAmqpArgumentBinder> argumentBinders;
     private readonly IResultHandler resultHandler;
-    private readonly ConsumerDescriptor consumerParameters;
+    private readonly ConsumerDescriptor consumerDescriptor;
 
     /// <summary>
     /// Type of Message
@@ -33,11 +33,11 @@ public class Dispatcher
     /// <summary>
     /// Initialize the dispatcher
     /// </summary>
-    public Dispatcher(ConsumerDescriptor consumerParameters)
+    public Dispatcher(ConsumerDescriptor consumerDescriptor)
     {
-        this.consumerParameters = Guard.Argument(consumerParameters).NotNull().Value;
+        this.consumerDescriptor = Guard.Argument(consumerDescriptor).NotNull().Value;
 
-        this.handler = Guard.Argument(consumerParameters.Handler).NotNull().Value;
+        this.handler = Guard.Argument(consumerDescriptor.Handler).NotNull().Value;
 
         this.argumentBinders = this.handler.Method.GetParameters().Select(this.BuildArgumentBinder).ToList();
 
@@ -124,10 +124,10 @@ public class Dispatcher
                 Type taskValueType = this.ReturnType.GenericTypeArguments[0];
                 if (taskValueType.IsAssignableTo(amqpResultType))
                 {
-                    return new TaskOfAmqpResultResultHandler(this.consumerParameters, this.ReturnType);
+                    return new TaskOfAmqpResultResultHandler(this.consumerDescriptor, this.ReturnType);
                 }
             }
-            return new TaskResultHandler(this.consumerParameters);
+            return new TaskResultHandler(this.consumerDescriptor);
         }
         else
         {
@@ -174,7 +174,7 @@ public class Dispatcher
         }
         catch (Exception exception)
         {
-            return this.consumerParameters.ResultForProcessFailure(context, exception);
+            return this.consumerDescriptor.ResultForProcessFailure(context, exception);
         }
 
     }

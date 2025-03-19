@@ -11,15 +11,15 @@ namespace Oragon.RabbitMQ.Consumer.ResultHandlers;
 /// </summary>
 public class TaskResultHandler : IResultHandler
 {
-    private readonly ConsumerDescriptor consumerParameters;
+    private readonly ConsumerDescriptor consumerDescriptor;
 
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="consumerParameters"></param>
-    public TaskResultHandler(ConsumerDescriptor consumerParameters)
+    /// <param name="consumerDescriptor"></param>
+    public TaskResultHandler(ConsumerDescriptor consumerDescriptor)
     {
-        this.consumerParameters = consumerParameters;
+        this.consumerDescriptor = consumerDescriptor;
     }
 
     /// <summary>
@@ -46,7 +46,7 @@ public class TaskResultHandler : IResultHandler
         }
         catch (Exception exception)
         {
-            return this.consumerParameters.ResultForProcessFailure(context, exception);
+            return this.consumerDescriptor.ResultForProcessFailure(context, exception);
         }
         return AmqpResults.Ack();
     }
