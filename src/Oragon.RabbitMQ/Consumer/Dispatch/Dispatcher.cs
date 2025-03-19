@@ -78,36 +78,26 @@ public class Dispatcher
     {
         _ = Guard.Argument(parameter).NotNull();
 
-        if (parameter.ParameterType == Constants.IConnection) return new DynamicArgumentBinder(context => context.Connection);
-
-        if (parameter.ParameterType == Constants.IChannel) return new DynamicArgumentBinder(context => context.Channel);
-
-        if (parameter.ParameterType == Constants.BasicDeliverEventArgs) return new DynamicArgumentBinder(context => context.Request);
-
-        if (parameter.ParameterType == Constants.DeliveryMode) return new DynamicArgumentBinder(context => context.Request.BasicProperties.DeliveryMode);
-
-        if (parameter.ParameterType == Constants.ServiceProvider) return new DynamicArgumentBinder(context => context.ServiceProvider);
-
-        if (parameter.ParameterType == Constants.IAmqpContext) return new DynamicArgumentBinder(context => context);
-
-        if (parameter.ParameterType == Constants.BasicPropertiesType) return new DynamicArgumentBinder(context => context.Request.BasicProperties);
-
-        if (parameter.ParameterType == Constants.CancellationToken) return new DynamicArgumentBinder(context => context.CancellationToken);
-
-        if (parameter.ParameterType == Constants.String)
+        return parameter.ParameterType switch
         {
-            return Constants.QueueNameParams.Contains(parameter.Name) ? new DynamicArgumentBinder(context => context.QueueName)
-
-                : Constants.ExchangeNameParams.Contains(parameter.Name) ? new DynamicArgumentBinder(context => context.Request.Exchange)
-
-                : Constants.RoutingKeyNameParams.Contains(parameter.Name) ? new DynamicArgumentBinder(context => context.Request.RoutingKey)
-
-                : Constants.ConsumerTagParams.Contains(parameter.Name) ? new DynamicArgumentBinder(context => context.Request.ConsumerTag)
-
-                : throw new InvalidOperationException($"Can't determine binder for {parameter.Name}");
-        }
-
-        return new MessageObjectArgumentBinder(parameter.ParameterType);
+            var type when type == Constants.IConnection => new DynamicArgumentBinder(context => context.Connection),
+            var type when type == Constants.IChannel => new DynamicArgumentBinder(context => context.Channel),
+            var type when type == Constants.BasicDeliverEventArgs => new DynamicArgumentBinder(context => context.Request),
+            var type when type == Constants.DeliveryMode => new DynamicArgumentBinder(context => context.Request.BasicProperties.DeliveryMode),
+            var type when type == Constants.ServiceProvider => new DynamicArgumentBinder(context => context.ServiceProvider),
+            var type when type == Constants.IAmqpContext => new DynamicArgumentBinder(context => context),
+            var type when type == Constants.BasicPropertiesType => new DynamicArgumentBinder(context => context.Request.BasicProperties),
+            var type when type == Constants.CancellationToken => new DynamicArgumentBinder(context => context.CancellationToken),
+            var type when type == Constants.String => parameter.Name switch
+            {
+                var name when Constants.QueueNameParams.Contains(name) => new DynamicArgumentBinder(context => context.QueueName),
+                var name when Constants.ExchangeNameParams.Contains(name) => new DynamicArgumentBinder(context => context.Request.Exchange),
+                var name when Constants.RoutingKeyNameParams.Contains(name) => new DynamicArgumentBinder(context => context.Request.RoutingKey),
+                var name when Constants.ConsumerTagParams.Contains(name) => new DynamicArgumentBinder(context => context.Request.ConsumerTag),
+                _ => throw new InvalidOperationException($"Can't determine binder for {parameter.Name}")
+            },
+            _ => new MessageObjectArgumentBinder(parameter.ParameterType)
+        };
     }
 
 
