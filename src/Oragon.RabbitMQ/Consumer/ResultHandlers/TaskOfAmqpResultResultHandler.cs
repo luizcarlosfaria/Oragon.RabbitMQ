@@ -14,14 +14,14 @@ namespace Oragon.RabbitMQ.Consumer.ResultHandlers;
 public class TaskOfAmqpResultResultHandler : IResultHandler
 {
     private readonly PropertyInfo resultProperty;
-    private readonly ConsumerParameters consumerParameters;
+    private readonly ConsumerDescriptor consumerParameters;
 
     /// <summary>
     /// Constructor
     /// </summary>
     /// <param name="consumerParameters"></param>
     /// <param name="type"></param>
-    public TaskOfAmqpResultResultHandler(ConsumerParameters consumerParameters, Type type)
+    public TaskOfAmqpResultResultHandler(ConsumerDescriptor consumerParameters, Type type)
     {
         _ = Guard.Argument(type).NotNull();
         this.consumerParameters = consumerParameters;

@@ -94,7 +94,7 @@ public class FactoryOfArgumentBinderTests
 
         };
 
-        var queueConsumerBuilder = new ConsumerParameters(serviceProviderMock.Object, "oragon-rabbitmq-queueName", handler);
+        var queueConsumerBuilder = new ConsumerDescriptor(serviceProviderMock.Object, "oragon-rabbitmq-queueName", handler);
 
         var dispatcher = new Dispatcher(queueConsumerBuilder);
 

@@ -11,13 +11,13 @@ namespace Oragon.RabbitMQ.Consumer.ResultHandlers;
 /// </summary>
 public class TaskResultHandler : IResultHandler
 {
-    private readonly ConsumerParameters consumerParameters;
+    private readonly ConsumerDescriptor consumerParameters;
 
     /// <summary>
     /// Constructor
     /// </summary>
     /// <param name="consumerParameters"></param>
-    public TaskResultHandler(ConsumerParameters consumerParameters)
+    public TaskResultHandler(ConsumerDescriptor consumerParameters)
     {
         this.consumerParameters = consumerParameters;
     }

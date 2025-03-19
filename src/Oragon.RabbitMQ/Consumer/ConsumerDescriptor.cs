@@ -14,7 +14,7 @@ namespace Oragon.RabbitMQ.Consumer;
 /// Builds instances of <see cref="QueueConsumer"/>.
 /// </summary>
 [GenerateAutomaticInterface]
-public class ConsumerParameters : IConsumerParameters
+public class ConsumerDescriptor : IConsumerDescriptor
 {
     private bool IsLocked;
 
@@ -36,12 +36,12 @@ public class ConsumerParameters : IConsumerParameters
 
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="IConsumerParameters"/> class.
+    /// Initializes a new instance of the <see cref="IConsumerDescriptor"/> class.
     /// </summary>
     /// <param name="applicationServiceProvider"></param>
     /// <param name="queueName"></param>
     /// <param name="handler"></param>
-    public ConsumerParameters(IServiceProvider applicationServiceProvider, string queueName, Delegate handler)
+    public ConsumerDescriptor(IServiceProvider applicationServiceProvider, string queueName, Delegate handler)
     {
         this.ApplicationServiceProvider = applicationServiceProvider;
         this.QueueName = queueName;
@@ -88,8 +88,8 @@ public class ConsumerParameters : IConsumerParameters
     /// In addition to that consumers need to be thread/concurrency safe.
     /// </summary>
     /// <param name="consumerDispatchConcurrency"></param>
-    /// <returns>The current instance of <see cref="IConsumerParameters"/>.</returns>
-    public IConsumerParameters WithDispatchConcurrency(ushort consumerDispatchConcurrency)
+    /// <returns>The current instance of <see cref="IConsumerDescriptor"/>.</returns>
+    public IConsumerDescriptor WithDispatchConcurrency(ushort consumerDispatchConcurrency)
     {
         _ = Guard.Argument(consumerDispatchConcurrency).GreaterThan<ushort>(0);
         _ = Guard.Argument(this.IsLocked).False();
@@ -112,8 +112,8 @@ public class ConsumerParameters : IConsumerParameters
     /// Sets the PrefetchCount.
     /// </summary>
     /// <param name="prefetchCount"></param>
-    /// <returns>The current instance of <see cref="IConsumerParameters"/>.</returns>
-    public IConsumerParameters WithPrefetch(ushort prefetchCount)
+    /// <returns>The current instance of <see cref="IConsumerDescriptor"/>.</returns>
+    public IConsumerDescriptor WithPrefetch(ushort prefetchCount)
     {
         _ = Guard.Argument(prefetchCount).GreaterThan<ushort>(0);
         _ = Guard.Argument(this.IsLocked).False();
@@ -136,8 +136,8 @@ public class ConsumerParameters : IConsumerParameters
     /// Sets the ConsumerTag.
     /// </summary>
     /// <param name="consumerTag"></param>
-    /// <returns>The current instance of <see cref="IConsumerParameters"/>.</returns>
-    public IConsumerParameters WithConsumerTag(string consumerTag)
+    /// <returns>The current instance of <see cref="IConsumerDescriptor"/>.</returns>
+    public IConsumerDescriptor WithConsumerTag(string consumerTag)
     {
         _ = Guard.Argument(consumerTag).NotNull().NotEmpty().NotWhiteSpace();
         _ = Guard.Argument(this.IsLocked).False();
@@ -158,8 +158,8 @@ public class ConsumerParameters : IConsumerParameters
     /// Sets the Exclusive.
     /// </summary>
     /// <param name="exclusive"></param>
-    /// <returns>The current instance of <see cref="IConsumerParameters"/>.</returns>
-    public IConsumerParameters WithExclusive(bool exclusive = true)
+    /// <returns>The current instance of <see cref="IConsumerDescriptor"/>.</returns>
+    public IConsumerDescriptor WithExclusive(bool exclusive = true)
     {
         _ = Guard.Argument(this.IsLocked).False();
 
@@ -179,8 +179,8 @@ public class ConsumerParameters : IConsumerParameters
     /// Sets the connection using a factory function.
     /// </summary>
     /// <param name="connectionFactory">The factory function to create the connection.</param>
-    /// <returns>The current instance of <see cref="ConsumerParameters"/>.</returns>
-    public IConsumerParameters WithConnection(Func<IServiceProvider, CancellationToken, Task<IConnection>> connectionFactory)
+    /// <returns>The current instance of <see cref="ConsumerDescriptor"/>.</returns>
+    public IConsumerDescriptor WithConnection(Func<IServiceProvider, CancellationToken, Task<IConnection>> connectionFactory)
     {
         _ = Guard.Argument(connectionFactory).NotNull();
         _ = Guard.Argument(this.IsLocked).False();
@@ -202,8 +202,8 @@ public class ConsumerParameters : IConsumerParameters
     /// Sets the serializer using a factory function.
     /// </summary>
     /// <param name="serializerFactory">The factory function to create the serializer.</param>
-    /// <returns>The current instance of <see cref="ConsumerParameters"/>.</returns>
-    public IConsumerParameters WithSerializer(Func<IServiceProvider, IAmqpSerializer> serializerFactory)
+    /// <returns>The current instance of <see cref="ConsumerDescriptor"/>.</returns>
+    public IConsumerDescriptor WithSerializer(Func<IServiceProvider, IAmqpSerializer> serializerFactory)
     {
         _ = Guard.Argument(serializerFactory).NotNull();
         _ = Guard.Argument(this.IsLocked).False();
@@ -225,8 +225,8 @@ public class ConsumerParameters : IConsumerParameters
     /// Sets the serializer using a factory function.
     /// </summary>
     /// <param name="channelFactory">The factory function to create the channel</param>    
-    /// <returns>The current instance of <see cref="ConsumerParameters"/>.</returns>
-    public IConsumerParameters WithChannel(Func<IConnection, CancellationToken, Task<IChannel>> channelFactory)
+    /// <returns>The current instance of <see cref="ConsumerDescriptor"/>.</returns>
+    public IConsumerDescriptor WithChannel(Func<IConnection, CancellationToken, Task<IChannel>> channelFactory)
     {
         _ = Guard.Argument(channelFactory).NotNull();
         _ = Guard.Argument(this.IsLocked).False();
@@ -250,7 +250,7 @@ public class ConsumerParameters : IConsumerParameters
     /// </summary>
     /// <param name="amqpResult"></param>
     /// <returns></returns>
-    public IConsumerParameters WhenSerializationFail(Func<IAmqpContext, Exception, IAmqpResult> amqpResult)
+    public IConsumerDescriptor WhenSerializationFail(Func<IAmqpContext, Exception, IAmqpResult> amqpResult)
     {
         _ = Guard.Argument(amqpResult).NotNull();
         _ = Guard.Argument(this.IsLocked).False();
@@ -274,7 +274,7 @@ public class ConsumerParameters : IConsumerParameters
     /// </summary>
     /// <param name="amqpResult"></param>
     /// <returns></returns>
-    public IConsumerParameters WhenProcessFail(Func<IAmqpContext, Exception, IAmqpResult> amqpResult)
+    public IConsumerDescriptor WhenProcessFail(Func<IAmqpContext, Exception, IAmqpResult> amqpResult)
     {
         _ = Guard.Argument(amqpResult).NotNull();
         _ = Guard.Argument(this.IsLocked).False();

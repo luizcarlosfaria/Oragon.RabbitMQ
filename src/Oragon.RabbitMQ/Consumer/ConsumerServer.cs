@@ -28,20 +28,20 @@ public class ConsumerServer : IHostedService, IDisposable
     /// <summary>
     /// The consumers that will be started.
     /// </summary>
-    public IEnumerable<IConsumerParameters> ConsumersBuilders => [.. this.internalConsumerBuilders];
-    private readonly List<IConsumerParameters> internalConsumerBuilders = [];
+    public IEnumerable<IConsumerDescriptor> ConsumerDescriptors => [.. this.internalConsumerDescriptors];
+    private readonly List<IConsumerDescriptor> internalConsumerDescriptors = [];
 
 
     /// <summary>
     /// Add a new consumer to the server.
     /// </summary>
-    /// <param name="builder"></param>
+    /// <param name="consumerDescriptor"></param>
     /// <exception cref="InvalidOperationException"></exception>
-    public void AddConsumerBuilder(ConsumerParameters builder)
+    public void AddConsumerDescriptor(ConsumerDescriptor consumerDescriptor)
     {
         if (this.IsReadOnly) throw new InvalidOperationException("The ConsumerServer is in readonly state");
 
-        this.internalConsumerBuilders.Add(builder);
+        this.internalConsumerDescriptors.Add(consumerDescriptor);
     }
 
 
@@ -54,7 +54,7 @@ public class ConsumerServer : IHostedService, IDisposable
     {
         this.IsReadOnly = true;
 
-        foreach (IConsumerParameters consumer in this.ConsumersBuilders)
+        foreach (IConsumerDescriptor consumer in this.ConsumerDescriptors)
         {
             this.internalConsumers.Add(await consumer.BuildConsumerAsync(cancellationToken).ConfigureAwait(false));
         }

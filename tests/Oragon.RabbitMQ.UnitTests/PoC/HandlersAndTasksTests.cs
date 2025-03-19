@@ -106,7 +106,7 @@ public class HandlersAndTasksTests
         _ = amqpContextMock.Setup(it => it.MessageObject).Returns(new SampleRequest() { ReturnValue = 1 });
         _ = amqpContextMock.Setup(it => it.ServiceProvider).Returns(serviceProviderMock.Object);
 
-        var queueConsumerBuilder = new ConsumerParameters(serviceProviderMock.Object, "oragon-rabbitmq-queueName", delegateToHandle);
+        var queueConsumerBuilder = new ConsumerDescriptor(serviceProviderMock.Object, "oragon-rabbitmq-queueName", delegateToHandle);
 
         var dispatcher = new Dispatcher(queueConsumerBuilder);
 
@@ -128,7 +128,7 @@ public class HandlersAndTasksTests
         _ = amqpContextMock.Setup(it => it.MessageObject).Returns(new SampleRequest() { ReturnValue = 1, ThrowException = true });
         _ = amqpContextMock.Setup(it => it.ServiceProvider).Returns(serviceProviderMock.Object);
 
-        var queueConsumerBuilder = new ConsumerParameters(serviceProviderMock.Object, "oragon-rabbitmq-queueName", delegateToHandle);
+        var queueConsumerBuilder = new ConsumerDescriptor(serviceProviderMock.Object, "oragon-rabbitmq-queueName", delegateToHandle);
 
         var dispatcher = new Dispatcher(queueConsumerBuilder);
 

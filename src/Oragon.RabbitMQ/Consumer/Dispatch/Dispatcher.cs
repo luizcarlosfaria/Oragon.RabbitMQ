@@ -18,7 +18,7 @@ public class Dispatcher
     private readonly Delegate handler;
     private readonly List<IAmqpArgumentBinder> argumentBinders;
     private readonly IResultHandler resultHandler;
-    private readonly ConsumerParameters consumerParameters;
+    private readonly ConsumerDescriptor consumerParameters;
 
     /// <summary>
     /// Type of Message
@@ -33,7 +33,7 @@ public class Dispatcher
     /// <summary>
     /// Initialize the dispatcher
     /// </summary>
-    public Dispatcher(ConsumerParameters consumerParameters)
+    public Dispatcher(ConsumerDescriptor consumerParameters)
     {
         this.consumerParameters = Guard.Argument(consumerParameters).NotNull().Value;
 
