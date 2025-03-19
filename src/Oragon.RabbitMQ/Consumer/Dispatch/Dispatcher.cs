@@ -60,11 +60,11 @@ public class Dispatcher
 
         IAmqpArgumentBinderParameter[] attributes = parameter.GetCustomAttributes(true).OfType<IAmqpArgumentBinderParameter>().ToArray();
 
-        return attributes.Length > 1
-            ? throw new InvalidOperationException($"The parameter {parameter.Name} has more than one IAmqpArgumentBinderParameter attribute")
-            : attributes.Length == 0
-            ? DiscoveryArgumentBinder(parameter)
-            : attributes[0].Build(parameter);
+        if (attributes.Length > 1) throw new InvalidOperationException($"The parameter {parameter.Name} has more than one IAmqpArgumentBinderParameter attribute");
+
+        return attributes.Length == 1
+            ? attributes[0].Build(parameter)
+            : DiscoveryArgumentBinder(parameter);
     }
 
     /// <summary>
