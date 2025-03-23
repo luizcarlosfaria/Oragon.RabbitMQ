@@ -17,6 +17,7 @@ builder.AddRabbitMQClient("rabbitmq", null, connectionFactory =>
     connectionFactory.ClientProvidedName = "DotNetAspireApp.ApiService";
     connectionFactory.AutomaticRecoveryEnabled = false;
     connectionFactory.TopologyRecoveryEnabled = false;
+    connectionFactory.RequestedHeartbeat = TimeSpan.FromSeconds(15);
 });
 
 // Add service defaults & Aspire components.
@@ -50,7 +51,7 @@ app.MapGet("/weatherforecast", () =>
 
 var progressBarWidth = 20;
 
-app.MapPost("/enqueue", (DoSomethingRequest req, CancellationToken cancellationToken, [FromServices] MessagePublisher messagePublisher)
+app.MapPost("/enqueue", ([FromHeader]DoSomethingRequest req, CancellationToken cancellationToken, [FromServices] MessagePublisher messagePublisher)
     =>
 {
     Action<string> Log = (string message) =>

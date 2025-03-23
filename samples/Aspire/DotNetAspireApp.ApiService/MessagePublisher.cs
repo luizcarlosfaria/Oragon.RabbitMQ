@@ -10,6 +10,8 @@ namespace DotNetAspireApp.ApiService;
 
 public class MessagePublisher
 {
+    private const bool configureAwait = true;
+
     private static readonly ConcurrentQueue<(ConsoleColor ForegroundColor, ConsoleColor BackgroundColor)> colorQueue = new(new[]
     {
         (ConsoleColor.Black, ConsoleColor.White),
@@ -34,15 +36,14 @@ public class MessagePublisher
         (ConsoleColor.DarkGreen, ConsoleColor.Gray)
     });
     private static readonly object colorQueueLock = new();
-
-    public static int Sequence { get; private set; }
+    private static int s_sequence;
 
     private readonly IConnectionFactory connectionFactory;
     private readonly IAmqpSerializer serializer;
     private volatile bool isBlocked;
 
     public string UId { get; } = Guid.NewGuid().ToString("D").Split('-').Last();
-    public int Id { get; private set; } = (++MessagePublisher.Sequence);
+    public int Id { get; private set; } = (++MessagePublisher.s_sequence);
 
     public string ConsoleId => $"{this.Id:000} | {this.UId}";
 
@@ -83,21 +84,27 @@ public class MessagePublisher
     {
         if (this.connection != null && this.connection.IsOpen) return this.connection;
 
-        await this.ReleaseConnectionAsync().ConfigureAwait(false);
+        this.Log($"GetOrCreateConnectionAsync() BEGIN");
 
-        this.Log($"Creating Connection... ");
-        IConnection newConnection = await this.connectionFactory.CreateConnectionAsync("ApiService - enqueue", CancellationToken.None).ConfigureAwait(false);
+        await this.ReleaseConnectionAsync().ConfigureAwait(configureAwait);
+
+        this.Log($"Creating new Connection... ");
+        IConnection newConnection = await this.connectionFactory.CreateConnectionAsync($"ApiService - enqueue - {this.ConsoleId}", CancellationToken.None).ConfigureAwait(configureAwait);
 
         this.connection = newConnection;
         this.connection.ConnectionBlockedAsync += this.Connection_ConnectionBlockedAsync;
         this.connection.ConnectionUnblockedAsync += this.Connection_ConnectionUnblockedAsync;
         this.connection.ConnectionShutdownAsync += this.Connection_ConnectionShutdownAsync;
 
+        this.Log($"GetOrCreateConnectionAsync() END");
+
         return newConnection;
     }
 
     private async Task Connection_ConnectionShutdownAsync(object sender, RabbitMQ.Client.Events.ShutdownEventArgs @event)
     {
+        this.Log($"Connection Shutdown Start...");
+
         this.isBlocked = true;
 
         try
@@ -122,17 +129,26 @@ public class MessagePublisher
 
         this.isBlocked = false;
 
+        this.Log($"Connection Shutdown End!!");
     }
 
     private async Task ReleaseConnectionAsync()
     {
+        this.Log($"Releasing Connection... ");
+
         if (this.connection != null)
         {
+            this.Log($"Connection found, calling this.connection.CloseAsync(), removing delegates and setting this.connection to null");
+            await this.connection.CloseAsync().ConfigureAwait(configureAwait);
+
             this.connection.ConnectionBlockedAsync -= this.Connection_ConnectionBlockedAsync;
             this.connection.ConnectionUnblockedAsync -= this.Connection_ConnectionUnblockedAsync;
             this.connection.ConnectionShutdownAsync -= this.Connection_ConnectionShutdownAsync;
-            await this.connection.CloseAsync().ConfigureAwait(false);
             this.connection = null;
+        }
+        else
+        {
+            this.Log($"Connection is not set");
         }
     }
 
@@ -160,26 +176,38 @@ public class MessagePublisher
     {
         if (this.channel != null && this.channel.IsOpen) return this.channel;
 
-        await this.ReleaseChannelAsync().ConfigureAwait(false);
+        this.Log($"GetOrCreateChannelAsync() BEGIN");
 
-        IConnection connection = await this.GetOrCreateConnectionAsync().ConfigureAwait(false);
+        await this.ReleaseChannelAsync().ConfigureAwait(configureAwait);
+
+        IConnection connection = await this.GetOrCreateConnectionAsync().ConfigureAwait(configureAwait);
 
         this.Log($"Creating Channel... ");
 
-        IChannel newChannel = await connection.CreateChannelAsync().ConfigureAwait(false);
+        IChannel newChannel = await connection.CreateChannelAsync().ConfigureAwait(configureAwait);
 
         this.channel = newChannel;
+
+        this.Log($"GetOrCreateChannelAsync() END");
+
+        this.isBlocked = false;
 
         return newChannel;
     }
     private async Task ReleaseChannelAsync()
     {
+        this.Log($"Releasing Channel... ");
+
         if (this.channel != null)
         {
-            this.Log($"Releasing Channel... ");
+            this.Log($"Channel found, calling this.channel.CloseAsync() and setting this.channel to null");
 
-            await this.channel.CloseAsync().ConfigureAwait(false);
+            await this.channel.CloseAsync().ConfigureAwait(configureAwait);
             this.channel = null;
+        }
+        else
+        {
+            this.Log($"Channel is not set");
         }
     }
 
@@ -189,22 +217,28 @@ public class MessagePublisher
     {
         for (var retryWait = 0; this.isBlocked && retryWait < 90; retryWait++)
         {
-            this.Log($"Connection is blocked. Waiting 5s... ");
-            await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken).ConfigureAwait(false);
-            if (!this.isBlocked) break;
+            this.Log($"Connection is blocked. Waiting 10s to try publish... ");
+            await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken).ConfigureAwait(false);
+            if (!this.isBlocked)
+            {
+                this.Log($"Connection is not blocked anymore, continuing...");
+                break;
+            }
         }
 
-        IChannel channel = await this.GetOrCreateChannelAsync().ConfigureAwait(false);
+        IChannel channel = await this.GetOrCreateChannelAsync().ConfigureAwait(configureAwait);
 
         BasicProperties properties = channel.CreateBasicProperties().EnsureHeaders().SetDurable(true);
 
         var body = this.serializer.Serialize(basicProperties: properties, message: message);
 
-        await channel.BasicPublishAsync(exchange, routingKey, false, properties, body, cancellationToken).ConfigureAwait(false);
+        await channel.BasicPublishAsync(exchange, routingKey, false, properties, body, cancellationToken).ConfigureAwait(configureAwait);
     }
 
     public async Task DisposeAsync()
     {
+        this.Log($"MessagePublisher disposing...");
+
         IChannel? localChannel = this.channel;
         this.channel = null;
 
@@ -213,31 +247,35 @@ public class MessagePublisher
 
         if (localChannel != null)
         {
-            this.Log($"Closing Channel... ");
+            this.Log($"MessagePublisher disposing ... localChannel.CloseAsync() BEGIN");
             await localChannel.CloseAsync(CancellationToken.None).ConfigureAwait(false);
+            this.Log($"MessagePublisher disposing ... localChannel.CloseAsync() END");
         }
 
         if (localConnection != null)
         {
-            this.Log($"Closing Connection... ");
+            this.Log($"MessagePublisher disposing ... localConnection.CloseAsync() BEGIN");
             await localConnection.CloseAsync(CancellationToken.None).ConfigureAwait(false);
+            this.Log($"MessagePublisher disposing ... localConnection.CloseAsync() END");
         }
 
-        this.Log($"Everything is CLOSED!");
+        this.Log($"MessagePublisher disposing ... Everything is closed!");
 
         if (localChannel != null)
         {
-            this.Log($"Disposing Channel... ");
+            this.Log($"MessagePublisher disposing ... localChannel.DisposeAsync() BEGIN");
             await localChannel.DisposeAsync().ConfigureAwait(false);
+            this.Log($"MessagePublisher disposing ... localChannel.DisposeAsync() END");
         }
 
         if (localConnection != null)
         {
-            this.Log($"Disposing Connection... ");
+            this.Log($"MessagePublisher disposing ... localConnection.DisposeAsync() BEGIN");
             await localConnection.DisposeAsync().ConfigureAwait(false);
+            this.Log($"MessagePublisher disposing ... localConnection.DisposeAsync() END");
         }
 
-        this.Log($"Everything is DISPOSED!");
+        this.Log($"MessagePublisher Disposed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 
         GC.SuppressFinalize(this);
     }
