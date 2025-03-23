@@ -26,10 +26,13 @@ public static class Constants
     public static Type Task { get; } = typeof(Task);
     public static Type GenericTask { get; } = typeof(Task<>);
     public static Type VoidResult { get; } = typeof(void);
+
     public static string[] QueueNameParams { get; } = ["queue", "queueName"];
     public static string[] RoutingKeyNameParams { get; } = ["routing", "routingKey"];
     public static string[] ExchangeNameParams { get; } = ["exchange", "exchangeName"];
     public static string[] ConsumerTagParams { get; } = ["consumer", "consumerTag"];
+    public static string[] MvcAttributesTypeNames { get; } = ["FromBodyAttribute", "FromFormAttribute", "FromHeaderAttribute", "FromQueryAttribute", "FromRouteAttribute", "FromServicesAttribute"];
+    public static string[] MvcAttributeNamespaces { get; } = ["Microsoft.AspNetCore.Mvc"];
 
 }
 #pragma warning restore CS1591, CA1819, CA1720
