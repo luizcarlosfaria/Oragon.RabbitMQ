@@ -51,7 +51,7 @@ app.MapGet("/weatherforecast", () =>
 
 var progressBarWidth = 20;
 
-app.MapPost("/enqueue", ([FromHeader]DoSomethingRequest req, CancellationToken cancellationToken, [FromServices] MessagePublisher messagePublisher)
+app.MapPost("/enqueue", ([FromBody]DoSomethingRequest requestObject, CancellationToken cancellationToken, [FromServices] MessagePublisher messagePublisher)
     =>
 {
     Action<string> Log = (string message) =>
@@ -65,23 +65,23 @@ app.MapPost("/enqueue", ([FromHeader]DoSomethingRequest req, CancellationToken c
 
     _ = Task.Run(async () =>
         {
-            Log($"Starting to publish {req.quantity:n0}");
-            for (var i = 1; i <= req.quantity; i++)
+            Log($"Starting to publish {requestObject.quantity:n0}");
+            for (var i = 1; i <= requestObject.quantity; i++)
             {
-                var command = new DoSomethingCommand(req.Text, i, req.quantity);
+                var command = new DoSomethingCommand(requestObject.Text, i, requestObject.quantity);
 
                 await messagePublisher.PublishAsync(command, "events", string.Empty, default).ConfigureAwait(false);
 
-                if (i % (req.quantity / progressBarWidth) == 0) // Update progress bar
+                if (i % (requestObject.quantity / progressBarWidth) == 0) // Update progress bar
                 {
-                    var progress = (i * progressBarWidth / req.quantity);
-                    Log($"[{new string('#', progress)}{new string(' ', progressBarWidth - progress)}] {i * 100 / req.quantity}%");
+                    var progress = (i * progressBarWidth / requestObject.quantity);
+                    Log($"[{new string('#', progress)}{new string(' ', progressBarWidth - progress)}] {i * 100 / requestObject.quantity}%");
                 }
 
             }
-            Log($"Done ({req.quantity:n0} messages!)");
+            Log($"Done ({requestObject.quantity:n0} messages!)");
             await messagePublisher.DisposeAsync().ConfigureAwait(false);
-            Log($"END ({req.quantity:n0} messages!)");
+            Log($"END ({requestObject.quantity:n0} messages!)");
         });
 
     return Results.Ok();
