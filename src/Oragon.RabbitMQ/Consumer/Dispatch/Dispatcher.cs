@@ -83,6 +83,7 @@ public class Dispatcher
         }
         catch (Exception exception)
         {
+            context.LogException(exception);
             return this.consumerDescriptor.ResultForProcessFailure(context, exception);
         }
 

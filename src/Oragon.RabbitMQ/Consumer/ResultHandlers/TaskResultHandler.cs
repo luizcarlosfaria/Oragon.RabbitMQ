@@ -31,6 +31,7 @@ public class TaskResultHandler : IResultHandler
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
     public async Task<IAmqpResult> Handle(IAmqpContext context, object dispatchResult)
     {
+        ArgumentNullException.ThrowIfNull(context, nameof(context));
         ArgumentNullException.ThrowIfNull(dispatchResult, nameof(dispatchResult));
 
         _ = Guard.Argument(dispatchResult).NotNull();
@@ -46,6 +47,7 @@ public class TaskResultHandler : IResultHandler
         }
         catch (Exception exception)
         {
+            context.LogException(exception);
             return this.consumerDescriptor.ResultForProcessFailure(context, exception);
         }
         return AmqpResults.Ack();

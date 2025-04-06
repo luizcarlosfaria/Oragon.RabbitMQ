@@ -211,7 +211,7 @@ public class QueueConsumer : IHostedAmqpConsumer
         {
             (bool canProceed, Exception exception) = this.TryDeserialize(eventArgs, this.dispatcher.MessageType, out var incomingMessage);
 
-            IAmqpContext context = new AmqpContext(eventArgs, scope.ServiceProvider, this.serializer, this.connection, this.channel, this.consumerDescriptor.QueueName, incomingMessage, this.cancellationTokenSource.Token);
+            IAmqpContext context = new AmqpContext(this.logger, eventArgs, scope.ServiceProvider, this.serializer, this.connection, this.channel, this.consumerDescriptor.QueueName, incomingMessage, this.cancellationTokenSource.Token);
 
             IAmqpResult result =
                 canProceed

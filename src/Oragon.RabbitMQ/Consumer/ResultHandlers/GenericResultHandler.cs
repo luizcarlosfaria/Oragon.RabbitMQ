@@ -10,7 +10,6 @@ namespace Oragon.RabbitMQ.Consumer.ResultHandlers;
 /// </summary>
 public class GenericResultHandler : IResultHandler
 {
-
     /// <summary>
     /// Handles the dispatched result, which can be either an IAmqpResult or a Task that returns an IAmqpResult.
     /// </summary>
