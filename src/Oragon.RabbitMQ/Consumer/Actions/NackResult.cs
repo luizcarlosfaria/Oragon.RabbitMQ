@@ -8,8 +8,6 @@ namespace Oragon.RabbitMQ.Consumer.Actions;
 /// </remarks>
 public class NackResult : IAmqpResult
 {
-    
-
 
     /// <summary>
     /// Indicates if the message should be requeued

@@ -7,6 +7,7 @@ namespace Oragon.RabbitMQ.Consumer.Actions;
 /// </summary>
 public class ComposableResult : IAmqpResult
 {
+
     private readonly List<IAmqpResult> results;
 
     /// <summary>

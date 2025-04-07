@@ -6,9 +6,6 @@ namespace Oragon.RabbitMQ.Consumer.Actions;
 public class RejectResult : IAmqpResult
 {
 
-    
-
-
     /// <summary>
     /// Define if the message should be requeued
     /// </summary>

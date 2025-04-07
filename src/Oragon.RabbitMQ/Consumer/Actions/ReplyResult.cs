@@ -12,6 +12,7 @@ namespace Oragon.RabbitMQ.Consumer.Actions;
 /// <typeparam name="T">The type of the object to reply with.</typeparam>
 public class ReplyResult<T> : IAmqpResult
 {
+
     private readonly T objectToReply;
 
     /// <summary>

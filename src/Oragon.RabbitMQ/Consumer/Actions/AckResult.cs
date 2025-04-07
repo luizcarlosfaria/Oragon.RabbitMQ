@@ -5,8 +5,6 @@ namespace Oragon.RabbitMQ.Consumer.Actions;
 /// </summary>
 public class AckResult : IAmqpResult
 {
-   
-
 
     /// <summary>
     /// Create a instance of AckResult

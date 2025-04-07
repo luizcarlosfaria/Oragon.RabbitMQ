@@ -19,8 +19,6 @@ public static class AmqpResults
 
     private static readonly RejectResult s_rejectWithoutRequeue = new(false);
 
-
-
     /// <summary>
     /// Return an AckResult to represents a AMQP Ack
     /// </summary>
