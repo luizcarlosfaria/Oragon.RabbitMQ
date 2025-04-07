@@ -1,5 +1,6 @@
 namespace Oragon.RabbitMQ.UnitTests;
 
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2201:Do not raise reserved exception types", Justification = "It's for test purposes")]
 public class AmqpRemoteExceptionTests
 {
     [Fact]
@@ -30,7 +31,7 @@ public class AmqpRemoteExceptionTests
         _ = Assert.IsType<AmqpRemoteException>(exception);
     }
 
-    [Fact]
+    [Fact]    
     public void AmqpRemoteException_MessageInnerExceptionConstructor_ShouldCreateInstanceWithMessageAndInnerException()
     {
         // Arrange

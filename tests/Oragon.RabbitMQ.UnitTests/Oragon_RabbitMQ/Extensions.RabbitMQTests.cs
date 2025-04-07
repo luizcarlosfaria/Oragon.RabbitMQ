@@ -7,6 +7,7 @@ using RabbitMQ.Client;
 
 namespace Oragon.RabbitMQ.UnitTests.Oragon_RabbitMQ;
 
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2201:Do not raise reserved exception types", Justification = "It's for test purposes")]
 public class Extensions_RabbitMQ_Tests
 {
     [Fact]
@@ -129,6 +130,7 @@ public class Extensions_RabbitMQ_Tests
     }
 
     [Fact]
+    
     public void SetException_Should_Set_Exception_Headers_On_BasicProperties()
     {
         // Arrange
