@@ -3,8 +3,6 @@
   <Import Project="./../../../Global.Build.props" />
 
 
-  <ItemGroup>
-    <Folder Include="Messages\Events\" />
-  </ItemGroup>
+  
 
 </Project>
