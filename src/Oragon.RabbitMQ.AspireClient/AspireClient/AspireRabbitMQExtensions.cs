@@ -138,12 +138,7 @@ public static class AspireRabbitMQExtensions
                 {
                     try
                     {
-                        // if the IConnection can't be resolved, make a health check that will fail
-                        var options = new RabbitMQHealthCheckOptions
-                        {
-                            Connection = serviceKey is null ? sp.GetRequiredService<IConnection>() : sp.GetRequiredKeyedService<IConnection>(serviceKey)
-                        };
-                        return new RabbitMQHealthCheck(options);
+                        return new RabbitMQHealthCheck(serviceKey is null ? sp.GetRequiredService<IConnection>() : sp.GetRequiredKeyedService<IConnection>(serviceKey));
                     }
                     catch (Exception ex)
                     {
