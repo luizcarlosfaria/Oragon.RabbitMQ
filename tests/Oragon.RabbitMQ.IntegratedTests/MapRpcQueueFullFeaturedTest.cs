@@ -139,7 +139,7 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
         await hostedService.StartAsync(CancellationToken.None);
 
         // Signal the completion of message reception.
-        EventWaitHandle waitHandle = new ManualResetEvent(false);
+        ManualResetEvent waitHandle = new ManualResetEvent(false);
 
         var consumer = new AsyncEventingBasicConsumer(channel);
         consumer.ReceivedAsync += (_, eventArgs) =>

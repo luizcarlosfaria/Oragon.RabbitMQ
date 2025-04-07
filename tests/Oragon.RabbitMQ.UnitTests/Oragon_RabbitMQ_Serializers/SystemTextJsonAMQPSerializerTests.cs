@@ -145,7 +145,7 @@ public class SystemTextJsonAmqpSerializerTests
     {
         var jsonInBytes = Encoding.UTF8.GetBytes(json);
 
-        IAmqpSerializer serializer = new SystemTextJsonAmqpSerializer(new JsonSerializerOptions()
+        SystemTextJsonAmqpSerializer serializer = new SystemTextJsonAmqpSerializer(new JsonSerializerOptions()
         {
             PropertyNameCaseInsensitive = true,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,

@@ -22,13 +22,13 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
         public int Age { get; set; }
     }
 
-    public class ExampleService(WeakReference<EventWaitHandle> waitHandle, Action<MapQueueFullFeaturedTest.ExampleMessage> callbackToTests)
+    public class ExampleService(WeakReference<ManualResetEvent> waitHandle, Action<MapQueueFullFeaturedTest.ExampleMessage> callbackToTests)
     {
 
         /// <summary>
         /// Only for test purposes
         /// </summary>
-        public WeakReference<EventWaitHandle> WaitHandleRef { get; } = waitHandle;
+        public WeakReference<ManualResetEvent> WaitHandleRef { get; } = waitHandle;
 
         /// <summary>
         /// Only for test purposes
@@ -41,7 +41,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
 
             this.CallbackToTests(message);
 
-            this.WaitHandleRef.TryGetTarget(out EventWaitHandle waitHandle);
+            this.WaitHandleRef.TryGetTarget(out ManualResetEvent waitHandle);
 
             waitHandle.Set();
 
@@ -94,7 +94,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
         using var connection = await this.CreateConnectionAsync().ConfigureAwait(true);
 
         // Signal the completion of message reception.
-        WeakReference<EventWaitHandle> waitHandleRef = new(new ManualResetEvent(false));
+        WeakReference<ManualResetEvent> waitHandleRef = new(new ManualResetEvent(false));
 
         ServiceCollection services = new();
         services.AddRabbitMQConsumer();
@@ -146,7 +146,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
 
         await hostedService.StartAsync(CancellationToken.None);
 
-        waitHandleRef.TryGetTarget(out EventWaitHandle waitHandle);
+        waitHandleRef.TryGetTarget(out ManualResetEvent waitHandle);
 
         for (var i = 0; i < 10; i++)
         {

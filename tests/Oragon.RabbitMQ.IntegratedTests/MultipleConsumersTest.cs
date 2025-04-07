@@ -22,13 +22,13 @@ public class MultipleConsumersTest : IAsyncLifetime
         public int Age { get; set; }
     }
 
-    public class ExampleService(EventWaitHandle waitHandle, Action<ExampleMessage> callbackToTests)
+    public class ExampleService(ManualResetEvent waitHandle, Action<ExampleMessage> callbackToTests)
     {
 
         /// <summary>
         /// Only for test purposes
         /// </summary>
-        public EventWaitHandle WaitHandle { get; } = waitHandle;
+        public ManualResetEvent WaitHandle { get; } = waitHandle;
 
         /// <summary>
         /// Only for test purposes
@@ -91,7 +91,7 @@ public class MultipleConsumersTest : IAsyncLifetime
         public ExampleMessage MessagReceived { get; set; }
 
         // Signal the completion of message reception.
-        public EventWaitHandle WaitHandle { get; } = new ManualResetEvent(false);
+        public ManualResetEvent WaitHandle { get; } = new ManualResetEvent(false);
     }
 
 

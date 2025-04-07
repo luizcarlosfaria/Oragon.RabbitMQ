@@ -47,7 +47,7 @@ public class TestContainersTest: IAsyncLifetime
         await channel.BasicPublishAsync(string.Empty, queue, false, Encoding.Default.GetBytes(message));
 
         // Signal the completion of message reception.
-        EventWaitHandle waitHandle = new ManualResetEvent(false);
+        ManualResetEvent waitHandle = new ManualResetEvent(false);
 
         // Consume a message from the channel.
         var consumer = new AsyncEventingBasicConsumer(channel);

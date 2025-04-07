@@ -141,8 +141,8 @@ public class NewtonsoftAmqpSerializerTests
     {
         byte[] jsonInBytes = Encoding.UTF8.GetBytes(json);
 
-       
-        IAmqpSerializer serializer = new NewtonsoftAmqpSerializer(new JsonSerializerSettings()
+
+        NewtonsoftAmqpSerializer serializer = new NewtonsoftAmqpSerializer(new JsonSerializerSettings()
         {
             NullValueHandling = NullValueHandling.Ignore
         });
