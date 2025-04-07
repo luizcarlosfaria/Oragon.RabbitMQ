@@ -16,7 +16,7 @@ namespace Oragon.RabbitMQ.Consumer;
 [GenerateAutomaticInterface]
 public class ConsumerDescriptor : IConsumerDescriptor
 {
-    private bool IsLocked;
+    private bool isLocked;
 
     /// <summary>
     /// Gets the service provider.
@@ -92,7 +92,7 @@ public class ConsumerDescriptor : IConsumerDescriptor
     public IConsumerDescriptor WithDispatchConcurrency(ushort consumerDispatchConcurrency)
     {
         _ = Guard.Argument(consumerDispatchConcurrency).GreaterThan<ushort>(0);
-        _ = Guard.Argument(this.IsLocked).False();
+        _ = Guard.Argument(this.isLocked).False();
 
         this.ConsumerDispatchConcurrency = consumerDispatchConcurrency;
 
@@ -116,7 +116,7 @@ public class ConsumerDescriptor : IConsumerDescriptor
     public IConsumerDescriptor WithPrefetch(ushort prefetchCount)
     {
         _ = Guard.Argument(prefetchCount).GreaterThan<ushort>(0);
-        _ = Guard.Argument(this.IsLocked).False();
+        _ = Guard.Argument(this.isLocked).False();
 
         this.PrefetchCount = prefetchCount;
 
@@ -140,7 +140,7 @@ public class ConsumerDescriptor : IConsumerDescriptor
     public IConsumerDescriptor WithConsumerTag(string consumerTag)
     {
         _ = Guard.Argument(consumerTag).NotNull().NotEmpty().NotWhiteSpace();
-        _ = Guard.Argument(this.IsLocked).False();
+        _ = Guard.Argument(this.isLocked).False();
 
         this.ConsumerTag = consumerTag;
 
@@ -161,7 +161,7 @@ public class ConsumerDescriptor : IConsumerDescriptor
     /// <returns>The current instance of <see cref="IConsumerDescriptor"/>.</returns>
     public IConsumerDescriptor WithExclusive(bool exclusive = true)
     {
-        _ = Guard.Argument(this.IsLocked).False();
+        _ = Guard.Argument(this.isLocked).False();
 
         this.Exclusive = exclusive;
 
@@ -175,15 +175,16 @@ public class ConsumerDescriptor : IConsumerDescriptor
     /// </summary>
     public Func<IServiceProvider, CancellationToken, Task<IConnection>> ConnectionFactory { get; private set; }
 
+
     /// <summary>
     /// Sets the connection using a factory function.
     /// </summary>
     /// <param name="connectionFactory">The factory function to create the connection.</param>
-    /// <returns>The current instance of <see cref="ConsumerDescriptor"/>.</returns>
+    /// <returns>Returns the updated consumer descriptor instance.</returns>
     public IConsumerDescriptor WithConnection(Func<IServiceProvider, CancellationToken, Task<IConnection>> connectionFactory)
     {
         _ = Guard.Argument(connectionFactory).NotNull();
-        _ = Guard.Argument(this.IsLocked).False();
+        _ = Guard.Argument(this.isLocked).False();
 
         this.ConnectionFactory = connectionFactory;
 
@@ -206,7 +207,7 @@ public class ConsumerDescriptor : IConsumerDescriptor
     public IConsumerDescriptor WithSerializer(Func<IServiceProvider, IAmqpSerializer> serializerFactory)
     {
         _ = Guard.Argument(serializerFactory).NotNull();
-        _ = Guard.Argument(this.IsLocked).False();
+        _ = Guard.Argument(this.isLocked).False();
 
         this.SerializerFactory = serializerFactory;
 
@@ -229,7 +230,7 @@ public class ConsumerDescriptor : IConsumerDescriptor
     public IConsumerDescriptor WithChannel(Func<IConnection, CancellationToken, Task<IChannel>> channelFactory)
     {
         _ = Guard.Argument(channelFactory).NotNull();
-        _ = Guard.Argument(this.IsLocked).False();
+        _ = Guard.Argument(this.isLocked).False();
 
         this.ChannelFactory = channelFactory;
 
@@ -253,7 +254,7 @@ public class ConsumerDescriptor : IConsumerDescriptor
     public IConsumerDescriptor WhenSerializationFail(Func<IAmqpContext, Exception, IAmqpResult> amqpResult)
     {
         _ = Guard.Argument(amqpResult).NotNull();
-        _ = Guard.Argument(this.IsLocked).False();
+        _ = Guard.Argument(this.isLocked).False();
 
         this.ResultForSerializationFailure = amqpResult;
 
@@ -277,7 +278,7 @@ public class ConsumerDescriptor : IConsumerDescriptor
     public IConsumerDescriptor WhenProcessFail(Func<IAmqpContext, Exception, IAmqpResult> amqpResult)
     {
         _ = Guard.Argument(amqpResult).NotNull();
-        _ = Guard.Argument(this.IsLocked).False();
+        _ = Guard.Argument(this.isLocked).False();
 
         this.ResultForProcessFailure = amqpResult;
 
@@ -311,7 +312,7 @@ public class ConsumerDescriptor : IConsumerDescriptor
     public async Task<IHostedAmqpConsumer> BuildConsumerAsync(CancellationToken cancellationToken)
     {
         this.Validate();
-        this.IsLocked = true;
+        this.isLocked = true;
         var queueConsumer = new QueueConsumer(this.ApplicationServiceProvider.GetRequiredService<ILogger<QueueConsumer>>(), this);
         await queueConsumer.InitializeAsync(cancellationToken).ConfigureAwait(false);
         return queueConsumer;
