@@ -154,14 +154,14 @@ public class QueueConsumer : IHostedAmqpConsumer
                 {
                     _ = binder.GetValue(scope.ServiceProvider);
                 }
-                catch (Exception)
+                catch (Exception exception)
                 {
                     var exceptionMessage = $"Error on get service {binder.ParameterType} ";
                     if (!string.IsNullOrWhiteSpace(binder.ServiceKey))
                     {
                         exceptionMessage += $" with key '{binder.ServiceKey}'";
                     }
-                    throw new InvalidOperationException(exceptionMessage);
+                    throw new InvalidOperationException(exceptionMessage, exception);
                 }
 
             }
