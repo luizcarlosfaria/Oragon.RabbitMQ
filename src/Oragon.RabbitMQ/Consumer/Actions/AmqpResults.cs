@@ -54,6 +54,14 @@ public static class AmqpResults
     public static ReplyResult<T> Reply<T>(T objectToReturn) => new(objectToReturn);
 
     /// <summary>
+    /// Return a ComposableResult with ReplyResult and AckResult
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="objectToReturn"></param>k
+    /// <returns></returns>
+    public static ComposableResult ReplyAndAck<T>(T objectToReturn) => new(new ReplyResult<T>(objectToReturn), s_forSuccess);
+
+    /// <summary>
     /// Return a ComposableResult to execute multiple steps
     /// </summary>
     /// <param name="results"></param>
