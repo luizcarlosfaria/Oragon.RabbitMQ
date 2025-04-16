@@ -12,6 +12,7 @@ syntax: glob
 *.user
 *.userosscache
 *.sln.docstates
+*.slnx.docstates
 
 # Build results
 
@@ -33,6 +34,7 @@ msbuild.wrn
 
 # Visual Studio 2015 Pre-CTP6
 *.sln.ide
+*.slnx.ide
 *.ide/
 
 # MSTest test Results

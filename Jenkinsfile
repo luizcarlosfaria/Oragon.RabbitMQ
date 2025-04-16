@@ -1,29 +1,29 @@
 pipeline {
-    
+
     agent none
 
     stages {
-      
+
         stage('Build') {
 
             agent {
-                dockerfile {                   
+                dockerfile {
                     args '-u root:root -v /gago/nuget-cache:/root/.nuget/packages'
                 }
             }
 
             steps {
-                
+
                 echo sh(script: 'env|sort', returnStdout: true)
 
-                sh 'dotnet workload restore ./Oragon.RabbitMQ.sln'
+                sh 'dotnet workload restore ./Oragon.RabbitMQ.slnx'
 
-                sh 'dotnet build ./Oragon.RabbitMQ.sln'
+                sh 'dotnet build ./Oragon.RabbitMQ.slnx'
 
             }
 
         }
-     
+
 
         stage('Test') {
 
@@ -39,9 +39,9 @@ pipeline {
 
             steps {
 
-                withCredentials([usernamePassword(credentialsId: 'SonarQube', passwordVariable: 'SONARQUBE_KEY', usernameVariable: 'DUMMY' )]) 
+                withCredentials([usernamePassword(credentialsId: 'SonarQube', passwordVariable: 'SONARQUBE_KEY', usernameVariable: 'DUMMY' )])
                 {
-                    script 
+                    script
                     {
                         def sonarParams = [
                             '/k:"Oragon.RabbitMQ"',
@@ -58,10 +58,10 @@ pipeline {
 
                         } else if (env.BRANCH_NAME == "develop")
                         {
-                            sonarParams << '/d:sonar.branch.target=master'                            
+                            sonarParams << '/d:sonar.branch.target=master'
 
                         } else if (env.BRANCH_NAME.startsWith('feature/')) {
-                            
+
                             sonarParams << '/d:sonar.branch.target=develop'
 
                         } else if (env.BRANCH_NAME.startsWith('hotfix/')) {
@@ -73,7 +73,7 @@ pipeline {
                             sonarParams << '/d:sonar.branch.target=master'
 
                         } else {
-                            
+
                             // Não sabemos o que fazer
 
                         }
@@ -82,21 +82,21 @@ pipeline {
 
                         // sonarcloud issue | https://community.sonarsource.com/t/could-not-find-ref-refs-heads-master-in-refs-heads-refs-remotes-upstream-or-refs-remotes-origin/37016/5
                         // git fetch origin master:master | git fetch origin develop:develop
-                        sh  """                            
+                        sh  """
 
                             git fetch origin master:master
 
                             git fetch origin develop:develop
 
-                            dotnet restore  ./Oragon.RabbitMQ.sln
+                            dotnet restore  ./Oragon.RabbitMQ.slnx
 
-                            dotnet workload restore --framework net9.0 -p:TargetFrameworks=net9.0 ./Oragon.RabbitMQ.sln
+                            dotnet workload restore --framework net9.0 -p:TargetFrameworks=net9.0 ./Oragon.RabbitMQ.slnx
 
                             export PATH="\$PATH:/root/.dotnet/tools"
 
                             dotnet sonarscanner begin ${sonarParamsText}
 
-                            dotnet build --no-incremental --framework net9.0 -p:TargetFrameworks=net9.0 ./Oragon.RabbitMQ.sln
+                            dotnet build --no-incremental --framework net9.0 -p:TargetFrameworks=net9.0 ./Oragon.RabbitMQ.slnx
 
                             dotnet-coverage collect "dotnet test --framework net9.0 -p:TargetFrameworks=net9.0" -f xml -o "/output-coverage/coverage.xml"
 
@@ -106,7 +106,7 @@ pipeline {
 
                     }
                 }
-                
+
             }
 
         }
@@ -114,7 +114,7 @@ pipeline {
         stage('Pack') {
 
             agent {
-                dockerfile {                    
+                dockerfile {
                     args '-u root:root -v /gago/nuget-cache:/root/.nuget/packages'
                 }
             }
@@ -143,14 +143,14 @@ pipeline {
 
                         for (int i = 0; i < projetcs.size(); ++i) {
                             sh "dotnet build ./src/${projetcs[i]}/${projetcs[i]}.csproj --configuration Release "
-                            sh "dotnet pack  ./src/${projetcs[i]}/${projetcs[i]}.csproj --configuration Release -p:PackageVersion=${BRANCH_NAME} --output ./output-packages"                        
+                            sh "dotnet pack  ./src/${projetcs[i]}/${projetcs[i]}.csproj --configuration Release -p:PackageVersion=${BRANCH_NAME} --output ./output-packages"
                         }
 
                     } else {
 
                         for (int i = 0; i < projetcs.size(); ++i) {
                             sh "dotnet build ./src/${projetcs[i]}/${projetcs[i]}.csproj --configuration Release "
-                            sh "dotnet pack  ./src/${projetcs[i]}/${projetcs[i]}.csproj --configuration Release -p:PackageVersion=${BRANCH_NAME} --output ./output-packages"                        
+                            sh "dotnet pack  ./src/${projetcs[i]}/${projetcs[i]}.csproj --configuration Release -p:PackageVersion=${BRANCH_NAME} --output ./output-packages"
                         }
 
                     }
@@ -164,7 +164,7 @@ pipeline {
         stage('Publish') {
 
             agent {
-                dockerfile {                  
+                dockerfile {
                     args '-u root:root -v /gago/nuget-cache:/root/.nuget/packages'
                 }
             }
@@ -172,22 +172,22 @@ pipeline {
             when { buildingTag() }
 
             steps {
-                
+
                 script {
-                    
+
                     def publishOnNuGet = ( env.BRANCH_NAME.endsWith("-alpha") == false );
                     def hasSource = ( env.BRANCH_NAME.endsWith("-alpha") );
-                        
+
                         withCredentials([usernamePassword(credentialsId: 'myget-oragon', passwordVariable: 'MYGET_KEY', usernameVariable: 'DUMMY' )]) {
 
                             sh 'for pkg in ./output-packages/*.nupkg ; do dotnet nuget push "$pkg" -k "$MYGET_KEY" -s https://www.myget.org/F/oragon/api/v2/package ; done'
-                             
+
                             if (hasSource) {
 
                                 sh 'for pkg in ./output-packages/*.snupkg ; do dotnet nuget push "$pkg" -k "$MYGET_KEY" -s https://www.myget.org/F/oragon/api/v3/index.json ; done'
 
                             }
-						
+
                         }
 
                     if (publishOnNuGet) {
@@ -198,7 +198,7 @@ pipeline {
 
                         }
 
-                    }                    
+                    }
 				}
             }
         }
@@ -207,9 +207,9 @@ pipeline {
 
         always {
             node('master'){
-                
+
                 sh  '''
-                
+
 
                 '''
 

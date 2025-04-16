@@ -1,0 +1,47 @@
+<Solution>
+  <Folder Name="/Core/">
+    <File Path="src/Oragon.RabbitMQ.Build.props" />
+    <Project Path="src/Oragon.RabbitMQ.Abstractions/Oragon.RabbitMQ.Abstractions.csproj" />
+    <Project Path="src/Oragon.RabbitMQ.AspireClient/Oragon.RabbitMQ.AspireClient.csproj" />
+    <Project Path="src/Oragon.RabbitMQ/Oragon.RabbitMQ.csproj" />
+  </Folder>
+  <Folder Name="/Core/Serializers/">
+    <Project Path="src/Oragon.RabbitMQ.Serializer.NewtonsoftJson/Oragon.RabbitMQ.Serializer.NewtonsoftJson.csproj" />
+    <Project Path="src/Oragon.RabbitMQ.Serializer.SystemTextJson/Oragon.RabbitMQ.Serializer.SystemTextJson.csproj" />
+  </Folder>
+  <Folder Name="/Samples/" />
+  <Folder Name="/Samples/Aspire/">
+    <Project Path="samples/Aspire/DotNetAspireApp.AppHost/DotNetAspireApp.AppHost.csproj" />
+  </Folder>
+  <Folder Name="/Samples/Aspire/Core/">
+    <Project Path="samples/Aspire/DotNetAspireApp.Common/DotNetAspireApp.Common.csproj" />
+  </Folder>
+  <Folder Name="/Samples/Aspire/Hosts/">
+    <Project Path="samples/Aspire/DotNetAspireApp.ApiService/DotNetAspireApp.ApiService.csproj" />
+    <Project Path="samples/Aspire/DotNetAspireApp.Web/DotNetAspireApp.Web.csproj" />
+    <Project Path="samples/Aspire/DotNetAspireApp.Worker/DotNetAspireApp.Worker.csproj" />
+  </Folder>
+  <Folder Name="/Samples/Aspire/Infra/">
+    <Project Path="samples/Aspire/DotNetAspireApp.ServiceDefaults/DotNetAspireApp.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/Samples/Standalone/" />
+  <Folder Name="/Tests/">
+    <File Path="tests/Oragon.RabbitMQ.Tests.props" />
+    <Project Path="tests/Oragon.RabbitMQ.IntegratedTests/Oragon.RabbitMQ.IntegratedTests.csproj" />
+    <Project Path="tests/Oragon.RabbitMQ.TestsExtensions/Oragon.RabbitMQ.TestsExtensions.csproj" />
+    <Project Path="tests/Oragon.RabbitMQ.UnitTests/Oragon.RabbitMQ.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/_/" />
+  <Folder Name="/_/CI-CD/">
+    <File Path="Dockerfile" />
+    <File Path="Jenkinsfile" />
+  </Folder>
+  <Folder Name="/_/dev/">
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="Global.Build.props" />
+    <File Path="nuget.config" />
+    <File Path="README.md" />
+  </Folder>
+</Solution>
