@@ -70,9 +70,9 @@ internal static class ArgumentBinderExtensions
     {
         _ = Guard.Argument(parameter).NotNull();
 
-        Type[] allAttributes = [.. parameter.GetCustomAttributes(true).Select(it => it.GetType())];
+        List<Type> allAttributes = [.. parameter.GetCustomAttributes(true).Select(it => it.GetType())];
 
-        if (allAttributes.Any(it => Constants.MvcAttributesTypeNames.Contains(it.Name) && Constants.MvcAttributeNamespaces.Contains(it.Namespace)))
+        if (allAttributes.Exists(it => Constants.MvcAttributesTypeNames.Contains(it.Name) && Constants.MvcAttributeNamespaces.Contains(it.Namespace)))
             throw new InvalidOperationException($"The parameter {parameter.Name} has an attribute ({string.Join(", ", Constants.MvcAttributesTypeNames)}) from ASP.NET MVC namespaces {string.Join(" or ", Constants.MvcAttributeNamespaces)}.");
     }
 
