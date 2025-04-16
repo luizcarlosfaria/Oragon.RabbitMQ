@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="./../../../Global.Build.props" />
 
@@ -23,9 +23,9 @@
     <PackageReference Include="Aspire.Hosting.Redis" Version="8.2.2" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net9.0' OR '$(TargetFramework)' == '' ">
-    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.1.0" />
-    <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="9.1.0" />
-    <PackageReference Include="Aspire.Hosting.Redis" Version="9.1.0" />    
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.2.0" />
+    <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="9.2.0" />
+    <PackageReference Include="Aspire.Hosting.Redis" Version="9.2.0" />
   </ItemGroup>
 
   <!--<ItemGroup>

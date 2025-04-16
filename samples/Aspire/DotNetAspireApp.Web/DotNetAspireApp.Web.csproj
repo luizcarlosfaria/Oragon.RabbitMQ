@@ -12,11 +12,11 @@
     <PackageReference Include="Aspire.StackExchange.Redis.OutputCaching" Version="8.2.2" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net9.0' ">
-    <PackageReference Include="Aspire.StackExchange.Redis.OutputCaching" Version="9.1.0" />
+    <PackageReference Include="Aspire.StackExchange.Redis.OutputCaching" Version="9.2.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Radzen.Blazor" Version="5.3.1" />
+    <PackageReference Include="Radzen.Blazor" Version="6.6.1" />
   </ItemGroup>
 
 </Project>
