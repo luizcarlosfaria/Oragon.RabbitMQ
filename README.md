@@ -43,6 +43,9 @@ Oragon.RabbitMQ is a Minimal API implementation to consume RabbitMQ queues. It p
 
 All things about consuming queues is configurable in a friendly fluent and consistent way.
 
+> [!TIP]
+> Oragon.RabbitMQ is not an HTTP‑based solution and does not use Kestrel; instead, it relies on the native RabbitMQ.Client library with a fully custom implementation built from the scratch.
+
 ## Get Started
 
 ### Step 1 | Add Consumer Package
@@ -57,21 +60,11 @@ dotnet add package Oragon.RabbitMQ
 
 Pick one serializer: SystemTextJson or NewtonsoftJson
 
-#### System.Text.Json
-
-For **System.Text.Json** use **Oragon.RabbitMQ.Serializer.SystemTextJson** nuget package. It's ensuring latest performance and security issues resolved by Microsoft .NET Team.
-
-```bash
-dotnet add package Oragon.RabbitMQ.Serializer.SystemTextJson
-```
-
-#### Newtonsoft Json .Net
-
-If you have special needs that only JSON .NET solve, use the nuget package **Oragon.RabbitMQ.Serializer.NewtonsoftJson**.
-
-```bash
-dotnet add package Oragon.RabbitMQ.Serializer.NewtonsoftJson
-```
+|   x   | System.Text.Json | NewtonsoftJson | 
+|-------|------------------|----------------|
+| Info  | For **System.Text.Json** use **Oragon.RabbitMQ.Serializer.SystemTextJson** nuget package. It's ensuring latest performance and security issues resolved by Microsoft .NET Team. | If you have special needs that only JSON .NET solve, use the nuget package **Oragon.RabbitMQ.Serializer.NewtonsoftJson**. | 
+| Add Package | ```dotnet add package Oragon.RabbitMQ.Serializer.SystemTextJson ``` | ```dotnet add package Oragon.RabbitMQ.Serializer.NewtonsoftJson ``` | 
+| Configure Serializer  | `builder.Services.AddAmqpSerializer(options: JsonSerializerOptions.Default);` | `builder.Services.AddAmqpSerializer(options: new JsonSerializerSettings{...});` | 
 
 ### Step 3 | Configuring Dependency Injection
 
@@ -83,10 +76,9 @@ var builder = WebApplication.CreateBuilder(args); //or Host.CreateApplicationBui
 
 builder.AddRabbitMQConsumer();
 
-/*Pick only one*/
-builder.Services.AddAmqpSerializer(options: JsonSerializerOptions.Default); // For Oragon.RabbitMQ.Serializer.SystemTextJson
-//or
-builder.Services.AddAmqpSerializer(options: new JsonSerializerSettings{...}); // For Oragon.RabbitMQ.Serializer.NewtonsoftJson
+//Configure Serializer
+// Read Step 2
+
 
 // ...existing code...
 ```
@@ -135,20 +127,20 @@ To map your queue using this package, follow these steps:
 
 
     ```cs
-    public class BusinessService
+    public class ApplicationService
     {
-        public bool CanDoSomething(BusinessCommandOrEvent command)
+        public bool CanDoSomething(ApplicationCommandOrEvent command)
         {
             return /* Check if can process this message*/;
         }
 
 
-        public void DoSomething(BusinessCommandOrEvent command)
+        public void DoSomething(ApplicationCommandOrEvent command)
         {
             ...
         }
 
-        public Task DoSomethingAsync(BusinessCommandOrEvent command)
+        public Task DoSomethingAsync(ApplicationCommandOrEvent command)
         {
             return Task.CompletedTask;
         }
@@ -163,9 +155,9 @@ To map your queue using this package, follow these steps:
     In this example, the success of execution causes an implicit AckResult to process an ack for message broker after processing the entire message.
 
     ```cs
-    //Service Method Signature: void DoSomething(BusinessCommandOrEvent command)
+    //Service Method Signature: void DoSomething(ApplicationCommandOrEvent command)
 
-    app.MapQueue("queueName", ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) =>  svc.DoSomething(msg));
+    app.MapQueue("queueName", ([FromServices] ApplicationService svc, ApplicationCommandOrEvent msg) =>  svc.DoSomething(msg));
     ```
 
     #### Example 2
@@ -173,9 +165,9 @@ To map your queue using this package, follow these steps:
     The same mechanism supports async/await code.
 
     ```cs
-    //Service Method Signature: Task DoSomethingAsync(BusinessCommandOrEvent command)
+    //Service Method Signature: Task DoSomethingAsync(ApplicationCommandOrEvent command)
 
-    app.MapQueue("queueName", async ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => await svc.DoSomethingAsync(msg).ConfigureAwait(false));
+    app.MapQueue("queueName", async ([FromServices] ApplicationService svc, ApplicationCommandOrEvent msg) => await svc.DoSomethingAsync(msg).ConfigureAwait(false));
     ```
 
     #### Example 3
@@ -187,10 +179,10 @@ To map your queue using this package, follow these steps:
     ```cs
 
     //Service Method Signature:
-    //    bool CanDoSomething(BusinessCommandOrEvent command)
-    //    Task DoSomethingAsync(BusinessCommandOrEvent command)
+    //    bool CanDoSomething(ApplicationCommandOrEvent command)
+    //    Task DoSomethingAsync(ApplicationCommandOrEvent command)
 
-    app.MapQueue("queueName", async ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => {
+    app.MapQueue("queueName", async ([FromServices] ApplicationService svc, ApplicationCommandOrEvent msg) => {
 
         IAmqpResult returnValue;
 
@@ -213,9 +205,9 @@ To map your queue using this package, follow these steps:
 
     ```cs
     //Service Method Signature:
-    //    Task DoSomethingAsync(BusinessCommandOrEvent command)
+    //    Task DoSomethingAsync(ApplicationCommandOrEvent command)
 
-    app.MapQueue("queueName", async ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => {
+    app.MapQueue("queueName", async ([FromServices] ApplicationService svc, ApplicationCommandOrEvent msg) => {
 
         IAmqpResult returnValue;
 
@@ -248,7 +240,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddRabbitMQConsumer();
 
-builder.Services.AddSingleton<BusinessService>();
+builder.Services.AddSingleton<ApplicationService>();
 
 builder.Services.AddAmqpSerializer(options: JsonSerializerOptions.Default);
 
@@ -258,7 +250,7 @@ builder.Services.AddSingleton(sp => sp.GetRequiredService<IConnectionFactory>().
 
 var app = builder.Build();
 
-app.MapQueue("queueName", ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) =>
+app.MapQueue("queueName", ([FromServices] ApplicationService svc, ApplicationCommandOrEvent msg) =>
     svc.DoSomethingAsync(msg));
 
 app.Run();
@@ -266,7 +258,7 @@ app.Run();
 
 # Concepts
 
-## Decoupling Business Logic from Infrastructure
+## Decoupling Application Logic from Infrastructure
 
 This approach is designed to decouple RabbitMQ consumers from business logic, ensuring that business code remains unaware of the queue consumption context. The result is incredibly simple, decoupled, agnostic, more reusable, and highly testable code.
 
@@ -295,7 +287,7 @@ Inside the `Oragon.RabbitMQ.Consumer.Actions` namespace, you can find some resul
 
 Example:
 ```cs
-app.MapQueue("queueName", ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => {
+app.MapQueue("queueName", ([FromServices] ApplicationService svc, ApplicationCommandOrEvent msg) => {
 
     IAmqpResult returnValue;
 
@@ -316,7 +308,7 @@ app.MapQueue("queueName", ([FromServices] BusinessService svc, BusinessCommandOr
 
 ### Async or Not
 ```cs
-app.MapQueue("queueName", async ([FromServices] BusinessService svc, BusinessCommandOrEvent msg) => {
+app.MapQueue("queueName", async ([FromServices] ApplicationService svc, ApplicationCommandOrEvent msg) => {
 
     if (await svc.CanXpto(msg))
     {
