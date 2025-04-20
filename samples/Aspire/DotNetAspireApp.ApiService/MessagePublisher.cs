@@ -2,9 +2,11 @@
 // The ACADEMIA.DEV licenses this file to you under the MIT license.
 
 using System.Collections.Concurrent;
+using Newtonsoft.Json;
 using Oragon.RabbitMQ;
 using Oragon.RabbitMQ.Serialization;
-using RabbitMQ.Client;
+using RabbitMQ.AMQP.Client;
+using RabbitMQ.AMQP.Client.Impl;
 
 namespace DotNetAspireApp.ApiService;
 
@@ -38,7 +40,7 @@ public class MessagePublisher
     private static readonly object colorQueueLock = new();
     private static int s_sequence;
 
-    private readonly IConnectionFactory connectionFactory;
+    private readonly IEnvironment rabbitMQEnv;
     private readonly IAmqpSerializer serializer;
     private volatile bool isBlocked;
 
@@ -49,9 +51,9 @@ public class MessagePublisher
 
     public readonly (ConsoleColor ForegroundColor, ConsoleColor BackgroundColor) consoleColors;
 
-    public MessagePublisher(IConnectionFactory connectionFactory, IAmqpSerializer serializer)
+    public MessagePublisher(IEnvironment rabbitMQEnv, IAmqpSerializer serializer)
     {
-        this.connectionFactory = connectionFactory;
+        this.rabbitMQEnv = rabbitMQEnv;
         this.serializer = serializer;
 
         lock (colorQueueLock)
@@ -80,57 +82,45 @@ public class MessagePublisher
 
     private IConnection? connection;
 
+    private State[] validStates = new[]
+    {
+        State.Open,
+        State.Reconnecting,
+    };
+
     private async Task<IConnection> GetOrCreateConnectionAsync()
     {
-        if (this.connection != null && this.connection.IsOpen) return this.connection;
+        if (this.connection != null && this.validStates.Contains(this.connection.State)) return this.connection;
 
         this.Log($"GetOrCreateConnectionAsync() BEGIN");
 
         await this.ReleaseConnectionAsync().ConfigureAwait(configureAwait);
 
         this.Log($"Creating new Connection... ");
-        IConnection newConnection = await this.connectionFactory.CreateConnectionAsync($"ApiService - enqueue - {this.ConsoleId}", CancellationToken.None).ConfigureAwait(configureAwait);
+        IConnection newConnection = await this.rabbitMQEnv.CreateConnectionAsync().ConfigureAwait(configureAwait);
 
         this.connection = newConnection;
-        this.connection.ConnectionBlockedAsync += this.Connection_ConnectionBlockedAsync;
-        this.connection.ConnectionUnblockedAsync += this.Connection_ConnectionUnblockedAsync;
-        this.connection.ConnectionShutdownAsync += this.Connection_ConnectionShutdownAsync;
+
+        this.connection.ChangeState += this.Connection_OnStateChanged;
 
         this.Log($"GetOrCreateConnectionAsync() END");
 
         return newConnection;
     }
 
-    private async Task Connection_ConnectionShutdownAsync(object sender, RabbitMQ.Client.Events.ShutdownEventArgs @event)
+    private void Connection_OnStateChanged(object sender, State previousState, State currentState, Error? failureCause)
     {
-        this.Log($"Connection Shutdown Start...");
 
-        this.isBlocked = true;
-
-        try
+        if ((failureCause != null))
         {
-            await this.ReleaseChannelAsync().ConfigureAwait(false);
+            this.Log($"Connection state change from {previousState} to {currentState} with failure cause: {failureCause}");
         }
-        catch (Exception ex)
+        else
         {
-            this.Log($"Release Channel by Connection Shutdown Cause error... {ex}");
+            this.Log($"Connection state change from {previousState} to {currentState}");
         }
-        this.channel = null;
-
-        try
-        {
-            await this.ReleaseConnectionAsync().ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            this.Log($"Release Connection by Connection Shutdown Cause error... {ex}");
-        }
-        this.connection = null;
-
-        this.isBlocked = false;
-
-        this.Log($"Connection Shutdown End!!");
     }
+
 
     private async Task ReleaseConnectionAsync()
     {
@@ -141,9 +131,7 @@ public class MessagePublisher
             this.Log($"Connection found, calling this.connection.CloseAsync(), removing delegates and setting this.connection to null");
             await this.connection.CloseAsync().ConfigureAwait(configureAwait);
 
-            this.connection.ConnectionBlockedAsync -= this.Connection_ConnectionBlockedAsync;
-            this.connection.ConnectionUnblockedAsync -= this.Connection_ConnectionUnblockedAsync;
-            this.connection.ConnectionShutdownAsync -= this.Connection_ConnectionShutdownAsync;
+            this.connection.ChangeState -= this.Connection_OnStateChanged;
             this.connection = null;
         }
         else
@@ -152,62 +140,50 @@ public class MessagePublisher
         }
     }
 
-    private Task Connection_ConnectionUnblockedAsync(object sender, RabbitMQ.Client.Events.AsyncEventArgs @event)
-    {
-        this.Log($"Connection Unblocked");
-        this.isBlocked = false;
-        return Task.CompletedTask;
-    }
 
-    private Task Connection_ConnectionBlockedAsync(object sender, RabbitMQ.Client.Events.ConnectionBlockedEventArgs @event)
-    {
-        this.Log($"Connection Blocked");
-        this.isBlocked = true;
-        return Task.CompletedTask;
-    }
 
     #endregion
 
-    #region Channel Management
+    #region Publisher Management
 
-    private IChannel? channel;
+    private IPublisher? publisher;
 
-    private async Task<IChannel> GetOrCreateChannelAsync()
+    private async Task<IPublisher> GetOrCreatePublisherAsync()
     {
-        if (this.channel != null && this.channel.IsOpen) return this.channel;
+        if (this.publisher != null && this.validStates.Contains(this.publisher.State)) return this.publisher;
 
-        this.Log($"GetOrCreateChannelAsync() BEGIN");
+        this.Log($"GetOrCreatePublisherAsync() BEGIN");
 
-        await this.ReleaseChannelAsync().ConfigureAwait(configureAwait);
+        await this.ReleasePublisherAsync().ConfigureAwait(configureAwait);
 
         IConnection connection = await this.GetOrCreateConnectionAsync().ConfigureAwait(configureAwait);
 
-        this.Log($"Creating Channel... ");
+        this.Log($"Creating Publisher... ");
 
-        IChannel newChannel = await connection.CreateChannelAsync().ConfigureAwait(configureAwait);
+        IPublisher newPublisher = await connection.PublisherBuilder().BuildAsync().ConfigureAwait(false);
 
-        this.channel = newChannel;
+        this.publisher = newPublisher;
 
-        this.Log($"GetOrCreateChannelAsync() END");
+        this.Log($"GetOrCreatePublisherAsync() END");
 
         this.isBlocked = false;
 
-        return newChannel;
+        return newPublisher;
     }
-    private async Task ReleaseChannelAsync()
+    private async Task ReleasePublisherAsync()
     {
-        this.Log($"Releasing Channel... ");
+        this.Log($"Releasing Publisher... ");
 
-        if (this.channel != null)
+        if (this.publisher != null)
         {
-            this.Log($"Channel found, calling this.channel.CloseAsync() and setting this.channel to null");
+            this.Log($"Publisher found, calling this.publisher.CloseAsync() and setting this.publisher to null");
 
-            await this.channel.CloseAsync().ConfigureAwait(configureAwait);
-            this.channel = null;
+            await this.publisher.CloseAsync().ConfigureAwait(configureAwait);
+            this.publisher = null;
         }
         else
         {
-            this.Log($"Channel is not set");
+            this.Log($"Publisher is not set");
         }
     }
 
@@ -226,52 +202,74 @@ public class MessagePublisher
             }
         }
 
-        IChannel channel = await this.GetOrCreateChannelAsync().ConfigureAwait(configureAwait);
 
-        BasicProperties properties = channel.CreateBasicProperties().EnsureHeaders().SetDurable(true);
 
-        var body = this.serializer.Serialize(basicProperties: properties, message: message);
+        string json = JsonConvert.SerializeObject(message);
+        byte[] bytes = System.Text.Encoding.UTF8.GetBytes(json);
+        IMessage amqpMessage = new AmqpMessage(bytes).ToAddress().Exchange(exchange).Key(routingKey).Build();
 
-        await channel.BasicPublishAsync(exchange, routingKey, false, properties, body, cancellationToken).ConfigureAwait(configureAwait);
+        IPublisher publisher = await this.GetOrCreatePublisherAsync().ConfigureAwait(configureAwait);
+
+        PublishResult result = await publisher.PublishAsync(message: amqpMessage, cancellationToken: cancellationToken).ConfigureAwait(configureAwait);
+
+        switch (result.Outcome.State)
+        {
+            case OutcomeState.Accepted:
+                this.Log($"Message published successfully");
+                break;
+            case OutcomeState.Rejected:
+                this.Log($"Message rejected");
+                break;
+            case OutcomeState.Released:
+                this.Log($"Message released");
+                break;
+            default:
+                this.Log($"Message outcome is {result.Outcome.State}");
+                break;
+        }
+
+        this.Log($"MessagePublisher {result.Outcome.State}");
+
+
     }
 
     public async Task DisposeAsync()
     {
         this.Log($"MessagePublisher disposing...");
 
-        IChannel? localChannel = this.channel;
-        this.channel = null;
+        IPublisher? localPublisher = this.publisher;
+        this.publisher = null;
 
         IConnection? localConnection = this.connection;
         this.connection = null;
 
-        if (localChannel != null)
+        if (localPublisher != null)
         {
-            this.Log($"MessagePublisher disposing ... localChannel.CloseAsync() BEGIN");
-            await localChannel.CloseAsync(CancellationToken.None).ConfigureAwait(false);
-            this.Log($"MessagePublisher disposing ... localChannel.CloseAsync() END");
+            this.Log($"MessagePublisher disposing ... localPublisher.CloseAsync() BEGIN");
+            await localPublisher.CloseAsync().ConfigureAwait(false);
+            this.Log($"MessagePublisher disposing ... localPublisher.CloseAsync() END");
         }
 
         if (localConnection != null)
         {
             this.Log($"MessagePublisher disposing ... localConnection.CloseAsync() BEGIN");
-            await localConnection.CloseAsync(CancellationToken.None).ConfigureAwait(false);
+            await localConnection.CloseAsync().ConfigureAwait(false);
             this.Log($"MessagePublisher disposing ... localConnection.CloseAsync() END");
         }
 
         this.Log($"MessagePublisher disposing ... Everything is closed!");
 
-        if (localChannel != null)
+        if (localPublisher != null)
         {
-            this.Log($"MessagePublisher disposing ... localChannel.DisposeAsync() BEGIN");
-            await localChannel.DisposeAsync().ConfigureAwait(false);
-            this.Log($"MessagePublisher disposing ... localChannel.DisposeAsync() END");
+            this.Log($"MessagePublisher disposing ... localPublisher.DisposeAsync() BEGIN");
+            localPublisher.Dispose();
+            this.Log($"MessagePublisher disposing ... localPublisher.DisposeAsync() END");
         }
 
         if (localConnection != null)
         {
             this.Log($"MessagePublisher disposing ... localConnection.DisposeAsync() BEGIN");
-            await localConnection.DisposeAsync().ConfigureAwait(false);
+            localConnection.Dispose();
             this.Log($"MessagePublisher disposing ... localConnection.DisposeAsync() END");
         }
 

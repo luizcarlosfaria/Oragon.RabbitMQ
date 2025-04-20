@@ -4,6 +4,8 @@ using DotNetAspireApp.Common.Messages.Commands;
 using Microsoft.AspNetCore.Mvc;
 using Oragon.RabbitMQ;
 using Oragon.RabbitMQ.AspireClient;
+using RabbitMQ.AMQP.Client;
+using RabbitMQ.AMQP.Client.Impl;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +21,19 @@ builder.AddRabbitMQClient("rabbitmq", null, connectionFactory =>
     connectionFactory.TopologyRecoveryEnabled = false;
     connectionFactory.RequestedHeartbeat = TimeSpan.FromSeconds(15);
 });
+
+builder.Services.AddSingleton<RabbitMQ.AMQP.Client.IEnvironment>(serviceProvider =>
+{
+    var connectionFactory = serviceProvider.GetRequiredService<RabbitMQ.Client.IConnectionFactory>();
+    return AmqpEnvironment.Create(ConnectionSettingsBuilder.Create()
+        .Host(connectionFactory.Uri.Host)
+        .VirtualHost(connectionFactory.VirtualHost)
+        .User(connectionFactory.UserName)
+        .Password(connectionFactory.Password)
+        .Port(connectionFactory.Uri.Port)
+        .Build());
+});
+
 
 // Add service defaults & Aspire components.
 builder.AddServiceDefaults();
@@ -77,7 +92,7 @@ app.MapPost("/enqueue", ([FromBody]DoSomethingRequest requestObject, Cancellatio
                     var progress = (i * progressBarWidth / requestObject.quantity);
                     Log($"[{new string('#', progress)}{new string(' ', progressBarWidth - progress)}] {i * 100 / requestObject.quantity}%");
                 }
-
+                break;
             }
             Log($"Done ({requestObject.quantity:n0} messages!)");
             await messagePublisher.DisposeAsync().ConfigureAwait(false);
