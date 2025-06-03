@@ -1,10 +1,8 @@
-Amqp
+amqp
 unix
 npipe
-Amqp
-Newtonsoft
 nack
-Oragon
-Oragon
-Newtonsoft
+ack
+oragon
+newtonsoft
 rabbitmq

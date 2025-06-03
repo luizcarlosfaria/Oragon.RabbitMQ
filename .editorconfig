@@ -20,6 +20,13 @@ trim_trailing_whitespace = true
 insert_final_newline = true
 spelling_exclusion_path = spelling.dic
 
+[*.cs]                                                       //specify which files the spelling options apply to
+spelling_languages = en-us,pt-br                             //specifies the en-us and pt-br dictionaries for use in spell checking
+spelling_checkable_types = strings,identifiers,comments      //specifies that identifiers and comments are the only checked elements
+spelling_error_severity = warning                            //sets severity assigned to spelling errors to error in the error list
+spelling_exclusion_path = spelling.dic                       //defines a custom exclusion dictionary location and file
+spelling_use_default_exclusion_dictionary = false            //ignores the language-specific default exclusion dictionary
+
 [*.cs]
 # gago - rules - begin
 dotnet_style_qualification_for_field = true:warning
@@ -135,6 +142,8 @@ csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
 csharp_style_prefer_extended_property_pattern = true:suggestion
 csharp_space_around_binary_operators = before_and_after
 csharp_prefer_system_threading_lock = true:suggestion
+csharp_style_prefer_implicitly_typed_lambda_expression = true:suggestion
+csharp_style_prefer_unbound_generic_type_in_nameof = true:suggestion
 
 [*.{xml,config,*proj,nuspec,props,resx,targets,yml,tasks}]
 indent_size = 2
