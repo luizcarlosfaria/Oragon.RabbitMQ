@@ -1,7 +1,6 @@
 // Licensed to LuizCarlosFaria, gaGO.io, Mensageria .NET, Cloud Native .NET and ACADEMIA.DEV under one or more agreements.
 // The ACADEMIA.DEV licenses this file to you under the MIT license.
 
-using Dawn;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Oragon.RabbitMQ.Consumer.Actions;
@@ -82,7 +81,6 @@ public class ConsumerDescriptor : IConsumerDescriptor
     /// will be offloaded to the worker thread pool so it is important to choose the value for the concurrency wisely to avoid thread pool overloading.
     /// <see cref="IAsyncBasicConsumer"/> can handle concurrency much more efficiently due to the non-blocking nature of the consumer.
     ///
-    /// Defaults to <c>null</c>, which will use the value from <see cref="IConnectionFactory.ConsumerDispatchConcurrency"/>
     ///
     /// For concurrency greater than one this removes the guarantee that consumers handle messages in the order they receive them.
     /// In addition to that consumers need to be thread/concurrency safe.
@@ -91,8 +89,8 @@ public class ConsumerDescriptor : IConsumerDescriptor
     /// <returns>The current instance of <see cref="IConsumerDescriptor"/>.</returns>
     public IConsumerDescriptor WithDispatchConcurrency(ushort consumerDispatchConcurrency)
     {
-        _ = Guard.Argument(consumerDispatchConcurrency).GreaterThan<ushort>(0);
-        _ = Guard.Argument(this.isLocked).False();
+        if (consumerDispatchConcurrency < 1) throw new ArgumentOutOfRangeException(nameof(consumerDispatchConcurrency));
+        if (this.isLocked) throw new InvalidOperationException("ConsumerDescriptor is locked");
 
         this.ConsumerDispatchConcurrency = consumerDispatchConcurrency;
 
@@ -115,8 +113,8 @@ public class ConsumerDescriptor : IConsumerDescriptor
     /// <returns>The current instance of <see cref="IConsumerDescriptor"/>.</returns>
     public IConsumerDescriptor WithPrefetch(ushort prefetchCount)
     {
-        _ = Guard.Argument(prefetchCount).GreaterThan<ushort>(0);
-        _ = Guard.Argument(this.isLocked).False();
+        if (prefetchCount < 1) throw new ArgumentOutOfRangeException(nameof(prefetchCount));
+        if (this.isLocked) throw new InvalidOperationException("ConsumerDescriptor is locked");
 
         this.PrefetchCount = prefetchCount;
 
@@ -139,8 +137,9 @@ public class ConsumerDescriptor : IConsumerDescriptor
     /// <returns>The current instance of <see cref="IConsumerDescriptor"/>.</returns>
     public IConsumerDescriptor WithConsumerTag(string consumerTag)
     {
-        _ = Guard.Argument(consumerTag).NotNull().NotEmpty().NotWhiteSpace();
-        _ = Guard.Argument(this.isLocked).False();
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(consumerTag);
+        if (this.isLocked) throw new InvalidOperationException("ConsumerDescriptor is locked");
+
 
         this.ConsumerTag = consumerTag;
 
@@ -161,7 +160,7 @@ public class ConsumerDescriptor : IConsumerDescriptor
     /// <returns>The current instance of <see cref="IConsumerDescriptor"/>.</returns>
     public IConsumerDescriptor WithExclusive(bool exclusive = true)
     {
-        _ = Guard.Argument(this.isLocked).False();
+        if (this.isLocked) throw new InvalidOperationException("ConsumerDescriptor is locked");
 
         this.Exclusive = exclusive;
 
@@ -183,8 +182,8 @@ public class ConsumerDescriptor : IConsumerDescriptor
     /// <returns>Returns the updated consumer descriptor instance.</returns>
     public IConsumerDescriptor WithConnection(Func<IServiceProvider, CancellationToken, Task<IConnection>> connectionFactory)
     {
-        _ = Guard.Argument(connectionFactory).NotNull();
-        _ = Guard.Argument(this.isLocked).False();
+        ArgumentNullException.ThrowIfNull(connectionFactory);
+        if (this.isLocked) throw new InvalidOperationException("ConsumerDescriptor is locked");
 
         this.ConnectionFactory = connectionFactory;
 
@@ -206,8 +205,8 @@ public class ConsumerDescriptor : IConsumerDescriptor
     /// <returns>The current instance of <see cref="ConsumerDescriptor"/>.</returns>
     public IConsumerDescriptor WithSerializer(Func<IServiceProvider, IAmqpSerializer> serializerFactory)
     {
-        _ = Guard.Argument(serializerFactory).NotNull();
-        _ = Guard.Argument(this.isLocked).False();
+        ArgumentNullException.ThrowIfNull(serializerFactory);
+        if (this.isLocked) throw new InvalidOperationException("ConsumerDescriptor is locked");
 
         this.SerializerFactory = serializerFactory;
 
@@ -229,8 +228,8 @@ public class ConsumerDescriptor : IConsumerDescriptor
     /// <returns>The current instance of <see cref="ConsumerDescriptor"/>.</returns>
     public IConsumerDescriptor WithChannel(Func<IConnection, CancellationToken, Task<IChannel>> channelFactory)
     {
-        _ = Guard.Argument(channelFactory).NotNull();
-        _ = Guard.Argument(this.isLocked).False();
+        ArgumentNullException.ThrowIfNull(channelFactory);
+        if (this.isLocked) throw new InvalidOperationException("ConsumerDescriptor is locked");
 
         this.ChannelFactory = channelFactory;
 
@@ -253,8 +252,9 @@ public class ConsumerDescriptor : IConsumerDescriptor
     /// <returns></returns>
     public IConsumerDescriptor WhenSerializationFail(Func<IAmqpContext, Exception, IAmqpResult> amqpResult)
     {
-        _ = Guard.Argument(amqpResult).NotNull();
-        _ = Guard.Argument(this.isLocked).False();
+        ArgumentNullException.ThrowIfNull(amqpResult);
+        if (this.isLocked) throw new InvalidOperationException("ConsumerDescriptor is locked");
+
 
         this.ResultForSerializationFailure = amqpResult;
 
@@ -277,8 +277,8 @@ public class ConsumerDescriptor : IConsumerDescriptor
     /// <returns></returns>
     public IConsumerDescriptor WhenProcessFail(Func<IAmqpContext, Exception, IAmqpResult> amqpResult)
     {
-        _ = Guard.Argument(amqpResult).NotNull();
-        _ = Guard.Argument(this.isLocked).False();
+        ArgumentNullException.ThrowIfNull(amqpResult);
+        if (this.isLocked) throw new InvalidOperationException("ConsumerDescriptor is locked");
 
         this.ResultForProcessFailure = amqpResult;
 
@@ -293,15 +293,15 @@ public class ConsumerDescriptor : IConsumerDescriptor
     /// </summary>
     public void Validate()
     {
-        _ = Guard.Argument(this.ApplicationServiceProvider).NotNull();
-        _ = Guard.Argument(this.QueueName).NotNull().NotEmpty().NotWhiteSpace();
-        _ = Guard.Argument(this.ConsumerDispatchConcurrency).GreaterThan<ushort>(0);
-        _ = Guard.Argument(this.Handler).NotNull();
-        _ = Guard.Argument(this.ConnectionFactory).NotNull();
-        _ = Guard.Argument(this.SerializerFactory).NotNull();
-        _ = Guard.Argument(this.ChannelFactory).NotNull();
-        _ = Guard.Argument(this.ResultForProcessFailure).NotNull();
-        _ = Guard.Argument(this.ResultForSerializationFailure).NotNull();
+        ArgumentNullException.ThrowIfNull(this.ApplicationServiceProvider);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(this.QueueName);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(this.ConsumerDispatchConcurrency);
+        ArgumentNullException.ThrowIfNull(this.Handler);
+        ArgumentNullException.ThrowIfNull(this.ConnectionFactory);
+        ArgumentNullException.ThrowIfNull(this.SerializerFactory);
+        ArgumentNullException.ThrowIfNull(this.ChannelFactory);
+        ArgumentNullException.ThrowIfNull(this.ResultForProcessFailure);
+        ArgumentNullException.ThrowIfNull(this.ResultForSerializationFailure);
     }
 
 

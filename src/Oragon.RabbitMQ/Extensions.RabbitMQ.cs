@@ -2,7 +2,6 @@
 // The ACADEMIA.DEV licenses this file to you under the MIT license.
 
 using System.Text;
-using Dawn;
 using RabbitMQ.Client;
 
 namespace Oragon.RabbitMQ;
@@ -45,7 +44,10 @@ public static class RabbitMQExtensions
     /// <returns></returns>
     public static BasicProperties SetCorrelationId(this BasicProperties basicProperties, IReadOnlyBasicProperties originalBasicProperties)
     {
-        _ = Guard.Argument(originalBasicProperties).NotNull().NotSame(basicProperties);
+        ArgumentNullException.ThrowIfNull(basicProperties);
+        ArgumentNullException.ThrowIfNull(originalBasicProperties);
+        if (basicProperties == originalBasicProperties) throw new ArgumentException("Same instance of BasicProperties");
+        
         return basicProperties.SetCorrelationId(originalBasicProperties.MessageId);
     }
 
@@ -58,8 +60,9 @@ public static class RabbitMQExtensions
     /// <exception cref="ArgumentException"></exception>
     public static BasicProperties SetCorrelationId(this BasicProperties basicProperties, string correlationId)
     {
-        _ = Guard.Argument(basicProperties).NotNull($"'{nameof(basicProperties)}' cannot be null or empty.");
-        _ = Guard.Argument(correlationId).NotNull($"'{nameof(correlationId)}' cannot be null or empty.").NotEmpty($"'{nameof(correlationId)}' cannot be null or empty.").NotWhiteSpace($"'{nameof(correlationId)}' cannot be null or empty.");
+        ArgumentNullException.ThrowIfNull(basicProperties);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(correlationId, $"CorrelationId '{nameof(correlationId)}' cannot be null, empty, white-spaces");
+
         basicProperties.CorrelationId = correlationId;
         return basicProperties;
     }
@@ -72,7 +75,8 @@ public static class RabbitMQExtensions
     /// <returns></returns>
     public static BasicProperties SetDurable(this BasicProperties basicProperties, bool durable = true)
     {
-        _ = Guard.Argument(basicProperties).NotNull($"'{nameof(basicProperties)}' cannot be null or empty.");
+        ArgumentNullException.ThrowIfNull(basicProperties);
+
         basicProperties.Persistent = durable;
         return basicProperties;
     }
@@ -94,7 +98,7 @@ public static class RabbitMQExtensions
     /// <returns></returns>
     public static BasicProperties SetReplyTo(this BasicProperties basicProperties, string replyTo = null)
     {
-        _ = Guard.Argument(basicProperties).NotNull($"'{nameof(basicProperties)}' cannot be null or empty.");
+        ArgumentNullException.ThrowIfNull(basicProperties);
 
         if (!string.IsNullOrEmpty(replyTo))
         {
@@ -111,7 +115,7 @@ public static class RabbitMQExtensions
     /// <returns></returns>
     public static BasicProperties SetAppId(this BasicProperties basicProperties, string appId = null)
     {
-        _ = Guard.Argument(basicProperties).NotNull($"'{nameof(basicProperties)}' cannot be null or empty.");
+        ArgumentNullException.ThrowIfNull(basicProperties);
 
         if (!string.IsNullOrEmpty(appId))
         {
@@ -171,8 +175,8 @@ public static class RabbitMQExtensions
     /// <returns></returns>
     public static BasicProperties SetException(this BasicProperties basicProperties, Exception exception)
     {
-        _ = Guard.Argument(basicProperties).NotNull($"'{nameof(basicProperties)}' cannot be null or empty.");
-        _ = Guard.Argument(exception).NotNull();
+        ArgumentNullException.ThrowIfNull(basicProperties);
+        ArgumentNullException.ThrowIfNull(exception);
 
         basicProperties.Headers ??= new Dictionary<string, object>();
 
@@ -225,7 +229,8 @@ public static class RabbitMQExtensions
     /// <returns></returns>
     public static ConnectionFactory Parallelism(this ConnectionFactory connectionFactory, int consumerDispatchConcurrency)
     {
-        _ = Guard.Argument(connectionFactory).NotNull();
+        ArgumentNullException.ThrowIfNull(connectionFactory);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(consumerDispatchConcurrency);
 
         connectionFactory.ConsumerDispatchConcurrency = (ushort)consumerDispatchConcurrency;
 

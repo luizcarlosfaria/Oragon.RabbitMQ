@@ -2,7 +2,6 @@
 // The ACADEMIA.DEV licenses this file to you under the MIT license.
 
 using System.Reflection;
-using Dawn;
 using Oragon.RabbitMQ.Consumer.ArgumentBinders;
 
 namespace Oragon.RabbitMQ.Consumer.Dispatch.Attributes;
@@ -20,7 +19,7 @@ public sealed class FromBodyAttribute : Attribute, IAmqpArgumentBinderParameter
     /// <returns></returns>
     public IAmqpArgumentBinder Build(ParameterInfo parameter)
     {
-        _ = Guard.Argument(parameter).NotNull();
+        ArgumentNullException.ThrowIfNull(parameter);
 
         return new MessageObjectArgumentBinder(parameter.ParameterType);
     }

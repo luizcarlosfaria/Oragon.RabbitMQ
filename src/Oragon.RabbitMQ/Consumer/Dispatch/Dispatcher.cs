@@ -2,7 +2,6 @@
 // The ACADEMIA.DEV licenses this file to you under the MIT license.
 
 using System.Collections.ObjectModel;
-using Dawn;
 using Oragon.RabbitMQ.Consumer.Actions;
 using Oragon.RabbitMQ.Consumer.ArgumentBinders;
 using Oragon.RabbitMQ.Consumer.ResultHandlers;
@@ -34,9 +33,12 @@ public class Dispatcher
     /// </summary>
     public Dispatcher(ConsumerDescriptor consumerDescriptor)
     {
-        this.consumerDescriptor = Guard.Argument(consumerDescriptor).NotNull().Value;
+        ArgumentNullException.ThrowIfNull(consumerDescriptor, nameof(consumerDescriptor));
+        ArgumentNullException.ThrowIfNull(consumerDescriptor.Handler, nameof(consumerDescriptor.Handler));
 
-        this.handler = Guard.Argument(consumerDescriptor.Handler).NotNull().Value;
+        this.consumerDescriptor = consumerDescriptor;
+
+        this.handler = consumerDescriptor.Handler;
 
         this.argumentBinders = consumerDescriptor.BuildArgumentBinders();
 

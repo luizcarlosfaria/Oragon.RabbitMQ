@@ -2,7 +2,6 @@
 // The ACADEMIA.DEV licenses this file to you under the MIT license.
 
 using System.Reflection;
-using Dawn;
 using Oragon.RabbitMQ.Consumer.ArgumentBinders;
 
 namespace Oragon.RabbitMQ.Consumer.Dispatch.Attributes;
@@ -19,7 +18,8 @@ public sealed class FromAmqpHeaderAttribute : Attribute, IAmqpArgumentBinderPara
     /// <param name="key">key for Keyed Service</param>
     public FromAmqpHeaderAttribute(string key)
     {
-        this.Key = Guard.Argument(key).NotNull().NotEmpty().NotWhiteSpace().Value;
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(key);
+        this.Key = key;
     }
 
     /// <summary>
@@ -36,7 +36,7 @@ public sealed class FromAmqpHeaderAttribute : Attribute, IAmqpArgumentBinderPara
     /// <exception cref="InvalidOperationException"></exception>
     public IAmqpArgumentBinder Build(ParameterInfo parameter)
     {
-        _ = Guard.Argument(parameter).NotNull();
+        ArgumentNullException.ThrowIfNull(parameter);
 
         return parameter.ParameterType != Constants.String
             ? throw new InvalidOperationException($"The parameter {parameter.Name} must be of type string")

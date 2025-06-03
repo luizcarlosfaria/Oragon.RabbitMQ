@@ -1,7 +1,6 @@
 // Licensed to LuizCarlosFaria, gaGO.io, Mensageria .NET, Cloud Native .NET and ACADEMIA.DEV under one or more agreements.
 // The ACADEMIA.DEV licenses this file to you under the MIT license.
 
-using Dawn;
 using Oragon.RabbitMQ.Consumer.Actions;
 
 namespace Oragon.RabbitMQ.Consumer.ResultHandlers;
@@ -33,8 +32,6 @@ public class TaskResultHandler : IResultHandler
     {
         ArgumentNullException.ThrowIfNull(context, nameof(context));
         ArgumentNullException.ThrowIfNull(dispatchResult, nameof(dispatchResult));
-
-        _ = Guard.Argument(dispatchResult).NotNull();
 
         if (dispatchResult is IAmqpResult simpleAmqpResult)
         {

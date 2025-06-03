@@ -2,7 +2,6 @@
 // The ACADEMIA.DEV licenses this file to you under the MIT license.
 
 using System.Reflection;
-using Dawn;
 using Oragon.RabbitMQ.Consumer.Actions;
 
 namespace Oragon.RabbitMQ.Consumer.ResultHandlers;
@@ -23,7 +22,9 @@ public class TaskOfAmqpResultResultHandler : IResultHandler
     /// <param name="type"></param>
     public TaskOfAmqpResultResultHandler(ConsumerDescriptor consumerDescriptor, Type type)
     {
-        _ = Guard.Argument(type).NotNull();
+        ArgumentNullException.ThrowIfNull(consumerDescriptor);
+        ArgumentNullException.ThrowIfNull(type);
+
         this.consumerDescriptor = consumerDescriptor;
         this.Type = type;
         this.resultProperty = type.GetProperty("Result");

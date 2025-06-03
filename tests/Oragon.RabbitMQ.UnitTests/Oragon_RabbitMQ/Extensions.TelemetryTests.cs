@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using Dawn;
 using RabbitMQ.Client;
 
 namespace Oragon.RabbitMQ.UnitTests.Oragon_RabbitMQ;
@@ -161,7 +160,7 @@ public class Extensions_Telemetry_Tests
         var result = basicProperties.SetTelemetry(activity);
 
         // Assert
-        _ = Guard.Argument(result.Headers).NotNull();
+        Assert.NotNull(result.Headers);
         Assert.Equal(activity.TraceId.ToString(), result.Headers["TraceId"]);
         Assert.Equal(activity.SpanId.ToString(), result.Headers["SpanId"]);
     }

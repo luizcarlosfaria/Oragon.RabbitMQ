@@ -3,7 +3,6 @@
 
 using System.Collections.ObjectModel;
 using System.Reflection;
-using Dawn;
 using Oragon.RabbitMQ.Consumer.ArgumentBinders;
 using Oragon.RabbitMQ.Consumer.Dispatch.Attributes;
 
@@ -24,8 +23,9 @@ internal static class ArgumentBinderExtensions
     /// <exception cref="InvalidOperationException">Thrown when there are either multiple message object parameters or none found.</exception>
     internal static ReadOnlyCollection<IAmqpArgumentBinder> BuildArgumentBinders(this ConsumerDescriptor consumerDescriptor)
     {
-        _ = Guard.Argument(consumerDescriptor).NotNull();
-        _ = Guard.Argument(consumerDescriptor.Handler).NotNull();
+        ArgumentNullException.ThrowIfNull(consumerDescriptor);
+        ArgumentNullException.ThrowIfNull(consumerDescriptor.Handler);
+
 
         var argumentBinders = consumerDescriptor.Handler.Method.GetParameters().Select(BuildArgumentBinder).ToList();
 
@@ -40,7 +40,7 @@ internal static class ArgumentBinderExtensions
 
     private static IAmqpArgumentBinder BuildArgumentBinder(ParameterInfo parameter)
     {
-        _ = Guard.Argument(parameter).NotNull();
+        ArgumentNullException.ThrowIfNull(parameter);
 
         if (parameter.IsOut) throw new InvalidOperationException($"The parameter {parameter.Name} is out. Out parameter is not supported.");
 
@@ -55,7 +55,7 @@ internal static class ArgumentBinderExtensions
 
     private static IAmqpArgumentBinderParameter GetAmqpArgumentBinderParameter(ParameterInfo parameter)
     {
-        _ = Guard.Argument(parameter).NotNull();
+        ArgumentNullException.ThrowIfNull(parameter);
 
         IAmqpArgumentBinderParameter[] attributes = parameter.GetCustomAttributes(true)
                                                             .OfType<IAmqpArgumentBinderParameter>()
@@ -68,7 +68,7 @@ internal static class ArgumentBinderExtensions
 
     private static void ValidateIfContainsAspNetMvcAttributes(ParameterInfo parameter)
     {
-        _ = Guard.Argument(parameter).NotNull();
+        ArgumentNullException.ThrowIfNull(parameter);
 
         List<Type> allAttributes = [.. parameter.GetCustomAttributes(true).Select(it => it.GetType())];
 
@@ -79,7 +79,7 @@ internal static class ArgumentBinderExtensions
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0046:Convert to conditional expression", Justification = "<Pending>")]
     private static IAmqpArgumentBinder DiscoveryArgumentBinder(ParameterInfo parameter)
     {
-        _ = Guard.Argument(parameter).NotNull();
+        ArgumentNullException.ThrowIfNull(parameter);
 
         return parameter.ParameterType switch
         {

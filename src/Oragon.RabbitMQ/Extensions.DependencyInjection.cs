@@ -1,7 +1,6 @@
 // Licensed to LuizCarlosFaria, gaGO.io, Mensageria .NET, Cloud Native .NET and ACADEMIA.DEV under one or more agreements.
 // The ACADEMIA.DEV licenses this file to you under the MIT license.
 
-using Dawn;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Oragon.RabbitMQ.Consumer;
@@ -23,7 +22,7 @@ public static partial class DependencyInjectionExtensions
     /// <param name="builder"></param>
     public static void AddRabbitMQConsumer(this IHostApplicationBuilder builder)
     {
-        _ = Guard.Argument(builder).NotNull();
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.AddRabbitMQConsumer();
     }
@@ -34,7 +33,7 @@ public static partial class DependencyInjectionExtensions
     /// <param name="services"></param>
     public static void AddRabbitMQConsumer(this IServiceCollection services)
     {
-        _ = Guard.Argument(services).NotNull();
+        ArgumentNullException.ThrowIfNull(services);
 
         _ = services.AddSingleton<ConsumerServer>();
 
@@ -49,7 +48,7 @@ public static partial class DependencyInjectionExtensions
     /// <param name="handler"></param>    
     public static ConsumerDescriptor MapQueue(this IHost host, string queueName, Delegate handler)
     {
-        _ = Guard.Argument(host).NotNull();
+        ArgumentNullException.ThrowIfNull(host);
 
         return host.Services.MapQueue(queueName, handler);
     }
@@ -63,9 +62,9 @@ public static partial class DependencyInjectionExtensions
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "This is a factory, Dispose will be called by Consumer")]
     public static ConsumerDescriptor MapQueue(this IServiceProvider serviceProvider, string queueName, Delegate handler)
     {
-        _ = Guard.Argument(serviceProvider).NotNull();
-        _ = Guard.Argument(handler).NotNull();
-        _ = Guard.Argument(queueName).NotNull().NotEmpty().NotWhiteSpace();
+        ArgumentNullException.ThrowIfNull(serviceProvider);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(queueName);
+        ArgumentNullException.ThrowIfNull(handler);
 
         var queueConsumerBuilder = new ConsumerDescriptor(serviceProvider, queueName, handler);
 

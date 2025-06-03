@@ -2,7 +2,6 @@
 // The ACADEMIA.DEV licenses this file to you under the MIT license.
 
 using System.Diagnostics.CodeAnalysis;
-using Dawn;
 using OpenTelemetry.Trace;
 
 namespace Oragon.RabbitMQ;
@@ -41,7 +40,7 @@ public static class MessagingTelemetryNames
     /// <returns></returns>
     public static TracerProviderBuilder AddRabbitMQInstrumentation(this TracerProviderBuilder tracerProviderBuilder)
     {
-        _ = Guard.Argument(tracerProviderBuilder).NotNull();
+        ArgumentNullException.ThrowIfNull(tracerProviderBuilder);
 
         foreach (var name in names)
         {
