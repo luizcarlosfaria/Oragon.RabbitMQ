@@ -7,13 +7,26 @@
     <ProjectReference Include="..\..\..\src\Oragon.RabbitMQ.Abstractions\Oragon.RabbitMQ.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\src\Oragon.RabbitMQ.AspireClient\Oragon.RabbitMQ.AspireClient.csproj" />
     <ProjectReference Include="..\..\..\src\Oragon.RabbitMQ.Serializer.NewtonsoftJson\Oragon.RabbitMQ.Serializer.NewtonsoftJson.csproj" />
-    <ProjectReference Include="..\..\..\src\Oragon.RabbitMQ.Serializer.SystemTextJson\Oragon.RabbitMQ.Serializer.SystemTextJson.csproj" />    
+    <ProjectReference Include="..\..\..\src\Oragon.RabbitMQ.Serializer.SystemTextJson\Oragon.RabbitMQ.Serializer.SystemTextJson.csproj" />
     <ProjectReference Include="..\DotNetAspireApp.Common\DotNetAspireApp.Common.csproj" />
     <ProjectReference Include="..\DotNetAspireApp.ServiceDefaults\DotNetAspireApp.ServiceDefaults.csproj" />
   </ItemGroup>
 
+
   <ItemGroup>
-    <PackageReference Include="RabbitMQ.AMQP.Client" Version="0.2.0-beta.0" />
+    <Reference Include="RabbitMQ.AMQP.Client">
+      <HintPath>..\..\..\..\rabbitmq-amqp-dotnet-client\RabbitMQ.AMQP.Client\bin\Debug\netstandard2.0\RabbitMQ.AMQP.Client.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AMQPNetLite.Core" Version="2.4.11" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="9.0.5" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$(TargetFramework)=='netstandard2.0'">
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.0" />
+    <PackageReference Include="Microsoft.Bcl.HashCode" Version="6.0.0" />
   </ItemGroup>
 
 </Project>

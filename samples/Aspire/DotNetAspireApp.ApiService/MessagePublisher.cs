@@ -212,23 +212,23 @@ public class MessagePublisher
 
         PublishResult result = await publisher.PublishAsync(message: amqpMessage, cancellationToken: cancellationToken).ConfigureAwait(configureAwait);
 
-        switch (result.Outcome.State)
-        {
-            case OutcomeState.Accepted:
-                this.Log($"Message published successfully");
-                break;
-            case OutcomeState.Rejected:
-                this.Log($"Message rejected");
-                break;
-            case OutcomeState.Released:
-                this.Log($"Message released");
-                break;
-            default:
-                this.Log($"Message outcome is {result.Outcome.State}");
-                break;
-        }
+        //switch (result.Outcome.State)
+        //{
+        //    case OutcomeState.Accepted:
+        //        this.Log($"Message published successfully");
+        //        break;
+        //    case OutcomeState.Rejected:
+        //        this.Log($"Message rejected");
+        //        break;
+        //    case OutcomeState.Released:
+        //        this.Log($"Message released");
+        //        break;
+        //    default:
+        //        this.Log($"Message outcome is {result.Outcome.State}");
+        //        break;
+        //}
 
-        this.Log($"MessagePublisher {result.Outcome.State}");
+        //this.Log($"MessagePublisher {result.Outcome.State}");
 
 
     }
