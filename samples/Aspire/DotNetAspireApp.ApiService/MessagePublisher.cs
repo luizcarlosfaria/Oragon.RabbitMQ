@@ -248,14 +248,14 @@ public class MessagePublisher
         if (localChannel != null)
         {
             this.Log($"MessagePublisher disposing ... localChannel.CloseAsync() BEGIN");
-            await localChannel.CloseAsync(CancellationToken.None).ConfigureAwait(false);
+            await localChannel.CloseAsync().ConfigureAwait(true);
             this.Log($"MessagePublisher disposing ... localChannel.CloseAsync() END");
         }
 
         if (localConnection != null)
         {
             this.Log($"MessagePublisher disposing ... localConnection.CloseAsync() BEGIN");
-            await localConnection.CloseAsync(CancellationToken.None).ConfigureAwait(false);
+            await localConnection.CloseAsync().ConfigureAwait(true);
             this.Log($"MessagePublisher disposing ... localConnection.CloseAsync() END");
         }
 
@@ -264,14 +264,14 @@ public class MessagePublisher
         if (localChannel != null)
         {
             this.Log($"MessagePublisher disposing ... localChannel.DisposeAsync() BEGIN");
-            await localChannel.DisposeAsync().ConfigureAwait(false);
+            await localChannel.DisposeAsync().ConfigureAwait(true);
             this.Log($"MessagePublisher disposing ... localChannel.DisposeAsync() END");
         }
 
         if (localConnection != null)
         {
             this.Log($"MessagePublisher disposing ... localConnection.DisposeAsync() BEGIN");
-            await localConnection.DisposeAsync().ConfigureAwait(false);
+            await localConnection.DisposeAsync().ConfigureAwait(true);
             this.Log($"MessagePublisher disposing ... localConnection.DisposeAsync() END");
         }
 
