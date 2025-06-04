@@ -15,6 +15,8 @@ namespace Oragon.RabbitMQ.Consumer;
 [GenerateAutomaticInterface]
 public class ConsumerDescriptor : IConsumerDescriptor
 {
+    private const string LockedMessage = "ConsumerDescriptor is locked";
+
     private bool isLocked;
 
     /// <summary>
@@ -31,8 +33,6 @@ public class ConsumerDescriptor : IConsumerDescriptor
     /// Gets the handler delegate.
     /// </summary>
     public Delegate Handler { get; private set; }
-
-
 
     /// <summary>
     /// Initializes a new instance of the <see cref="IConsumerDescriptor"/> class.
@@ -90,13 +90,12 @@ public class ConsumerDescriptor : IConsumerDescriptor
     public IConsumerDescriptor WithDispatchConcurrency(ushort consumerDispatchConcurrency)
     {
         if (consumerDispatchConcurrency < 1) throw new ArgumentOutOfRangeException(nameof(consumerDispatchConcurrency));
-        if (this.isLocked) throw new InvalidOperationException("ConsumerDescriptor is locked");
+        if (this.isLocked) throw new InvalidOperationException(LockedMessage);
 
         this.ConsumerDispatchConcurrency = consumerDispatchConcurrency;
 
         return this;
     }
-
     #endregion
 
     #region PrefetchCount / WithPrefetch(ushort prefetchCount)
@@ -114,13 +113,12 @@ public class ConsumerDescriptor : IConsumerDescriptor
     public IConsumerDescriptor WithPrefetch(ushort prefetchCount)
     {
         if (prefetchCount < 1) throw new ArgumentOutOfRangeException(nameof(prefetchCount));
-        if (this.isLocked) throw new InvalidOperationException("ConsumerDescriptor is locked");
+        if (this.isLocked) throw new InvalidOperationException(LockedMessage);
 
         this.PrefetchCount = prefetchCount;
 
         return this;
     }
-
     #endregion
 
     #region ConsumerTag / WithConsumerTag(string consumerTag)
@@ -138,8 +136,7 @@ public class ConsumerDescriptor : IConsumerDescriptor
     public IConsumerDescriptor WithConsumerTag(string consumerTag)
     {
         ArgumentNullException.ThrowIfNullOrWhiteSpace(consumerTag);
-        if (this.isLocked) throw new InvalidOperationException("ConsumerDescriptor is locked");
-
+        if (this.isLocked) throw new InvalidOperationException(LockedMessage);
 
         this.ConsumerTag = consumerTag;
 
@@ -160,7 +157,7 @@ public class ConsumerDescriptor : IConsumerDescriptor
     /// <returns>The current instance of <see cref="IConsumerDescriptor"/>.</returns>
     public IConsumerDescriptor WithExclusive(bool exclusive = true)
     {
-        if (this.isLocked) throw new InvalidOperationException("ConsumerDescriptor is locked");
+        if (this.isLocked) throw new InvalidOperationException(LockedMessage);
 
         this.Exclusive = exclusive;
 
@@ -183,7 +180,7 @@ public class ConsumerDescriptor : IConsumerDescriptor
     public IConsumerDescriptor WithConnection(Func<IServiceProvider, CancellationToken, Task<IConnection>> connectionFactory)
     {
         ArgumentNullException.ThrowIfNull(connectionFactory);
-        if (this.isLocked) throw new InvalidOperationException("ConsumerDescriptor is locked");
+        if (this.isLocked) throw new InvalidOperationException(LockedMessage);
 
         this.ConnectionFactory = connectionFactory;
 
@@ -206,13 +203,12 @@ public class ConsumerDescriptor : IConsumerDescriptor
     public IConsumerDescriptor WithSerializer(Func<IServiceProvider, IAmqpSerializer> serializerFactory)
     {
         ArgumentNullException.ThrowIfNull(serializerFactory);
-        if (this.isLocked) throw new InvalidOperationException("ConsumerDescriptor is locked");
+        if (this.isLocked) throw new InvalidOperationException(LockedMessage);
 
         this.SerializerFactory = serializerFactory;
 
         return this;
     }
-
     #endregion
 
     #region ChannelFactory / WithChannel(Func<IConnection, CancellationToken, Task<IChannel>> channelFactory)
@@ -229,7 +225,7 @@ public class ConsumerDescriptor : IConsumerDescriptor
     public IConsumerDescriptor WithChannel(Func<IConnection, CancellationToken, Task<IChannel>> channelFactory)
     {
         ArgumentNullException.ThrowIfNull(channelFactory);
-        if (this.isLocked) throw new InvalidOperationException("ConsumerDescriptor is locked");
+        if (this.isLocked) throw new InvalidOperationException(LockedMessage);
 
         this.ChannelFactory = channelFactory;
 
@@ -253,8 +249,7 @@ public class ConsumerDescriptor : IConsumerDescriptor
     public IConsumerDescriptor WhenSerializationFail(Func<IAmqpContext, Exception, IAmqpResult> amqpResult)
     {
         ArgumentNullException.ThrowIfNull(amqpResult);
-        if (this.isLocked) throw new InvalidOperationException("ConsumerDescriptor is locked");
-
+        if (this.isLocked) throw new InvalidOperationException(LockedMessage);
 
         this.ResultForSerializationFailure = amqpResult;
 
@@ -278,7 +273,7 @@ public class ConsumerDescriptor : IConsumerDescriptor
     public IConsumerDescriptor WhenProcessFail(Func<IAmqpContext, Exception, IAmqpResult> amqpResult)
     {
         ArgumentNullException.ThrowIfNull(amqpResult);
-        if (this.isLocked) throw new InvalidOperationException("ConsumerDescriptor is locked");
+        if (this.isLocked) throw new InvalidOperationException(LockedMessage);
 
         this.ResultForProcessFailure = amqpResult;
 
@@ -317,7 +312,6 @@ public class ConsumerDescriptor : IConsumerDescriptor
         await queueConsumer.InitializeAsync(cancellationToken).ConfigureAwait(false);
         return queueConsumer;
     }
-
     #endregion
 
 }

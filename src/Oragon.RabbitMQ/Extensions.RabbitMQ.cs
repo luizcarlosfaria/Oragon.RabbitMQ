@@ -47,7 +47,7 @@ public static class RabbitMQExtensions
         ArgumentNullException.ThrowIfNull(basicProperties);
         ArgumentNullException.ThrowIfNull(originalBasicProperties);
         if (basicProperties == originalBasicProperties) throw new ArgumentException("Same instance of BasicProperties");
-        
+
         return basicProperties.SetCorrelationId(originalBasicProperties.MessageId);
     }
 
@@ -61,7 +61,7 @@ public static class RabbitMQExtensions
     public static BasicProperties SetCorrelationId(this BasicProperties basicProperties, string correlationId)
     {
         ArgumentNullException.ThrowIfNull(basicProperties);
-        ArgumentNullException.ThrowIfNullOrWhiteSpace(correlationId, $"CorrelationId '{nameof(correlationId)}' cannot be null, empty, white-spaces");
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(correlationId, $"'{nameof(correlationId)}' cannot be null, empty, white-spaces");
 
         basicProperties.CorrelationId = correlationId;
         return basicProperties;
