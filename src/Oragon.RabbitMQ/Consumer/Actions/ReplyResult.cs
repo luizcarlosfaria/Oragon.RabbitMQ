@@ -35,8 +35,9 @@ public class ReplyResult<T> : IAmqpResult
 
         var replyBasicProperties = new BasicProperties
         {
+            DeliveryMode = DeliveryModes.Persistent,
             MessageId = Guid.NewGuid().ToString("D"),
-            CorrelationId = context.Request.BasicProperties.MessageId
+            CorrelationId = context.Request.BasicProperties.MessageId,
         };
 
         return context.Channel.BasicPublishAsync(

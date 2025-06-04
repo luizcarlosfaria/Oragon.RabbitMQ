@@ -1,6 +1,8 @@
 // Licensed to LuizCarlosFaria, gaGO.io, Mensageria .NET, Cloud Native .NET and ACADEMIA.DEV under one or more agreements.
 // The ACADEMIA.DEV licenses this file to you under the MIT license.
 
+
+
 namespace Oragon.RabbitMQ.Consumer.Actions;
 
 /// <summary>
@@ -53,6 +55,7 @@ public static class AmqpResults
     /// <returns></returns>
     public static ReplyResult<T> Reply<T>(T objectToReturn) => new(objectToReturn);
 
+
     /// <summary>
     /// Return a ComposableResult with ReplyResult and AckResult
     /// </summary>
@@ -60,6 +63,42 @@ public static class AmqpResults
     /// <param name="objectToReturn"></param>k
     /// <returns></returns>
     public static ComposableResult ReplyAndAck<T>(T objectToReturn) => new(new ReplyResult<T>(objectToReturn), s_forSuccess);
+
+    /// <summary>
+    /// Return a ForwardResult to represents a AMQP Forward to another exchange and routing key
+    /// </summary>
+    /// <param name="exchange">The name of the exchange to which the objects will be forwarded. Cannot be <see langword="null"/>.</param>
+    /// <param name="routingKey">The routing key used to route the forwarded objects. Cannot be <see langword="null"/>.</param>
+    /// <param name="mandatory">A value indicating whether the forwarding operation is mandatory. If <see langword="true"/>, the operation
+    /// requires confirmation that the message was routed successfully.</param>
+    /// <param name="replyTo">An optional reply-to address for responses. Can be <see langword="null"/> if no reply-to address is specified.</param>
+    /// <param name="objectsToForward">The objects to be forwarded. Cannot be <see langword="null"/> and must contain at least one object.</param>
+
+    public static ForwardResult<T> Forward<T>(string exchange, string routingKey, bool mandatory, string replyTo = null, params T[] objectsToForward) => new(exchange, routingKey, mandatory, replyTo, objectsToForward);
+
+    /// <summary>
+    /// Return a ForwardResult to represents a AMQP Forward to another exchange and routing key
+    /// </summary>
+    /// <param name="exchange">The name of the exchange to which the objects will be forwarded. Cannot be <see langword="null"/>.</param>
+    /// <param name="routingKey">The routing key used to route the forwarded objects. Cannot be <see langword="null"/>.</param>
+    /// <param name="mandatory">A value indicating whether the forwarding operation is mandatory. If <see langword="true"/>, the operation
+    /// requires confirmation that the message was routed successfully.</param>
+    /// <param name="objectsToForward">The objects to be forwarded. Cannot be <see langword="null"/> and must contain at least one object.</param>
+
+    public static ForwardResult<T> Forward<T>(string exchange, string routingKey, bool mandatory, params T[] objectsToForward) => new(exchange, routingKey, mandatory, (string)null, objectsToForward);
+
+
+    /// <summary>
+    /// Return a ForwardResult to represents a AMQP Forward to another exchange and routing key
+    /// </summary>
+    /// <param name="exchange">The name of the exchange to which the objects will be forwarded. Cannot be <see langword="null"/>.</param>
+    /// <param name="routingKey">The routing key used to route the forwarded objects. Cannot be <see langword="null"/>.</param>
+    /// <param name="mandatory">A value indicating whether the forwarding operation is mandatory. If <see langword="true"/>, the operation
+    /// requires confirmation that the message was routed successfully.</param>
+    /// <param name="objectsToForward">The objects to be forwarded. Cannot be <see langword="null"/> and must contain at least one object.</param>
+
+    public static ComposableResult ForwardAndAck<T>(string exchange, string routingKey, bool mandatory, params T[] objectsToForward) => new(Forward(exchange, routingKey, mandatory, (string)null, objectsToForward), s_forSuccess);
+
 
     /// <summary>
     /// Return a ComposableResult to execute multiple steps

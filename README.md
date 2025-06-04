@@ -60,11 +60,11 @@ dotnet add package Oragon.RabbitMQ
 
 Pick one serializer: SystemTextJson or NewtonsoftJson
 
-|   x   | System.Text.Json | NewtonsoftJson | 
+|   x   | System.Text.Json | NewtonsoftJson |
 |-------|------------------|----------------|
-| Info  | For **System.Text.Json** use **Oragon.RabbitMQ.Serializer.SystemTextJson** nuget package. It's ensuring latest performance and security issues resolved by Microsoft .NET Team. | If you have special needs that only JSON .NET solve, use the nuget package **Oragon.RabbitMQ.Serializer.NewtonsoftJson**. | 
-| Add Package | ```dotnet add package Oragon.RabbitMQ.Serializer.SystemTextJson ``` | ```dotnet add package Oragon.RabbitMQ.Serializer.NewtonsoftJson ``` | 
-| Configure Serializer  | `builder.Services.AddAmqpSerializer(options: JsonSerializerOptions.Default);` | `builder.Services.AddAmqpSerializer(options: new JsonSerializerSettings{...});` | 
+| Info  | For **System.Text.Json** use **Oragon.RabbitMQ.Serializer.SystemTextJson** nuget package. It's ensuring latest performance and security issues resolved by Microsoft .NET Team. | If you have special needs that only JSON .NET solve, use the nuget package **Oragon.RabbitMQ.Serializer.NewtonsoftJson**. |
+| Add Package | ```dotnet add package Oragon.RabbitMQ.Serializer.SystemTextJson ``` | ```dotnet add package Oragon.RabbitMQ.Serializer.NewtonsoftJson ``` |
+| Configure Serializer  | `builder.Services.AddAmqpSerializer(options: JsonSerializerOptions.Default);` | `builder.Services.AddAmqpSerializer(options: new JsonSerializerSettings{...});` |
 
 ### Step 3 | Configuring Dependency Injection
 
@@ -174,7 +174,7 @@ To map your queue using this package, follow these steps:
 
     You can take control by returning an instance of IAmqpResult implementation.
 
-    We provide some built-in implementations like: AckResult, NackResult, RejectResult, ComposableResult and ReplyResult.
+    We provide some built-in implementations like: AckResult, NackResult, RejectResult, ComposableResult, ReplyResult and ForwardResult.
 
     ```cs
 
@@ -283,6 +283,7 @@ Inside the `Oragon.RabbitMQ.Consumer.Actions` namespace, you can find some resul
 - NackResult (`AmqpResults.Nack(requeue: bool);`)
 - RejectResult (`AmqpResults.Reject(requeue: bool);`)
 - ReplyResult (`AmqpResults.Reply<T>(T objectToReply);`) ⚠️EXPERIMENTAL⚠️
+- ForwardResult (`AmqpResults.Forward<T>(string exchange, string routingKey, bool mandatory, params T[] objectsToForward);`) ⚠️EXPERIMENTAL⚠️
 - ComposableResult (`AmqpResults.Compose(params IAmqpResult[] results);`)
 
 Example:
