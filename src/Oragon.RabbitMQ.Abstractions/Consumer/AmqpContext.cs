@@ -23,37 +23,37 @@ public partial class AmqpContext : IAmqpContext
     /// <summary>
     /// Gets the delivery event arguments.
     /// </summary>
-    public BasicDeliverEventArgs Request { get; }
+    public required BasicDeliverEventArgs Request { get; init; }
 
     /// <summary>
     /// Gets the channel for Amqp operations.
     /// </summary>
-    public IChannel Channel { get; }
+    public required IChannel Channel { get; init; }
 
     /// <summary>
     /// Gets the connection for Amqp operations.
     /// </summary>
-    public IConnection Connection { get; }
+    public required IConnection Connection { get; init; }
 
     /// <summary>
     /// Gets the name of the queue.
     /// </summary>
-    public string QueueName { get; }
+    public required string QueueName { get; init; }
 
     /// <summary>
     /// Gets or sets the message to be sent.
     /// </summary>
-    public object MessageObject { get; }
+    public required object MessageObject { get; init; }
 
     /// <summary>
     /// Gets the service provider.
     /// </summary>
-    public IServiceProvider ServiceProvider { get; }
+    public required IServiceProvider ServiceProvider { get; init; }
 
     /// <summary>
     /// Gets the serializer.
     /// </summary>
-    public IAmqpSerializer Serializer { get; }
+    public required IAmqpSerializer Serializer { get; init; }
 
     /// <summary>
     /// Gets the service provider.
@@ -64,32 +64,12 @@ public partial class AmqpContext : IAmqpContext
     /// Creates a new instance of the <see cref="AmqpContext"/> class.
     /// </summary>
     /// <param name="logger"></param>
-    /// <param name="delivery">The delivery event arguments.</param>
-    /// <param name="serviceProvider">Application Service provider (under scope)</param>
-    /// <param name="serializer"></param>
-    /// <param name="connection"></param>
-    /// <param name="channel"></param>
-    /// <param name="queueName"></param>
-    /// <param name="message"></param>
     /// <param name="cancellationToken"></param>
     public AmqpContext(ILogger logger,
-                             BasicDeliverEventArgs delivery,
-                             IServiceProvider serviceProvider,
-                             IAmqpSerializer serializer,
-                             IConnection connection,
-                             IChannel channel,
-                             string queueName,
-                             object message,
                              CancellationToken cancellationToken)
     {
         this.logger = logger;
-        this.Request = delivery;
-        this.Channel = channel;
-        this.Connection = connection;
-        this.QueueName = queueName;
-        this.MessageObject = message;
-        this.ServiceProvider = serviceProvider;
-        this.Serializer = serializer;
+
         this.CancellationToken = cancellationToken;
     }
 
