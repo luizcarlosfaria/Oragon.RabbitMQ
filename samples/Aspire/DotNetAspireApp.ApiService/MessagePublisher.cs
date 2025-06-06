@@ -10,7 +10,6 @@ namespace DotNetAspireApp.ApiService;
 
 public class MessagePublisher
 {
-    private const bool configureAwait = true;
 
     private static readonly ConcurrentQueue<(ConsoleColor ForegroundColor, ConsoleColor BackgroundColor)> colorQueue = new(new[]
     {
@@ -35,11 +34,17 @@ public class MessagePublisher
         (ConsoleColor.DarkGray, ConsoleColor.Red),
         (ConsoleColor.DarkGreen, ConsoleColor.Gray)
     });
+
+    private const bool configureAwait = true;
+
     private static readonly object colorQueueLock = new();
+
     private static int s_sequence;
 
     private readonly IConnectionFactory connectionFactory;
+
     private readonly IAmqpSerializer serializer;
+
     private volatile bool isBlocked;
 
     public string UId { get; } = Guid.NewGuid().ToString("D").Split('-').Last();
