@@ -210,16 +210,7 @@ public class QueueConsumer : IHostedAmqpConsumer
         {
             (bool canProceed, Exception exception) = this.TryDeserialize(eventArgs, this.dispatcher.MessageType, out var incomingMessage);
 
-            IAmqpContext context = new AmqpContext(this.logger, this.cancellationTokenSource.Token)
-            {
-                Request = eventArgs,
-                ServiceProvider = scope.ServiceProvider,
-                Serializer = this.serializer,
-                Connection = this.connection,
-                Channel = this.channel,
-                QueueName = this.consumerDescriptor.QueueName,
-                MessageObject = incomingMessage,
-            };
+            IAmqpContext context = this.BuildAmqpContext(eventArgs, scope, incomingMessage);
 
             IAmqpResult result =
                 canProceed
@@ -228,6 +219,20 @@ public class QueueConsumer : IHostedAmqpConsumer
 
             await result.ExecuteAsync(context).ConfigureAwait(false);
         }
+    }
+
+    private AmqpContext BuildAmqpContext(BasicDeliverEventArgs eventArgs, IServiceScope scope, object incomingMessage)
+    {
+        return new AmqpContext(this.logger, this.cancellationTokenSource.Token)
+        {
+            Request = eventArgs,
+            ServiceProvider = scope.ServiceProvider,
+            Serializer = this.serializer,
+            Connection = this.connection,
+            Channel = this.channel,
+            QueueName = this.consumerDescriptor.QueueName,
+            MessageObject = incomingMessage,
+        };
     }
 
     private Task UnregisteredAsync(object sender, ConsumerEventArgs eventArgs)
