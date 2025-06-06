@@ -29,7 +29,7 @@ public static class MessagingTelemetryNames
     {
         var fullName = $"gaGO.io/RabbitMQ/{name}";
         return !names.Contains(fullName)
-            ? throw new InvalidOperationException($"Name '{name}' is not registred ")
+            ? throw new InvalidOperationException($"Name '{name}' is not registered")
             : fullName;
     }
 

@@ -6,22 +6,29 @@ using System.Diagnostics.CodeAnalysis;
 namespace Oragon.RabbitMQ;
 
 /// <summary>
-/// Extensions for Dependency Injection
+/// List and LINQ helper extensions.
 /// </summary>
 
 [SuppressMessage("Performance", "CA1002", Justification = "Is a handler of this types")]
 public static class LinqExtensions
 {
     /// <summary>
-    /// Reverse a list inline creating a new list with items in reverse order
+    /// Creates a new list containing the elements of the source list in reverse order.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="list"></param>
-    /// <returns></returns>
+    /// <remarks>The original list remains unchanged. This method creates a new list and reverses its
+    /// elements.</remarks>
+    /// <typeparam name="T">The type of elements in the list.</typeparam>
+    /// <param name="list">The source list whose elements will be reversed. If <see langword="null"/>, the method returns <see langword="null"/>.</param>
+    /// <returns>A new <see cref="List{T}"/> containing the elements of the source list in reverse order, or <see
+    /// langword="null"/> if the source list is <see langword="null"/>.</returns>
     public static List<T> NewReverseList<T>(this List<T> list)
     {
+        if (list == null) return null;
+
         List<T> returnList = [.. list];
+
         returnList.Reverse();
+
         return returnList;
     }
 

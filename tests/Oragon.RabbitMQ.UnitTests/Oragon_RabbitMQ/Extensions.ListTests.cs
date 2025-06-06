@@ -25,6 +25,6 @@ public class Extensions_List_Tests
         List<int>? original = null;
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => original!.NewReverseList());
+        Assert.Null(original!.NewReverseList());
     }
 }
