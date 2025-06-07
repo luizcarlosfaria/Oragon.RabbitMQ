@@ -11,9 +11,9 @@ namespace DotNetAspireApp.ApiService;
 public class MessagePublisher
 {
 
-    private static readonly ConcurrentQueue<(ConsoleColor ForegroundColor, ConsoleColor BackgroundColor)> colorQueue = new(new[]
+    private static readonly Queue<(ConsoleColor ForegroundColor, ConsoleColor BackgroundColor)> colorQueue = new(new[]
     {
-        (ConsoleColor.Black, ConsoleColor.White),
+        //(ConsoleColor.Black, ConsoleColor.White),
         (ConsoleColor.Blue, ConsoleColor.Yellow),
         (ConsoleColor.Cyan, ConsoleColor.Red),
         (ConsoleColor.DarkBlue, ConsoleColor.Gray),
@@ -61,25 +61,46 @@ public class MessagePublisher
 
         lock (colorQueueLock)
         {
-            if (colorQueue.TryDequeue(out var colors))
-            {
-                this.consoleColors = colors;
-                colorQueue.Enqueue(colors);
-            }
+            this.consoleColors = colorQueue.Dequeue();
+            colorQueue.Enqueue(this.consoleColors);
         }
-
     }
 
 
     #region Connection Management
 
 
-    private void Log(string message)
+    public void Log(string message)
     {
-        Console.ForegroundColor = this.consoleColors.ForegroundColor;
-        Console.BackgroundColor = this.consoleColors.BackgroundColor;
-        Console.WriteLine($"{this.ConsoleId} {message}");
-        Console.ResetColor();
+        string foregroundAnsi = GetAnsiCode(this.consoleColors.ForegroundColor);
+        string backgroundAnsi = GetAnsiCode(this.consoleColors.BackgroundColor);
+
+        //Console.WriteLine($"\u001b[38;5;{foregroundAnsi}m {this.consoleColors.ForegroundColor} | {this.ConsoleId} {message}\u001b[0m");
+        Console.WriteLine($"\u001b[38;5;{foregroundAnsi}m{this.ConsoleId} {message}\u001b[0m");
+    }
+
+    private string GetAnsiCode(ConsoleColor color)
+    {
+        return color switch
+        {
+            ConsoleColor.Black => "0",
+            ConsoleColor.Red => "196",
+            ConsoleColor.Green => "34",
+            ConsoleColor.Yellow => "11",
+            ConsoleColor.Blue => "21",
+            ConsoleColor.Magenta => "207",
+            ConsoleColor.Cyan => "33",
+            ConsoleColor.White => "255",
+            ConsoleColor.DarkGray => "239",
+            ConsoleColor.DarkRed => "161",
+            ConsoleColor.DarkGreen => "28",
+            ConsoleColor.DarkYellow => "148",
+            ConsoleColor.DarkBlue => "56",
+            ConsoleColor.DarkMagenta => "200",
+            ConsoleColor.DarkCyan => "26",
+            ConsoleColor.Gray => "246",
+            _ => ""
+        };
     }
 
 

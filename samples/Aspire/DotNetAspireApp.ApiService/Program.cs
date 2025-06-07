@@ -54,34 +54,25 @@ var progressBarWidth = 20;
 app.MapPost("/enqueue", ([FromBody]DoSomethingRequest requestObject, CancellationToken cancellationToken, [FromServices] MessagePublisher messagePublisher)
     =>
 {
-    Action<string> Log = (string message) =>
-    {
-        Console.ForegroundColor = messagePublisher.consoleColors.ForegroundColor;
-        Console.BackgroundColor = messagePublisher.consoleColors.BackgroundColor;
-        Console.WriteLine($"{messagePublisher.ConsoleId} {message}");
-        Console.ResetColor();
-    };
-
-
     _ = Task.Run(async () =>
         {
-            Log($"Starting to publish {requestObject.quantity:n0}");
+            messagePublisher.Log($"Starting to publish {requestObject.quantity:n0}");
             for (var i = 1; i <= requestObject.quantity; i++)
             {
                 var command = new DoSomethingCommand(requestObject.Text, i, requestObject.quantity);
 
-                await messagePublisher.PublishAsync(command, "events", string.Empty, default).ConfigureAwait(false);
+                await messagePublisher.PublishAsync(command, "events", "event", default).ConfigureAwait(false);
 
                 if (i % (requestObject.quantity / progressBarWidth) == 0) // Update progress bar
                 {
                     var progress = (i * progressBarWidth / requestObject.quantity);
-                    Log($"[{new string('#', progress)}{new string(' ', progressBarWidth - progress)}] {i * 100 / requestObject.quantity}%");
+                    messagePublisher.Log($"[{new string('#', progress)}{new string(' ', progressBarWidth - progress)}] {i * 100 / requestObject.quantity}%");
                 }
 
             }
-            Log($"Done ({requestObject.quantity:n0} messages!)");
+            messagePublisher.Log($"Done ({requestObject.quantity:n0} messages!)");
             await messagePublisher.DisposeAsync().ConfigureAwait(false);
-            Log($"END ({requestObject.quantity:n0} messages!)");
+            messagePublisher.Log($"END ({requestObject.quantity:n0} messages!)");
         });
 
     return Results.Ok();
