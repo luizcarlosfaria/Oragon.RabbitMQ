@@ -17,22 +17,19 @@ public static class EmailServiceExtensions
     {
         IConnectionFactory connectionFactory = host.Services.GetRequiredService<IConnectionFactory>();
 
-        using IConnection connection = await connectionFactory.CreateConnectionAsync().ConfigureAwait(true);
+        using IConnection connection = await connectionFactory.CreateConnectionAsync().ConfigureAwait(false);
 
-        using IChannel channel = await connection.CreateChannelAsync().ConfigureAwait(true);
+        using IChannel channel = await connection.CreateChannelAsync().ConfigureAwait(false);
 
-        await channel.ExchangeDeclareAsync("events", type: ExchangeType.Fanout, durable: true, autoDelete: false).ConfigureAwait(true);
+        await channel.ExchangeDeclareAsync("events", type: ExchangeType.Fanout, durable: true, autoDelete: false).ConfigureAwait(false);
 
-        _ = await channel.QueueDeclareAsync("events-managed", durable: true, exclusive: false, autoDelete: false).ConfigureAwait(true);
+        _ = await channel.QueueDeclareAsync("events-managed", durable: true, exclusive: false, autoDelete: false).ConfigureAwait(false);
 
-        _ = await channel.QueueDeclareAsync("events-unmanaged", durable: true, exclusive: false, autoDelete: false).ConfigureAwait(true);
+        _ = await channel.QueueDeclareAsync("events-unmanaged", durable: true, exclusive: false, autoDelete: false).ConfigureAwait(false);
 
-        await channel.QueueBindAsync("events-managed", "events", string.Empty).ConfigureAwait(true);
-        await channel.QueueBindAsync("events-unmanaged", "events", string.Empty).ConfigureAwait(true);
+        await channel.QueueBindAsync("events-managed", "events", string.Empty).ConfigureAwait(false);
 
-        await channel.CloseAsync().ConfigureAwait(true);
-
-        await connection.CloseAsync().ConfigureAwait(true);
+        await channel.QueueBindAsync("events-unmanaged", "events", string.Empty).ConfigureAwait(false);
     }
 
 
