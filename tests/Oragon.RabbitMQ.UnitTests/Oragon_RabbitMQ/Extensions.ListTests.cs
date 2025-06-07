@@ -22,7 +22,7 @@ public class Extensions_List_Tests
     public void NewReverseList_ShouldThrowWhenNull()
     {
         // Arrange
-        List<int>? original = null;
+        List<int> original = null;
 
         // Act & Assert
         Assert.Null(original!.NewReverseList());
