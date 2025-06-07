@@ -60,7 +60,7 @@ public class MultipleConsumersTest : IAsyncLifetime
         return this._rabbitMqContainer.DisposeAsync().AsTask();
     }
 
-    private ConnectionFactory CreateConnectionFactory()
+    private IConnectionFactory CreateConnectionFactory()
     {
         return new ConnectionFactory
         {
@@ -126,6 +126,7 @@ public class MultipleConsumersTest : IAsyncLifetime
         services.AddSingleton(new ActivitySource("test"));
         services.AddNewtonsoftAmqpSerializer();
         services.AddSingleton(sp => this.CreateConnectionAsync().GetAwaiter().GetResult());
+        services.AddSingleton<IConnectionFactory>(sp => this.CreateConnectionFactory());
 
         // Send a message to the channel.
 
@@ -136,7 +137,7 @@ public class MultipleConsumersTest : IAsyncLifetime
 
         var sp = services.BuildServiceProvider();
 
-        await sp.WaitRabbitMQAsync().ConfigureAwait(true);
+        await sp.WaitRabbitMQAsync().ConfigureAwait(false);
 
         IConnection connection = sp.GetRequiredService<IConnection>();
 
