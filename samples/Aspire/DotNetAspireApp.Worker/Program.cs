@@ -18,13 +18,21 @@ public static class Program
 
         _ = builder.Services.AddSingleton(sp => new ActivitySource("RabbitMQ.Gago", "1.0.0"));
 
-        builder.AddRabbitMQClient("rabbitmq", null, connectionFactory =>
-        {
-            connectionFactory.ConsumerDispatchConcurrency = DotNetAspireApp.Worker.Constants.ConsumerDispatchConcurrency;
-            connectionFactory.TopologyRecoveryEnabled = false;
-            connectionFactory.AutomaticRecoveryEnabled = false;
-            connectionFactory.ClientProvidedName = "DotNetAspireApp.Worker";
-        });
+        builder.AddRabbitMQClient("rabbitmq",
+            rabbitMQClientSettings =>
+            {
+                rabbitMQClientSettings.DisableHealthChecks = false;
+            },
+            connectionFactory =>
+            {
+                connectionFactory.ConsumerDispatchConcurrency = DotNetAspireApp.Worker.Constants.ConsumerDispatchConcurrency;
+                connectionFactory.TopologyRecoveryEnabled = false;
+                connectionFactory.AutomaticRecoveryEnabled = false;
+                connectionFactory.ClientProvidedName = "DotNetAspireApp.Worker";
+
+
+            }
+        );
 
         _ = builder.Services.AddAmqpSerializer(options: JsonSerializerOptions.Default);
 
@@ -42,7 +50,6 @@ public static class Program
 
         await app.ConfigureUnManagedConsumer().ConfigureAwait(false); // UnManaged Implementation (Native Client Only)
 
-        //await app.Services.WaitRabbitMQAsync().ConfigureAwait(false);
 
         await app.RunAsync().ConfigureAwait(false);
     }
