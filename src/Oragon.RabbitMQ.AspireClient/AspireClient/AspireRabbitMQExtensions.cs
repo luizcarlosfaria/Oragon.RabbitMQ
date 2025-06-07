@@ -167,6 +167,7 @@ public static class AspireRabbitMQExtensions
             {
                 ShouldHandle = new PredicateBuilder()
                                     .Handle<SocketException>()
+                                    .Handle<EndOfStreamException>()
                                     .Handle<BrokerUnreachableException>(),
                 UseJitter = true,
                 BackoffType = DelayBackoffType.Exponential,

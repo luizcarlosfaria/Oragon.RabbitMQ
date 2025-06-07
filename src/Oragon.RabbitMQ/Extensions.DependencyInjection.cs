@@ -87,34 +87,44 @@ public static partial class DependencyInjectionExtensions
         ResiliencePipeline pipeline = new ResiliencePipelineBuilder()
         .AddRetry(new RetryStrategyOptions()
         {
-            MaxRetryAttempts = 5,
-            DelayGenerator = static args =>
+            MaxRetryAttempts = 10,
+            UseJitter = true,
+            BackoffType = DelayBackoffType.Exponential,
+            Delay = TimeSpan.FromSeconds(5),
+            OnRetry = static args =>
             {
-                TimeSpan delay = args.AttemptNumber switch
-                {
-                    <= 5 => TimeSpan.FromSeconds(Math.Pow(2, args.AttemptNumber)),
-                    _ => TimeSpan.FromMinutes(3)
-                };
-                return new ValueTask<TimeSpan?>(delay);
+                Console.WriteLine("OnRetry, Attempt: {0}", args.AttemptNumber);
+                // Event handlers can be asynchronous; here, we return an empty ValueTask.
+                return default;
             }
         })
-        .AddTimeout(TimeSpan.FromSeconds(10)) // Add 10 seconds timeout
+        .AddTimeout(TimeSpan.FromSeconds(30)) // Add 30 seconds timeout
         .Build();
+
+
 
         await pipeline.ExecuteAsync(async (cancellationToken) =>
         {
             //do not dispose connection
-            IConnection connection = string.IsNullOrWhiteSpace(keyedServiceKey)
-                ? serviceProvider.GetRequiredService<IConnection>()
-                : serviceProvider.GetRequiredKeyedService<IConnection>(keyedServiceKey);
+            IConnectionFactory connectionFactory = string.IsNullOrWhiteSpace(keyedServiceKey)
+                ? serviceProvider.GetRequiredService<IConnectionFactory>()
+                : serviceProvider.GetRequiredKeyedService<IConnectionFactory>(keyedServiceKey);
+
+            using var connection = await connectionFactory.CreateConnectionAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
+
+            using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
 
             if (connection.IsOpen)
             {
                 return;
             }
-            await connection.CloseAsync(cancellationToken).ConfigureAwait(false);
+
+            await channel.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
+
+            await connection.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
 
             throw new InvalidOperationException("Connection is not open");
+
         }).ConfigureAwait(false);
 
     }
