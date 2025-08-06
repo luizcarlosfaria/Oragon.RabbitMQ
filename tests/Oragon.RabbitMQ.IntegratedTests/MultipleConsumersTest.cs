@@ -137,7 +137,7 @@ public class MultipleConsumersTest : IAsyncLifetime
 
         var sp = services.BuildServiceProvider();
 
-        await sp.WaitRabbitMQAsync().ConfigureAwait(false);
+        await sp.WaitRabbitMQAsync();
 
         IConnection connection = sp.GetRequiredService<IConnection>();
 

@@ -312,11 +312,9 @@ public class QueueConsumer : IHostedAmqpConsumer
         {
             await this.channel.BasicCancelAsync(this.consumerTag, true).ConfigureAwait(false);
         }
-        if (this.channel != null)
-        {
-            this.channel.Dispose();
-            this.channel = null;
-        }
+
+        this.channel?.Dispose();
+        this.channel = null;
 
         GC.SuppressFinalize(this);
     }

@@ -1,7 +1,6 @@
 // Licensed to LuizCarlosFaria, gaGO.io, Mensageria .NET, Cloud Native .NET and ACADEMIA.DEV under one or more agreements.
 // The ACADEMIA.DEV licenses this file to you under the MIT license.
 
-using System.Collections.Concurrent;
 using Oragon.RabbitMQ;
 using Oragon.RabbitMQ.Serialization;
 using RabbitMQ.Client;
@@ -73,35 +72,32 @@ public class MessagePublisher
     public void Log(string message)
     {
         string foregroundAnsi = GetAnsiCode(this.consoleColors.ForegroundColor);
-        string backgroundAnsi = GetAnsiCode(this.consoleColors.BackgroundColor);
+        //string backgroundAnsi = GetAnsiCode(this.consoleColors.BackgroundColor);
 
         //Console.WriteLine($"\u001b[38;5;{foregroundAnsi}m {this.consoleColors.ForegroundColor} | {this.ConsoleId} {message}\u001b[0m");
         Console.WriteLine($"\u001b[38;5;{foregroundAnsi}m{this.ConsoleId} {message}\u001b[0m");
     }
 
-    private string GetAnsiCode(ConsoleColor color)
+    private static string GetAnsiCode(ConsoleColor color) => color switch
     {
-        return color switch
-        {
-            ConsoleColor.Black => "0",
-            ConsoleColor.Red => "196",
-            ConsoleColor.Green => "34",
-            ConsoleColor.Yellow => "11",
-            ConsoleColor.Blue => "21",
-            ConsoleColor.Magenta => "207",
-            ConsoleColor.Cyan => "33",
-            ConsoleColor.White => "255",
-            ConsoleColor.DarkGray => "239",
-            ConsoleColor.DarkRed => "161",
-            ConsoleColor.DarkGreen => "28",
-            ConsoleColor.DarkYellow => "148",
-            ConsoleColor.DarkBlue => "56",
-            ConsoleColor.DarkMagenta => "200",
-            ConsoleColor.DarkCyan => "26",
-            ConsoleColor.Gray => "246",
-            _ => ""
-        };
-    }
+        ConsoleColor.Black => "0",
+        ConsoleColor.Red => "196",
+        ConsoleColor.Green => "34",
+        ConsoleColor.Yellow => "11",
+        ConsoleColor.Blue => "21",
+        ConsoleColor.Magenta => "207",
+        ConsoleColor.Cyan => "33",
+        ConsoleColor.White => "255",
+        ConsoleColor.DarkGray => "239",
+        ConsoleColor.DarkRed => "161",
+        ConsoleColor.DarkGreen => "28",
+        ConsoleColor.DarkYellow => "148",
+        ConsoleColor.DarkBlue => "56",
+        ConsoleColor.DarkMagenta => "200",
+        ConsoleColor.DarkCyan => "26",
+        ConsoleColor.Gray => "246",
+        _ => ""
+    };
 
 
     private IConnection? connection;
