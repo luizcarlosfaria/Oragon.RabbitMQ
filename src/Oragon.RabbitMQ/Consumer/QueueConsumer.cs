@@ -73,13 +73,14 @@ public class QueueConsumer : IHostedAmqpConsumer
 
         this.connection = await this.consumerDescriptor.ConnectionFactory(this.consumerDescriptor.ApplicationServiceProvider, cancellationToken).ConfigureAwait(false);
 
-        await this.WaitQueueCreationAsync().ConfigureAwait(false);
 
         this.serializer = this.consumerDescriptor.SerializerFactory(this.consumerDescriptor.ApplicationServiceProvider);
 
         this.channel = await this.consumerDescriptor.ChannelFactory(this.connection, cancellationToken).ConfigureAwait(false);
 
         if (this.consumerDescriptor.ChannelInitializer != null) await this.consumerDescriptor.ChannelInitializer(this.channel, cancellationToken).ConfigureAwait(false);
+
+        await this.WaitQueueCreationAsync().ConfigureAwait(false);
 
         await this.channel.BasicQosAsync(0, this.consumerDescriptor.PrefetchCount, false, cancellationToken).ConfigureAwait(false);
 
@@ -109,7 +110,7 @@ public class QueueConsumer : IHostedAmqpConsumer
     /// <returns></returns>
     protected virtual async Task WaitQueueCreationAsync()
     {
-        _ = await Policy
+        await Policy
             .Handle<OperationInterruptedException>()
             .WaitAndRetryAsync(5, retryAttempt =>
             {
@@ -120,8 +121,10 @@ public class QueueConsumer : IHostedAmqpConsumer
             .ExecuteAsync(async () =>
             {
                 using IChannel testModel = await this.connection.CreateChannelAsync().ConfigureAwait(false);
+
                 _ = await testModel.QueueDeclarePassiveAsync(this.consumerDescriptor.QueueName).ConfigureAwait(false);
-                return Task.CompletedTask;
+
+                await testModel.CloseAsync().ConfigureAwait(false);
             }).ConfigureAwait(false);
     }
 
