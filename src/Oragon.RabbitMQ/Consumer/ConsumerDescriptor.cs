@@ -234,25 +234,26 @@ public class ConsumerDescriptor : IConsumerDescriptor
     #endregion
 
 
-    #region ChannelInitializer / WithChannelInitializer(Func<IChannel, CancellationToken, Task> channelInitializer)
+    #region TopologyInitializer / WithTopology(Func<IChannel, CancellationToken, Task> channelInitializer)
     /// <summary>
     /// Gets the serializer.
     /// </summary>
-    public Func<IChannel, CancellationToken, Task> ChannelInitializer { get; private set; }
+    public Func<IChannel, CancellationToken, Task> TopologyInitializer { get; private set; }
 
     /// <summary>
     /// Configures a channel initializer to be invoked when a channel is created.
     /// </summary>
-    /// <param name="channelInitializer">A delegate that represents the asynchronous operation to initialize the channel.  The delegate receives the
+    /// <param name="topologyInitializer">A delegate that represents the asynchronous operation to initialize the channel.  The delegate receives the
     /// channel to be initialized and a <see cref="CancellationToken"/>  to observe for cancellation.</param>
     /// <returns>The current <see cref="IConsumerDescriptor"/> instance, allowing for method chaining.</returns>
     /// <exception cref="InvalidOperationException">Thrown if the descriptor is locked and cannot be modified.</exception>
-    public IConsumerDescriptor WithChannelInitializer(Func<IChannel, CancellationToken, Task> channelInitializer)
+    public IConsumerDescriptor WithTopology(Func<IChannel, CancellationToken, Task> topologyInitializer)
     {
-        ArgumentNullException.ThrowIfNull(channelInitializer);
+        ArgumentNullException.ThrowIfNull(topologyInitializer);
+
         if (this.isLocked) throw new InvalidOperationException(LockedMessage);
 
-        this.ChannelInitializer = channelInitializer;
+        this.TopologyInitializer = topologyInitializer;
 
         return this;
     }

@@ -177,4 +177,96 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
 
 
 
+    [Fact(Timeout = 5000)]
+    public async Task MapQueueBasicWithInitializationTest()
+    {
+        const string queue = "MapQueueBasicWithInitializationTest";
+
+        var originalMessage = new ExampleMessage() { Name = $"Teste - {Guid.NewGuid():D}", Age = 8 };
+        ExampleMessage receivedMessage = default;
+
+        // Create and establish a connection.
+        using var connection = await this.CreateConnectionAsync().ConfigureAwait(true);
+
+        // Signal the completion of message reception.
+        WeakReference<ManualResetEvent> waitHandleRef = new(new ManualResetEvent(false));
+
+        ServiceCollection services = new();
+        services.AddRabbitMQConsumer();
+        services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
+
+        // Singleton dependencies
+        services.AddSingleton(new ActivitySource("test"));
+        services.AddNewtonsoftAmqpSerializer();
+        services.AddSingleton(connection ?? throw new InvalidOperationException("Connection is null"));
+
+        // Scoped dependencies
+        services.AddScoped<ExampleService>();
+        services.AddScoped<Action<ExampleMessage>>((_) => (msg) => receivedMessage = msg);
+        services.AddScoped((_) => waitHandleRef);
+
+
+
+        ServiceProvider sp = services.BuildServiceProvider();
+
+        sp.MapQueue(queue, ([FromServices] ExampleService svc, ExampleMessage msg) => svc.TestAsync(msg))
+            .WithPrefetch(1)
+            .WithTopology(async (channel, ct) =>
+            {
+                // This will be executed when the channel is created, before start consuming
+                _ = await channel.QueueDeclareAsync(queue, false, false, false, null);
+
+                await channel.BasicPublishAsync(string.Empty, queue, true, Encoding.Default.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(originalMessage)));
+            })
+            .WithDispatchConcurrency(1)
+            .WithConsumerTag("MapQueueBasicSuccessTest")
+            .WithExclusive(true)
+            .WithConnection((sp, ct) => Task.FromResult(sp.GetRequiredService<IConnection>()))
+            .WithSerializer((sp) => sp.GetRequiredService<IAmqpSerializer>())
+            .WithChannel((connection, ct) =>
+            connection.CreateChannelAsync(
+                new CreateChannelOptions(
+                    publisherConfirmationsEnabled: false,
+                    publisherConfirmationTrackingEnabled: false,
+                    outstandingPublisherConfirmationsRateLimiter: null,
+                    consumerDispatchConcurrency: 1
+                ),
+                ct
+            ))
+            ;
+
+
+        IHostedService hostedService = sp.GetRequiredService<IHostedService>();
+
+        await hostedService.StartAsync(CancellationToken.None);
+
+        waitHandleRef.TryGetTarget(out ManualResetEvent waitHandle);
+
+        for (var i = 0; i < 10; i++)
+        {
+            if (waitHandle == null)
+            {
+                waitHandleRef.TryGetTarget(out waitHandle);
+                if (waitHandle != null) break;
+                await Task.Delay(200);
+            }
+        }
+
+        Assert.NotNull(waitHandle);
+
+        _ = waitHandle.WaitOne(
+            Debugger.IsAttached
+            ? TimeSpan.FromMinutes(5)
+            : TimeSpan.FromSeconds(3)
+        );
+
+        await hostedService.StopAsync(CancellationToken.None);
+
+        Assert.NotNull(receivedMessage);
+
+        Assert.Equal(originalMessage.Name, receivedMessage.Name);
+
+        Assert.Equal(originalMessage.Age, receivedMessage.Age);
+    }
+
 }

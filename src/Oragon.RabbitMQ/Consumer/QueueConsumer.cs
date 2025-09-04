@@ -71,15 +71,17 @@ public class QueueConsumer : IHostedAmqpConsumer
 
         await this.ValidateAsync(cancellationToken).ConfigureAwait(false);
 
-        this.connection = await this.consumerDescriptor.ConnectionFactory(this.consumerDescriptor.ApplicationServiceProvider, cancellationToken).ConfigureAwait(false);
-
-
         this.serializer = this.consumerDescriptor.SerializerFactory(this.consumerDescriptor.ApplicationServiceProvider);
+
+        this.connection = await this.consumerDescriptor.ConnectionFactory(this.consumerDescriptor.ApplicationServiceProvider, cancellationToken).ConfigureAwait(false);
 
         this.channel = await this.consumerDescriptor.ChannelFactory(this.connection, cancellationToken).ConfigureAwait(false);
 
-        if (this.consumerDescriptor.ChannelInitializer != null) await this.consumerDescriptor.ChannelInitializer(this.channel, cancellationToken).ConfigureAwait(false);
-
+        if (this.consumerDescriptor.TopologyInitializer != null)
+        {
+            await this.consumerDescriptor.TopologyInitializer(this.channel, cancellationToken).ConfigureAwait(false);
+        }
+        
         await this.WaitQueueCreationAsync().ConfigureAwait(false);
 
         await this.channel.BasicQosAsync(0, this.consumerDescriptor.PrefetchCount, false, cancellationToken).ConfigureAwait(false);
@@ -92,6 +94,7 @@ public class QueueConsumer : IHostedAmqpConsumer
 
         this.IsInitialized = true;
     }
+
 
     /// <summary>
     /// Waits for the queue creation asynchronously.
@@ -144,9 +147,7 @@ public class QueueConsumer : IHostedAmqpConsumer
                 await connection2.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
             }
 
-            using IChannel testChannel = await this.consumerDescriptor.ChannelFactory(connection1, cancellationToken).ConfigureAwait(false);
-
-            _ = await testChannel.QueueDeclarePassiveAsync(this.consumerDescriptor.QueueName, cancellationToken).ConfigureAwait(false);
+            using IChannel testChannel = await this.consumerDescriptor.ChannelFactory(connection1, cancellationToken).ConfigureAwait(false);            
 
             await testChannel.CloseAsync(cancellationToken).ConfigureAwait(false);
 
