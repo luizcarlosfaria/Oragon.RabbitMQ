@@ -233,6 +233,31 @@ public class ConsumerDescriptor : IConsumerDescriptor
     }
     #endregion
 
+
+    #region ChannelInitializer / WithChannelInitializer(Func<IChannel, CancellationToken, Task> channelInitializer)
+    /// <summary>
+    /// Gets the serializer.
+    /// </summary>
+    public Func<IChannel, CancellationToken, Task> ChannelInitializer { get; private set; }
+
+    /// <summary>
+    /// Configures a channel initializer to be invoked when a channel is created.
+    /// </summary>
+    /// <param name="channelInitializer">A delegate that represents the asynchronous operation to initialize the channel.  The delegate receives the
+    /// channel to be initialized and a <see cref="CancellationToken"/>  to observe for cancellation.</param>
+    /// <returns>The current <see cref="IConsumerDescriptor"/> instance, allowing for method chaining.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the descriptor is locked and cannot be modified.</exception>
+    public IConsumerDescriptor WithChannelInitializer(Func<IChannel, CancellationToken, Task> channelInitializer)
+    {
+        ArgumentNullException.ThrowIfNull(channelInitializer);
+        if (this.isLocked) throw new InvalidOperationException(LockedMessage);
+
+        this.ChannelInitializer = channelInitializer;
+
+        return this;
+    }
+    #endregion
+
     #region ResultForSerializationFailure / WhenSerializationFail(IAmqpResult amqpResult)
 
     /// <summary>

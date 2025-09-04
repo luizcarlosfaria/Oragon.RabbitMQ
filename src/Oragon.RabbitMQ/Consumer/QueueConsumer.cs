@@ -79,6 +79,8 @@ public class QueueConsumer : IHostedAmqpConsumer
 
         this.channel = await this.consumerDescriptor.ChannelFactory(this.connection, cancellationToken).ConfigureAwait(false);
 
+        if (this.consumerDescriptor.ChannelInitializer != null) await this.consumerDescriptor.ChannelInitializer(this.channel, cancellationToken).ConfigureAwait(false);
+
         await this.channel.BasicQosAsync(0, this.consumerDescriptor.PrefetchCount, false, cancellationToken).ConfigureAwait(false);
 
         this.asyncBasicConsumer = new AsyncEventingBasicConsumer(this.channel);
