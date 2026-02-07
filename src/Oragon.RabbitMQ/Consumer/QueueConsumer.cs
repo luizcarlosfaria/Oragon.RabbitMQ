@@ -30,22 +30,24 @@ public class QueueConsumer : IHostedAmqpConsumer
     private string consumerTag;
     private CancellationTokenSource cancellationTokenSource;
     private IAmqpSerializer serializer;
+    private volatile bool wasStarted;
+    private volatile bool isConsuming;
+    private volatile bool isInitialized;
+
+    /// <summary>
+    /// Gets a value indicating whether the consumer was started.
+    /// </summary>
+    public bool WasStarted => this.wasStarted;
 
     /// <summary>
     /// Gets a value indicating whether the consumer is consuming messages.
     /// </summary>
-    public bool WasStarted { get; private set; }
-
-    /// <summary>
-    /// Gets a value indicating whether the consumer is consuming messages.
-    /// </summary>
-    public bool IsConsuming { get; private set; }
-
+    public bool IsConsuming => this.isConsuming;
 
     /// <summary>
     /// Gets a value indicating whether the consumer is initialized.
     /// </summary>
-    public bool IsInitialized { get; private set; }
+    public bool IsInitialized => this.isInitialized;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="QueueConsumer"/> class.
@@ -82,7 +84,7 @@ public class QueueConsumer : IHostedAmqpConsumer
             await this.consumerDescriptor.TopologyInitializer(this.channel, cancellationToken).ConfigureAwait(true);
         }
         
-        await this.WaitQueueCreationAsync().ConfigureAwait(true);
+        await this.WaitQueueCreationAsync(cancellationToken).ConfigureAwait(true);
 
         await this.channel.BasicQosAsync(0, this.consumerDescriptor.PrefetchCount, false, cancellationToken).ConfigureAwait(true);
 
@@ -92,7 +94,7 @@ public class QueueConsumer : IHostedAmqpConsumer
         this.asyncBasicConsumer.UnregisteredAsync += this.UnregisteredAsync;
         this.asyncBasicConsumer.ShutdownAsync += this.ShutdownAsync;
 
-        this.IsInitialized = true;
+        this.isInitialized = true;
     }
 
 
@@ -111,7 +113,7 @@ public class QueueConsumer : IHostedAmqpConsumer
     /// Waits for the queue creation asynchronously.
     /// </summary>
     /// <returns></returns>
-    protected virtual async Task WaitQueueCreationAsync()
+    protected virtual async Task WaitQueueCreationAsync(CancellationToken cancellationToken)
     {
         await Policy
             .Handle<OperationInterruptedException>()
@@ -121,14 +123,14 @@ public class QueueConsumer : IHostedAmqpConsumer
                 s_logQueueNotFound(this.logger, this.consumerDescriptor.QueueName, timeToWait, null);
                 return timeToWait;
             })
-            .ExecuteAsync(async () =>
+            .ExecuteAsync(async (ct) =>
             {
-                using IChannel testModel = await this.connection.CreateChannelAsync().ConfigureAwait(true);
+                using IChannel testModel = await this.connection.CreateChannelAsync(cancellationToken: ct).ConfigureAwait(true);
 
-                _ = await testModel.QueueDeclarePassiveAsync(this.consumerDescriptor.QueueName).ConfigureAwait(true);
+                _ = await testModel.QueueDeclarePassiveAsync(this.consumerDescriptor.QueueName, ct).ConfigureAwait(true);
 
-                await testModel.CloseAsync().ConfigureAwait(true);
-            }).ConfigureAwait(true);
+                await testModel.CloseAsync(cancellationToken: ct).ConfigureAwait(true);
+            }, cancellationToken).ConfigureAwait(true);
     }
 
     /// <summary>
@@ -205,9 +207,9 @@ public class QueueConsumer : IHostedAmqpConsumer
             cancellationToken: this.cancellationTokenSource.Token)
             .ConfigureAwait(true);
 
-        this.WasStarted = true;
+        this.wasStarted = true;
 
-        this.IsConsuming = true;
+        this.isConsuming = true;
     }
 
     [SuppressMessage("Style", "IDE0063:Use simple 'using' statement", Justification = "<Pending>")]
@@ -279,14 +281,14 @@ public class QueueConsumer : IHostedAmqpConsumer
 
     private Task UnregisteredAsync(object sender, ConsumerEventArgs eventArgs)
     {
-        this.IsConsuming = false;
+        this.isConsuming = false;
         s_logConsumerUnregistered(this.logger, this.consumerDescriptor.QueueName, null);
         return Task.CompletedTask;
     }
 
     private Task ShutdownAsync(object sender, ShutdownEventArgs eventArgs)
     {
-        this.IsConsuming = false;
+        this.isConsuming = false;
         s_logConsumerShutdown(this.logger, this.consumerDescriptor.QueueName, eventArgs?.ReplyText ?? "Unknown", null);
         return Task.CompletedTask;
     }
@@ -347,7 +349,7 @@ public class QueueConsumer : IHostedAmqpConsumer
         {
             await this.channel.BasicCancelAsync(this.consumerTag, false, cancellationToken).ConfigureAwait(true);
         }
-        this.IsConsuming = false;
+        this.isConsuming = false;
     }
 
 
