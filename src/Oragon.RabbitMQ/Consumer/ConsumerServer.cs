@@ -10,7 +10,7 @@ namespace Oragon.RabbitMQ.Consumer;
 /// <summary>
 /// This class is responsible for consuming messages from RabbitMQ.
 /// </summary>
-public class ConsumerServer : IHostedService, IDisposable
+public class ConsumerServer : IHostedService, IAsyncDisposable, IDisposable
 {
     private readonly ILogger<ConsumerServer> logger;
     private bool disposedValue;
@@ -109,7 +109,25 @@ public class ConsumerServer : IHostedService, IDisposable
     }
 
     /// <summary>
-    /// This method is called when the application host is ready to start the service.
+    /// Disposes the consumer server asynchronously.
+    /// </summary>
+    public async ValueTask DisposeAsync()
+    {
+        if (!this.disposedValue)
+        {
+            foreach (IHostedAmqpConsumer consumer in this.internalConsumers.NewReverseList())
+            {
+                await consumer.DisposeAsync().ConfigureAwait(true);
+
+                _ = this.internalConsumers.Remove(consumer);
+            }
+            this.disposedValue = true;
+        }
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Disposes the consumer server synchronously. Prefer DisposeAsync when possible.
     /// </summary>
     /// <param name="disposing"></param>
     protected virtual void Dispose(bool disposing)
@@ -130,11 +148,10 @@ public class ConsumerServer : IHostedService, IDisposable
     }
 
     /// <summary>
-    /// This method is called when the application host is ready to start the service.
+    /// Disposes the consumer server synchronously. Prefer DisposeAsync when possible.
     /// </summary>
     public void Dispose()
     {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         this.Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }

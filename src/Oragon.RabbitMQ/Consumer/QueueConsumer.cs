@@ -137,17 +137,18 @@ public class QueueConsumer : IHostedAmqpConsumer
     public async Task ValidateAsync(CancellationToken cancellationToken)
     {
         IConnection connection1 = await this.consumerDescriptor.ConnectionFactory(this.consumerDescriptor.ApplicationServiceProvider, cancellationToken).ConfigureAwait(true);
-        IConnection connection2 = await this.consumerDescriptor.ConnectionFactory(this.consumerDescriptor.ApplicationServiceProvider, cancellationToken).ConfigureAwait(true);
-        var mustReuseConnection = connection1 == connection2;
-
+        bool mustReuseConnection = false;
         try
         {
+            IConnection connection2 = await this.consumerDescriptor.ConnectionFactory(this.consumerDescriptor.ApplicationServiceProvider, cancellationToken).ConfigureAwait(true);
+            mustReuseConnection = connection1 == connection2;
+
             if (!mustReuseConnection)
             {
                 await connection2.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
             }
 
-            using IChannel testChannel = await this.consumerDescriptor.ChannelFactory(connection1, cancellationToken).ConfigureAwait(true);            
+            using IChannel testChannel = await this.consumerDescriptor.ChannelFactory(connection1, cancellationToken).ConfigureAwait(true);
 
             await testChannel.CloseAsync(cancellationToken).ConfigureAwait(true);
 

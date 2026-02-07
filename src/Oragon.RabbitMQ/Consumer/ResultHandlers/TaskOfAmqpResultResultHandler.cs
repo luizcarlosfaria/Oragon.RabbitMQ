@@ -27,7 +27,8 @@ public class TaskOfAmqpResultResultHandler : IResultHandler
 
         this.consumerDescriptor = consumerDescriptor;
         this.Type = type;
-        this.resultProperty = type.GetProperty("Result");
+        this.resultProperty = type.GetProperty("Result")
+            ?? throw new InvalidOperationException($"Type {type.FullName} does not have a 'Result' property.");
     }
 
     /// <summary>
@@ -64,7 +65,9 @@ public class TaskOfAmqpResultResultHandler : IResultHandler
             return this.consumerDescriptor.ResultForProcessFailure(context, exception);
         }
 
-        var result = (IAmqpResult)this.resultProperty.GetValue(dispatchResult);
+        var result = this.resultProperty.GetValue(dispatchResult) as IAmqpResult
+            ?? throw new InvalidOperationException(
+                $"Handler returned null from Task<IAmqpResult>. Queue: {context.QueueName}");
 
         return result;
     }
