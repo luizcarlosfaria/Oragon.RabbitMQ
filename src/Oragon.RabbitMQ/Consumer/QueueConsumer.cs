@@ -69,22 +69,22 @@ public class QueueConsumer : IHostedAmqpConsumer
 
         this.dispatcher = new Dispatcher(this.consumerDescriptor);
 
-        await this.ValidateAsync(cancellationToken).ConfigureAwait(false);
+        await this.ValidateAsync(cancellationToken).ConfigureAwait(true);
 
         this.serializer = this.consumerDescriptor.SerializerFactory(this.consumerDescriptor.ApplicationServiceProvider);
 
-        this.connection = await this.consumerDescriptor.ConnectionFactory(this.consumerDescriptor.ApplicationServiceProvider, cancellationToken).ConfigureAwait(false);
+        this.connection = await this.consumerDescriptor.ConnectionFactory(this.consumerDescriptor.ApplicationServiceProvider, cancellationToken).ConfigureAwait(true);
 
-        this.channel = await this.consumerDescriptor.ChannelFactory(this.connection, cancellationToken).ConfigureAwait(false);
+        this.channel = await this.consumerDescriptor.ChannelFactory(this.connection, cancellationToken).ConfigureAwait(true);
 
         if (this.consumerDescriptor.TopologyInitializer != null)
         {
-            await this.consumerDescriptor.TopologyInitializer(this.channel, cancellationToken).ConfigureAwait(false);
+            await this.consumerDescriptor.TopologyInitializer(this.channel, cancellationToken).ConfigureAwait(true);
         }
         
-        await this.WaitQueueCreationAsync().ConfigureAwait(false);
+        await this.WaitQueueCreationAsync().ConfigureAwait(true);
 
-        await this.channel.BasicQosAsync(0, this.consumerDescriptor.PrefetchCount, false, cancellationToken).ConfigureAwait(false);
+        await this.channel.BasicQosAsync(0, this.consumerDescriptor.PrefetchCount, false, cancellationToken).ConfigureAwait(true);
 
         this.asyncBasicConsumer = new AsyncEventingBasicConsumer(this.channel);
         this.asyncBasicConsumer.ReceivedAsync += this.ReceiveAsync;
@@ -123,12 +123,12 @@ public class QueueConsumer : IHostedAmqpConsumer
             })
             .ExecuteAsync(async () =>
             {
-                using IChannel testModel = await this.connection.CreateChannelAsync().ConfigureAwait(false);
+                using IChannel testModel = await this.connection.CreateChannelAsync().ConfigureAwait(true);
 
-                _ = await testModel.QueueDeclarePassiveAsync(this.consumerDescriptor.QueueName).ConfigureAwait(false);
+                _ = await testModel.QueueDeclarePassiveAsync(this.consumerDescriptor.QueueName).ConfigureAwait(true);
 
-                await testModel.CloseAsync().ConfigureAwait(false);
-            }).ConfigureAwait(false);
+                await testModel.CloseAsync().ConfigureAwait(true);
+            }).ConfigureAwait(true);
     }
 
     /// <summary>
@@ -136,20 +136,20 @@ public class QueueConsumer : IHostedAmqpConsumer
     /// </summary>
     public async Task ValidateAsync(CancellationToken cancellationToken)
     {
-        IConnection connection1 = await this.consumerDescriptor.ConnectionFactory(this.consumerDescriptor.ApplicationServiceProvider, cancellationToken).ConfigureAwait(false);
-        IConnection connection2 = await this.consumerDescriptor.ConnectionFactory(this.consumerDescriptor.ApplicationServiceProvider, cancellationToken).ConfigureAwait(false);
+        IConnection connection1 = await this.consumerDescriptor.ConnectionFactory(this.consumerDescriptor.ApplicationServiceProvider, cancellationToken).ConfigureAwait(true);
+        IConnection connection2 = await this.consumerDescriptor.ConnectionFactory(this.consumerDescriptor.ApplicationServiceProvider, cancellationToken).ConfigureAwait(true);
         var mustReuseConnection = connection1 == connection2;
 
         try
         {
             if (!mustReuseConnection)
             {
-                await connection2.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+                await connection2.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
             }
 
-            using IChannel testChannel = await this.consumerDescriptor.ChannelFactory(connection1, cancellationToken).ConfigureAwait(false);            
+            using IChannel testChannel = await this.consumerDescriptor.ChannelFactory(connection1, cancellationToken).ConfigureAwait(true);            
 
-            await testChannel.CloseAsync(cancellationToken).ConfigureAwait(false);
+            await testChannel.CloseAsync(cancellationToken).ConfigureAwait(true);
 
             using IServiceScope scope = this.consumerDescriptor.ApplicationServiceProvider.CreateScope();
 
@@ -175,7 +175,7 @@ public class QueueConsumer : IHostedAmqpConsumer
         {
             if (!mustReuseConnection)
             {
-                await connection1.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+                await connection1.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
             }
         }
 
@@ -202,7 +202,7 @@ public class QueueConsumer : IHostedAmqpConsumer
             exclusive: this.consumerDescriptor.Exclusive,
             noLocal: true,
             cancellationToken: this.cancellationTokenSource.Token)
-            .ConfigureAwait(false);
+            .ConfigureAwait(true);
 
         this.WasStarted = true;
 
@@ -220,10 +220,10 @@ public class QueueConsumer : IHostedAmqpConsumer
 
             IAmqpResult result =
                 canProceed
-                ? await this.dispatcher.DispatchAsync(context).ConfigureAwait(false)
+                ? await this.dispatcher.DispatchAsync(context).ConfigureAwait(true)
                 : this.consumerDescriptor.ResultForSerializationFailure(context, exception);
 
-            await result.ExecuteAsync(context).ConfigureAwait(false);
+            await result.ExecuteAsync(context).ConfigureAwait(true);
         }
     }
 
@@ -297,7 +297,7 @@ public class QueueConsumer : IHostedAmqpConsumer
     {
         if (this.WasStarted)
         {
-            await this.channel.BasicCancelAsync(this.consumerTag, false, cancellationToken).ConfigureAwait(false);
+            await this.channel.BasicCancelAsync(this.consumerTag, false, cancellationToken).ConfigureAwait(true);
         }
         this.IsConsuming = false;
     }
@@ -316,7 +316,7 @@ public class QueueConsumer : IHostedAmqpConsumer
 
         if (this.channel != null && this.WasStarted && this.IsConsuming && !string.IsNullOrWhiteSpace(this.consumerTag))
         {
-            await this.channel.BasicCancelAsync(this.consumerTag, true).ConfigureAwait(false);
+            await this.channel.BasicCancelAsync(this.consumerTag, true).ConfigureAwait(true);
         }
 
         this.channel?.Dispose();

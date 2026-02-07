@@ -65,7 +65,7 @@ public class ForwardResult<T> : IAmqpResult
     /// <summary>
     /// Executes the forwarding operation for the specified AMQP context.
     /// </summary>
-    /// <remarks>This method processes the provided <paramref name="context"/> and forwards objects, if any, 
+    /// <remarks>This method processes the provided <paramref name="context"/> and forwards objects, if any,
     /// to the reply queue specified in the context's request properties. Each forwarded object is  serialized and
     /// published as a message with a unique message ID and correlation ID.</remarks>
     /// <param name="context">The AMQP context containing the request and channel information.  This parameter cannot be <see
@@ -77,14 +77,25 @@ public class ForwardResult<T> : IAmqpResult
 
         if (this.objectsToForward != null && this.objectsToForward.Length != 0)
         {
-            foreach (T objectToForward in this.objectsToForward)
+            // Create a dedicated channel for forwarding to avoid race conditions
+            // when the consumer channel is used concurrently
+            using IChannel forwardChannel = await context.Connection.CreateChannelAsync().ConfigureAwait(true);
+
+            try
             {
-                await this.ForwardMessage(context, objectToForward).ConfigureAwait(true);
+                foreach (T objectToForward in this.objectsToForward)
+                {
+                    await this.ForwardMessage(context, forwardChannel, objectToForward).ConfigureAwait(true);
+                }
+            }
+            finally
+            {
+                await forwardChannel.CloseAsync().ConfigureAwait(true);
             }
         }
     }
 
-    private Task ForwardMessage(IAmqpContext context, T objectToForward)
+    private async Task ForwardMessage(IAmqpContext context, IChannel channel, T objectToForward)
     {
         var forwardBasicProperties = new BasicProperties
         {
@@ -94,11 +105,11 @@ public class ForwardResult<T> : IAmqpResult
             ReplyTo = this.ReplyTo
         };
 
-        return context.Channel.BasicPublishAsync(
+        await channel.BasicPublishAsync(
             exchange: this.Exchange,
             routingKey: this.RoutingKey,
             mandatory: this.Mandatory,
             basicProperties: forwardBasicProperties,
-            body: context.Serializer.Serialize(forwardBasicProperties, objectToForward)).AsTask();
+            body: context.Serializer.Serialize(forwardBasicProperties, objectToForward)).ConfigureAwait(true);
     }
 }

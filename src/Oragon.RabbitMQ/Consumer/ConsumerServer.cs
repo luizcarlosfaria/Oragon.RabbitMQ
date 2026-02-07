@@ -56,7 +56,7 @@ public class ConsumerServer : IHostedService, IDisposable
 
         foreach (IConsumerDescriptor consumer in this.ConsumerDescriptors)
         {
-            this.internalConsumers.Add(await consumer.BuildConsumerAsync(cancellationToken).ConfigureAwait(false));
+            this.internalConsumers.Add(await consumer.BuildConsumerAsync(cancellationToken).ConfigureAwait(true));
         }
 
         foreach (IHostedAmqpConsumer consumer in this.internalConsumers)
@@ -74,7 +74,7 @@ public class ConsumerServer : IHostedService, IDisposable
     {
         foreach (IHostedAmqpConsumer consumer in this.internalConsumers.NewReverseList())
         {
-            await consumer.StopAsync(cancellationToken).ConfigureAwait(false);
+            await consumer.StopAsync(cancellationToken).ConfigureAwait(true);
         }
 
         this.IsReadOnly = false;

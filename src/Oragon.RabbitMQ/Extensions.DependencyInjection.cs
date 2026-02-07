@@ -110,22 +110,22 @@ public static partial class DependencyInjectionExtensions
                 ? serviceProvider.GetRequiredService<IConnectionFactory>()
                 : serviceProvider.GetRequiredKeyedService<IConnectionFactory>(keyedServiceKey);
 
-            using var connection = await connectionFactory.CreateConnectionAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+            using var connection = await connectionFactory.CreateConnectionAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
 
-            using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+            using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
 
             if (connection.IsOpen)
             {
                 return;
             }
 
-            await channel.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+            await channel.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
 
-            await connection.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+            await connection.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
 
             throw new InvalidOperationException("Connection is not open");
 
-        }).ConfigureAwait(false);
+        }).ConfigureAwait(true);
 
     }
 

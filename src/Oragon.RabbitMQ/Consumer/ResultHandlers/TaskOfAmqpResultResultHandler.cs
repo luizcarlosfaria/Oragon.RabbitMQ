@@ -56,7 +56,7 @@ public class TaskOfAmqpResultResultHandler : IResultHandler
 
         try
         {
-            await taskToWait.ConfigureAwait(false);
+            await taskToWait.ConfigureAwait(true);
         }
         catch (Exception exception)
         {

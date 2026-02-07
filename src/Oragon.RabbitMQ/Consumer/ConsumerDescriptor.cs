@@ -335,7 +335,7 @@ public class ConsumerDescriptor : IConsumerDescriptor
         this.Validate();
         this.isLocked = true;
         var queueConsumer = new QueueConsumer(this.ApplicationServiceProvider.GetRequiredService<ILogger<QueueConsumer>>(), this);
-        await queueConsumer.InitializeAsync(cancellationToken).ConfigureAwait(false);
+        await queueConsumer.InitializeAsync(cancellationToken).ConfigureAwait(true);
         return queueConsumer;
     }
     #endregion

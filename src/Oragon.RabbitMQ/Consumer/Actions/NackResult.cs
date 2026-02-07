@@ -30,6 +30,6 @@ public class NackResult : IAmqpResult
     {
         ArgumentNullException.ThrowIfNull(context, nameof(context));
 
-        await context.Channel.BasicNackAsync(context.Request.DeliveryTag, false, this.Requeue).ConfigureAwait(false);
+        await context.Channel.BasicNackAsync(context.Request.DeliveryTag, false, this.Requeue).ConfigureAwait(true);
     }
 }

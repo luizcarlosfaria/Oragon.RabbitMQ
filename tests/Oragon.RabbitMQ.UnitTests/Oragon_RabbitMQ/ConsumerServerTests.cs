@@ -38,7 +38,7 @@ public class ConsumerServerTests
         );
 
 
-        using ConsumerServer consumerServer = new ConsumerServer();
+        using ConsumerServer consumerServer = new ConsumerServer(Mock.Of<ILogger<ConsumerServer>>());
         consumerServer.AddConsumerDescriptor(consumerDescriptor);
 
         Assert.Single(consumerServer.ConsumerDescriptors);
