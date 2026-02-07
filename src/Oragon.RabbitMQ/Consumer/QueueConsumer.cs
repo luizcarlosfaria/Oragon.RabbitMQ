@@ -357,6 +357,8 @@ public class QueueConsumer : IHostedAmqpConsumer
 
     private static readonly Action<ILogger, string, string, Exception> s_logConnectionUnblocked = LoggerMessage.Define<string, string>(LogLevel.Information, new EventId(11, "ConnectionUnblocked"), "Connection UNBLOCKED for consumer on queue {QueueName}. ConnectionName: {ConnectionName}. RabbitMQ server resource pressure resolved. Normal operation resumed.");
 
+    private static readonly Action<ILogger, string, Exception> s_logDeserializedNullMessage = LoggerMessage.Define<string>(LogLevel.Warning, new EventId(12, "DeserializedNullMessage"), "Deserialized message is null on queue {QueueName}. The message body may be empty or whitespace.");
+
 
     /// <summary>
     /// Tries to deserialize the received item.
@@ -381,6 +383,11 @@ public class QueueConsumer : IHostedAmqpConsumer
             s_logErrorOnDeserialize(this.logger, exception, exception);
 
             return (false, exception);
+        }
+
+        if (incomingMessage is null)
+        {
+            s_logDeserializedNullMessage(this.logger, this.consumerDescriptor.QueueName, null);
         }
 
         return (true, null);
