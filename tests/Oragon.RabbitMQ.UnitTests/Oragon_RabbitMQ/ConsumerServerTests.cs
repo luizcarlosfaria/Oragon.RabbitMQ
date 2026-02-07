@@ -28,7 +28,7 @@ public class ConsumerServerTests
 
 
     [Fact]
-    public void AddConsumerDescriptor_ShouldAddConsumerDescriptor()
+    public async Task AddConsumerDescriptor_ShouldAddConsumerDescriptor()
     {
 
         ConsumerDescriptor consumerDescriptor = new ConsumerDescriptor(
@@ -38,7 +38,7 @@ public class ConsumerServerTests
         );
 
 
-        using ConsumerServer consumerServer = new ConsumerServer(Mock.Of<ILogger<ConsumerServer>>());
+        await using ConsumerServer consumerServer = new ConsumerServer(Mock.Of<ILogger<ConsumerServer>>());
         consumerServer.AddConsumerDescriptor(consumerDescriptor);
 
         Assert.Single(consumerServer.ConsumerDescriptors);
