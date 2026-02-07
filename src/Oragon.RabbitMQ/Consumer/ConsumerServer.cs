@@ -118,9 +118,8 @@ public class ConsumerServer : IHostedService, IAsyncDisposable
             foreach (IHostedAmqpConsumer consumer in this.internalConsumers.NewReverseList())
             {
                 await consumer.DisposeAsync().ConfigureAwait(true);
-
-                _ = this.internalConsumers.Remove(consumer);
             }
+            this.internalConsumers.Clear();
             this.disposedValue = true;
         }
         GC.SuppressFinalize(this);
