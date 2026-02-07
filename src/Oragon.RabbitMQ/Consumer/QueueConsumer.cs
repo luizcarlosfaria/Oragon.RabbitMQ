@@ -88,6 +88,10 @@ public class QueueConsumer : IHostedAmqpConsumer
 
         await this.channel.BasicQosAsync(0, this.consumerDescriptor.PrefetchCount, false, cancellationToken).ConfigureAwait(true);
 
+        this.connection.ConnectionShutdownAsync += this.ConnectionShutdownAsync;
+        this.connection.ConnectionBlockedAsync += this.ConnectionBlockedAsync;
+        this.connection.ConnectionUnblockedAsync += this.ConnectionUnblockedAsync;
+
         this.asyncBasicConsumer = new AsyncEventingBasicConsumer(this.channel);
         this.asyncBasicConsumer.ReceivedAsync += this.ReceiveAsync;
         this.asyncBasicConsumer.RegisteredAsync += this.RegisteredAsync;
@@ -289,7 +293,46 @@ public class QueueConsumer : IHostedAmqpConsumer
     private Task ShutdownAsync(object sender, ShutdownEventArgs eventArgs)
     {
         this.isConsuming = false;
-        s_logConsumerShutdown(this.logger, this.consumerDescriptor.QueueName, eventArgs?.ReplyText ?? "Unknown", null);
+        s_logConsumerShutdown(this.logger,
+            this.consumerDescriptor.QueueName,
+            eventArgs?.ReplyCode ?? 0,
+            eventArgs?.ReplyText ?? "Unknown",
+            eventArgs?.Initiator.ToString() ?? "Unknown",
+            $"ClassId={eventArgs?.ClassId ?? 0}/MethodId={eventArgs?.MethodId ?? 0}",
+            eventArgs?.Cause as Exception);
+        return Task.CompletedTask;
+    }
+
+    private Task ConnectionShutdownAsync(object sender, ShutdownEventArgs eventArgs)
+    {
+        this.isConsuming = false;
+        s_logConnectionShutdown(this.logger,
+            this.consumerDescriptor.QueueName,
+            this.connection?.ClientProvidedName ?? "Unknown",
+            eventArgs?.ReplyCode ?? 0,
+            eventArgs?.ReplyText ?? "Unknown",
+            eventArgs?.Initiator.ToString() ?? "Unknown",
+            $"ClassId={eventArgs?.ClassId ?? 0}/MethodId={eventArgs?.MethodId ?? 0}",
+            eventArgs?.Cause as Exception);
+        return Task.CompletedTask;
+    }
+
+    private Task ConnectionBlockedAsync(object sender, ConnectionBlockedEventArgs eventArgs)
+    {
+        s_logConnectionBlocked(this.logger,
+            this.consumerDescriptor.QueueName,
+            this.connection?.ClientProvidedName ?? "Unknown",
+            eventArgs?.Reason ?? "Unknown",
+            null);
+        return Task.CompletedTask;
+    }
+
+    private Task ConnectionUnblockedAsync(object sender, AsyncEventArgs eventArgs)
+    {
+        s_logConnectionUnblocked(this.logger,
+            this.consumerDescriptor.QueueName,
+            this.connection?.ClientProvidedName ?? "Unknown",
+            null);
         return Task.CompletedTask;
     }
 
@@ -306,7 +349,13 @@ public class QueueConsumer : IHostedAmqpConsumer
 
     private static readonly Action<ILogger, string, Exception> s_logConsumerUnregistered = LoggerMessage.Define<string>(LogLevel.Warning, new EventId(7, "ConsumerUnregistered"), "Consumer unregistered from queue {QueueName}");
 
-    private static readonly Action<ILogger, string, string, Exception> s_logConsumerShutdown = LoggerMessage.Define<string, string>(LogLevel.Error, new EventId(8, "ConsumerShutdown"), "Consumer shutdown on queue {QueueName}. Reason: {Reason}");
+    private static readonly Action<ILogger, string, ushort, string, string, string, Exception> s_logConsumerShutdown = LoggerMessage.Define<string, ushort, string, string, string>(LogLevel.Error, new EventId(8, "ConsumerShutdown"), "Consumer shutdown on queue {QueueName}. ReplyCode: {ReplyCode}, Reason: {Reason}, Initiator: {Initiator}, AMQP: {AmqpClassMethod}");
+
+    private static readonly Action<ILogger, string, string, ushort, string, string, string, Exception> s_logConnectionShutdown = LoggerMessage.Define<string, string, ushort, string, string, string>(LogLevel.Critical, new EventId(9, "ConnectionShutdown"), "CONNECTION LOST for consumer on queue {QueueName}. ConnectionName: {ConnectionName}, ReplyCode: {ReplyCode}, Reason: {Reason}, Initiator: {Initiator}, AMQP: {AmqpClassMethod}. Consumer will NOT recover automatically — external restart required.");
+
+    private static readonly Action<ILogger, string, string, string, Exception> s_logConnectionBlocked = LoggerMessage.Define<string, string, string>(LogLevel.Warning, new EventId(10, "ConnectionBlocked"), "Connection BLOCKED for consumer on queue {QueueName}. ConnectionName: {ConnectionName}, Reason: {Reason}. RabbitMQ server is under resource pressure (memory/disk). Message delivery may be delayed.");
+
+    private static readonly Action<ILogger, string, string, Exception> s_logConnectionUnblocked = LoggerMessage.Define<string, string>(LogLevel.Information, new EventId(11, "ConnectionUnblocked"), "Connection UNBLOCKED for consumer on queue {QueueName}. ConnectionName: {ConnectionName}. RabbitMQ server resource pressure resolved. Normal operation resumed.");
 
 
     /// <summary>
@@ -363,6 +412,13 @@ public class QueueConsumer : IHostedAmqpConsumer
         {
             this.cancellationTokenSource?.Cancel();
             this.cancellationTokenSource?.Dispose();
+        }
+
+        if (this.connection != null)
+        {
+            this.connection.ConnectionShutdownAsync -= this.ConnectionShutdownAsync;
+            this.connection.ConnectionBlockedAsync -= this.ConnectionBlockedAsync;
+            this.connection.ConnectionUnblockedAsync -= this.ConnectionUnblockedAsync;
         }
 
         if (this.channel != null && this.WasStarted && this.IsConsuming && !string.IsNullOrWhiteSpace(this.consumerTag))
