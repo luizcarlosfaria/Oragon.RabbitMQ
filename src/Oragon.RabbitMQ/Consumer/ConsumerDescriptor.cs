@@ -72,7 +72,7 @@ public class ConsumerDescriptor : IConsumerDescriptor
     #region ConsumerDispatchConcurrency / WithDispatchConcurrency(ushort consumerDispatchConcurrency)
 
     /// <summary>
-    /// Gets the handler delegate.
+    /// Gets the consumer dispatch concurrency.
     /// </summary>
     public ushort ConsumerDispatchConcurrency { get; private set; }
 
@@ -146,7 +146,7 @@ public class ConsumerDescriptor : IConsumerDescriptor
 
     #region Exclusive / WithExclusive(bool exclusive = true)
     /// <summary>
-    /// Gets the handler delegate.
+    /// Gets a value indicating whether the consumer is exclusive.
     /// </summary>
     public bool Exclusive { get; private set; }
 
@@ -213,7 +213,7 @@ public class ConsumerDescriptor : IConsumerDescriptor
 
     #region ChannelFactory / WithChannel(Func<IConnection, CancellationToken, Task<IChannel>> channelFactory)
     /// <summary>
-    /// Gets the serializer.
+    /// Gets the channel factory.
     /// </summary>
     public Func<IConnection, CancellationToken, Task<IChannel>> ChannelFactory { get; private set; }
 
@@ -236,7 +236,7 @@ public class ConsumerDescriptor : IConsumerDescriptor
 
     #region TopologyInitializer / WithTopology(Func<IChannel, CancellationToken, Task> channelInitializer)
     /// <summary>
-    /// Gets the serializer.
+    /// Gets the topology initializer.
     /// </summary>
     public Func<IChannel, CancellationToken, Task> TopologyInitializer { get; private set; }
 
