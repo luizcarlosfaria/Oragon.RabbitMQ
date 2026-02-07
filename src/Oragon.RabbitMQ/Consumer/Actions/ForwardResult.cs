@@ -101,7 +101,7 @@ public class ForwardResult<T> : IAmqpResult
         {
             DeliveryMode = DeliveryModes.Persistent,
             MessageId = Guid.NewGuid().ToString("D"),
-            CorrelationId = context.Request.BasicProperties.MessageId,
+            CorrelationId = context.Request.BasicProperties.MessageId ?? context.Request.BasicProperties.CorrelationId,
             ReplyTo = this.ReplyTo
         };
 

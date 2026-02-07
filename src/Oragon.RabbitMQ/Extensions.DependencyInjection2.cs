@@ -182,7 +182,7 @@ public  static partial class DependencyInjectionExtensions
 
         return resiliencePipeline.Execute(factory =>
         {
-            return factory.CreateConnectionAsync().ConfigureAwait(true).GetAwaiter().GetResult();
+            return Task.Run(() => factory.CreateConnectionAsync()).GetAwaiter().GetResult();
 
         }, connectionFactory);
     }

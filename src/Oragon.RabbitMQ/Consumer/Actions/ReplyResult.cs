@@ -33,6 +33,13 @@ public class ReplyResult<T> : IAmqpResult
     {
         ArgumentNullException.ThrowIfNull(context, nameof(context));
 
+        var replyTo = context.Request.BasicProperties.ReplyTo;
+        if (string.IsNullOrWhiteSpace(replyTo))
+        {
+            throw new InvalidOperationException(
+                $"Cannot reply to message {context.Request.BasicProperties.MessageId}: ReplyTo property is not set.");
+        }
+
         // Create a dedicated channel for reply to avoid race conditions
         // when the consumer channel is used concurrently
         using IChannel replyChannel = await context.Connection.CreateChannelAsync().ConfigureAwait(true);
@@ -43,12 +50,12 @@ public class ReplyResult<T> : IAmqpResult
             {
                 DeliveryMode = DeliveryModes.Persistent,
                 MessageId = Guid.NewGuid().ToString("D"),
-                CorrelationId = context.Request.BasicProperties.MessageId,
+                CorrelationId = context.Request.BasicProperties.MessageId ?? context.Request.BasicProperties.CorrelationId,
             };
 
             await replyChannel.BasicPublishAsync(
                 exchange: string.Empty,
-                routingKey: context.Request.BasicProperties.ReplyTo,
+                routingKey: replyTo,
                 mandatory: true,
                 basicProperties: replyBasicProperties,
                 body: context.Serializer.Serialize(replyBasicProperties, this.objectToReply)).ConfigureAwait(true);

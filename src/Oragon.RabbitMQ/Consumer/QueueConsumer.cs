@@ -212,18 +212,47 @@ public class QueueConsumer : IHostedAmqpConsumer
     [SuppressMessage("Style", "IDE0063:Use simple 'using' statement", Justification = "<Pending>")]
     private async Task ReceiveAsync(object sender, BasicDeliverEventArgs eventArgs)
     {
-        using (IServiceScope scope = this.consumerDescriptor.ApplicationServiceProvider.CreateScope())
+        IAmqpContext context = null;
+        try
         {
-            (bool canProceed, Exception exception) = this.TryDeserialize(eventArgs, this.dispatcher.MessageType, out var incomingMessage);
+            using (IServiceScope scope = this.consumerDescriptor.ApplicationServiceProvider.CreateScope())
+            {
+                (bool canProceed, Exception exception) = this.TryDeserialize(eventArgs, this.dispatcher.MessageType, out var incomingMessage);
 
-            IAmqpContext context = this.BuildAmqpContext(eventArgs, scope, incomingMessage);
+                context = this.BuildAmqpContext(eventArgs, scope, incomingMessage);
 
-            IAmqpResult result =
-                canProceed
-                ? await this.dispatcher.DispatchAsync(context).ConfigureAwait(true)
-                : this.consumerDescriptor.ResultForSerializationFailure(context, exception);
+                IAmqpResult result =
+                    canProceed
+                    ? await this.dispatcher.DispatchAsync(context).ConfigureAwait(true)
+                    : this.consumerDescriptor.ResultForSerializationFailure(context, exception);
 
-            await result.ExecuteAsync(context).ConfigureAwait(true);
+                await result.ExecuteAsync(context).ConfigureAwait(true);
+            }
+        }
+        catch (Exception ex)
+        {
+            s_logErrorOnExecuteResult(this.logger, eventArgs.DeliveryTag, ex);
+
+            await this.TryNackMessageAsync(context, eventArgs.DeliveryTag).ConfigureAwait(true);
+        }
+    }
+
+    private async Task TryNackMessageAsync(IAmqpContext context, ulong deliveryTag)
+    {
+        if (context?.Channel == null || context.Channel.IsClosed)
+        {
+            s_logChannelClosedCannotNack(this.logger, deliveryTag, null);
+            return;
+        }
+
+        try
+        {
+            // requeue: false → message goes to dead-letter queue (if configured)
+            await context.Channel.BasicNackAsync(deliveryTag, multiple: false, requeue: false).ConfigureAwait(true);
+        }
+        catch (Exception nackEx)
+        {
+            s_logFailedToNack(this.logger, deliveryTag, nackEx);
         }
     }
 
@@ -241,22 +270,40 @@ public class QueueConsumer : IHostedAmqpConsumer
         };
     }
 
-    private Task UnregisteredAsync(object sender, ConsumerEventArgs eventArgs)
+    private Task RegisteredAsync(object sender, ConsumerEventArgs eventArgs)
     {
+        s_logConsumerRegistered(this.logger, this.consumerDescriptor.QueueName, null);
         return Task.CompletedTask;
     }
 
-    private Task RegisteredAsync(object sender, ConsumerEventArgs eventArgs)
+    private Task UnregisteredAsync(object sender, ConsumerEventArgs eventArgs)
     {
+        this.IsConsuming = false;
+        s_logConsumerUnregistered(this.logger, this.consumerDescriptor.QueueName, null);
         return Task.CompletedTask;
     }
+
     private Task ShutdownAsync(object sender, ShutdownEventArgs eventArgs)
     {
+        this.IsConsuming = false;
+        s_logConsumerShutdown(this.logger, this.consumerDescriptor.QueueName, eventArgs?.ReplyText ?? "Unknown", null);
         return Task.CompletedTask;
     }
 
 
     private static readonly Action<ILogger, Exception, Exception> s_logErrorOnDeserialize = LoggerMessage.Define<Exception>(LogLevel.Error, new EventId(1, "MessageObject rejected during deserialization"), "MessageObject rejected during deserialization {ExceptionDetails}");
+
+    private static readonly Action<ILogger, ulong, Exception> s_logErrorOnExecuteResult = LoggerMessage.Define<ulong>(LogLevel.Error, new EventId(3, "ErrorOnExecuteResult"), "Error executing result for message {DeliveryTag}");
+
+    private static readonly Action<ILogger, ulong, Exception> s_logFailedToNack = LoggerMessage.Define<ulong>(LogLevel.Critical, new EventId(4, "FailedToNack"), "Failed to Nack message {DeliveryTag}. Message may be stuck in unacked state.");
+
+    private static readonly Action<ILogger, ulong, Exception> s_logChannelClosedCannotNack = LoggerMessage.Define<ulong>(LogLevel.Critical, new EventId(5, "ChannelClosedCannotNack"), "Channel is closed, cannot Nack message {DeliveryTag}. Message may be stuck in unacked state.");
+
+    private static readonly Action<ILogger, string, Exception> s_logConsumerRegistered = LoggerMessage.Define<string>(LogLevel.Information, new EventId(6, "ConsumerRegistered"), "Consumer registered on queue {QueueName}");
+
+    private static readonly Action<ILogger, string, Exception> s_logConsumerUnregistered = LoggerMessage.Define<string>(LogLevel.Warning, new EventId(7, "ConsumerUnregistered"), "Consumer unregistered from queue {QueueName}");
+
+    private static readonly Action<ILogger, string, string, Exception> s_logConsumerShutdown = LoggerMessage.Define<string, string>(LogLevel.Error, new EventId(8, "ConsumerShutdown"), "Consumer shutdown on queue {QueueName}. Reason: {Reason}");
 
 
     /// <summary>
@@ -311,6 +358,7 @@ public class QueueConsumer : IHostedAmqpConsumer
     {
         if (this.WasStarted)
         {
+            this.cancellationTokenSource?.Cancel();
             this.cancellationTokenSource?.Dispose();
         }
 
