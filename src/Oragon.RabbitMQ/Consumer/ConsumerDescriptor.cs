@@ -17,7 +17,7 @@ public class ConsumerDescriptor : IConsumerDescriptor
 {
     private const string LockedMessage = "ConsumerDescriptor is locked";
 
-    private bool isLocked;
+    private volatile bool isLocked;
 
     /// <summary>
     /// Gets the service provider.

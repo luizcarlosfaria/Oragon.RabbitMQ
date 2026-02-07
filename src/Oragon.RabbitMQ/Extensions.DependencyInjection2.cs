@@ -109,12 +109,16 @@ public  static partial class DependencyInjectionExtensions
         if (serviceKey is null)
         {
             _ = builder.Services.AddSingleton(CreateConnectionFactory);
-            _ = builder.Services.AddSingleton(sp => CreateConnection(sp.GetRequiredService<IConnectionFactory>(), settings.MaxConnectRetryCount));
+            _ = builder.Services.AddSingleton(sp =>
+                Task.Run(() => CreateConnectionAsync(sp.GetRequiredService<IConnectionFactory>(), settings.MaxConnectRetryCount))
+                    .GetAwaiter().GetResult());
         }
         else
         {
             _ = builder.Services.AddKeyedSingleton(serviceKey, (sp, _) => CreateConnectionFactory(sp));
-            _ = builder.Services.AddKeyedSingleton(serviceKey, (sp, key) => CreateConnection(sp.GetRequiredKeyedService<IConnectionFactory>(key), settings.MaxConnectRetryCount));
+            _ = builder.Services.AddKeyedSingleton(serviceKey, (sp, key) =>
+                Task.Run(() => CreateConnectionAsync(sp.GetRequiredKeyedService<IConnectionFactory>(key), settings.MaxConnectRetryCount))
+                    .GetAwaiter().GetResult());
         }
 
         _ = builder.Services.AddSingleton<RabbitMQEventSourceLogForwarder>();
@@ -160,7 +164,7 @@ public  static partial class DependencyInjectionExtensions
         }
     }
 
-    private static IConnection CreateConnection(IConnectionFactory connectionFactory, int retryCount)
+    private static async Task<IConnection> CreateConnectionAsync(IConnectionFactory connectionFactory, int retryCount)
     {
         var resiliencePipelineBuilder = new ResiliencePipelineBuilder();
         if (retryCount > 0)
@@ -181,11 +185,10 @@ public  static partial class DependencyInjectionExtensions
 
         using Activity activity = s_activitySource.StartActivity("Rabbitmq connect", ActivityKind.Client);
 
-        return resiliencePipeline.Execute(factory =>
+        return await resiliencePipeline.ExecuteAsync(async ct =>
         {
-            return Task.Run(() => factory.CreateConnectionAsync()).GetAwaiter().GetResult();
-
-        }, connectionFactory);
+            return await connectionFactory.CreateConnectionAsync(cancellationToken: ct).ConfigureAwait(true);
+        }).ConfigureAwait(true);
     }
 
 }
