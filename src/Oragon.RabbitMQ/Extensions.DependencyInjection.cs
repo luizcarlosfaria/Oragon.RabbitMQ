@@ -3,6 +3,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Oragon.RabbitMQ.Consumer;
 using Polly;
 using Polly.Retry;
@@ -15,6 +16,10 @@ namespace Oragon.RabbitMQ;
 /// </summary>
 public static partial class DependencyInjectionExtensions
 {
+    private static readonly Action<ILogger, int, Exception> s_logWaitRabbitMQRetry = LoggerMessage.Define<int>(
+        LogLevel.Warning,
+        new EventId(1, "WaitRabbitMQRetry"),
+        "WaitRabbitMQAsync: retrying connection, attempt {AttemptNumber}");
 
     /// <summary>
     /// Add Oragon RabbitMQ Consumer to Dependency Injection
@@ -84,6 +89,8 @@ public static partial class DependencyInjectionExtensions
     /// <exception cref="InvalidOperationException"></exception>
     public static async Task WaitRabbitMQAsync(this IServiceProvider serviceProvider, string keyedServiceKey = null)
     {
+        var logger = serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(DependencyInjectionExtensions));
+
         ResiliencePipeline pipeline = new ResiliencePipelineBuilder()
         .AddRetry(new RetryStrategyOptions()
         {
@@ -91,10 +98,9 @@ public static partial class DependencyInjectionExtensions
             UseJitter = true,
             BackoffType = DelayBackoffType.Exponential,
             Delay = TimeSpan.FromSeconds(5),
-            OnRetry = static args =>
+            OnRetry = args =>
             {
-                Console.WriteLine("OnRetry, Attempt: {0}", args.AttemptNumber);
-                // Event handlers can be asynchronous; here, we return an empty ValueTask.
+                s_logWaitRabbitMQRetry(logger, args.AttemptNumber, null);
                 return default;
             }
         })
