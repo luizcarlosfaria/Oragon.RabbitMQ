@@ -14,15 +14,15 @@ namespace Oragon.RabbitMQ;
 public static class Constants
 {
     /// <summary>Cached type reference for <see cref="string"/>.</summary>
-    public static Type String { get; } = typeof(string);
+    public static Type StringType { get; } = typeof(string);
 
     /// <summary>Cached type reference for <see cref="DeliveryModes"/>.</summary>
     public static Type DeliveryMode { get; } = typeof(DeliveryModes);
 
-    /// <summary>Cached type reference for <see cref="RabbitMQ.Client.IConnection"/>.</summary>
+    /// <summary>Cached type reference for RabbitMQ.Client.IConnection.</summary>
     public static Type IConnection { get; } = typeof(IConnection);
 
-    /// <summary>Cached type reference for <see cref="RabbitMQ.Client.IChannel"/>.</summary>
+    /// <summary>Cached type reference for RabbitMQ.Client.IChannel.</summary>
     public static Type IChannel { get; } = typeof(IChannel);
 
     /// <summary>Cached type reference for <see cref="IAmqpResult"/>.</summary>
@@ -31,7 +31,7 @@ public static class Constants
     /// <summary>Cached type reference for <see cref="Task{IAmqpResult}"/>.</summary>
     public static Type TaskOfIAmqpResult { get; } = typeof(Task<IAmqpResult>);
 
-    /// <summary>Cached type reference for <see cref="RabbitMQ.Client.Events.BasicDeliverEventArgs"/>.</summary>
+    /// <summary>Cached type reference for RabbitMQ.Client.Events.BasicDeliverEventArgs.</summary>
     public static Type BasicDeliverEventArgs { get; } = typeof(BasicDeliverEventArgs);
 
     /// <summary>Cached type reference for <see cref="IServiceProvider"/>.</summary>

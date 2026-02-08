@@ -1,11 +1,5 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
-using System.Text;
-using Oragon.RabbitMQ;
 using Oragon.RabbitMQ.Consumer.Dispatch.Attributes;
 using Oragon.RabbitMQ.Consumer;
 
@@ -39,9 +33,10 @@ public class ConsumerServerTests
 
 
         await using ConsumerServer consumerServer = new ConsumerServer(Mock.Of<ILogger<ConsumerServer>>());
+
         consumerServer.AddConsumerDescriptor(consumerDescriptor);
 
-        Assert.Single(consumerServer.ConsumerDescriptors);
+        _ = Assert.Single(consumerServer.ConsumerDescriptors);
 
     }
     

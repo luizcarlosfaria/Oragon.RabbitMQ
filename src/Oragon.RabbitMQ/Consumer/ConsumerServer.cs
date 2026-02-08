@@ -12,6 +12,10 @@ namespace Oragon.RabbitMQ.Consumer;
 /// </summary>
 public class ConsumerServer : IHostedService, IAsyncDisposable
 {
+    private static readonly Action<ILogger, int, Exception> s_logAllConsumersStarted = LoggerMessage.Define<int>(LogLevel.Information, new EventId(1, "AllConsumersStarted"), "All {Count} consumer(s) started successfully");
+
+    private static readonly Action<ILogger, Exception> s_logConsumerFailedToStart = LoggerMessage.Define(LogLevel.Critical, new EventId(2, "ConsumerFailedToStart"), "Consumer failed to start - configuration error detected. Failing fast.");
+
     private readonly ILogger<ConsumerServer> logger;
     private bool disposedValue;
 
@@ -77,7 +81,7 @@ public class ConsumerServer : IHostedService, IAsyncDisposable
         // Wait for ALL to complete - if any fails, propagate exception (fail-fast)
         await Task.WhenAll(startTasks).ConfigureAwait(true);
 
-        this.logger.LogInformation("All {Count} consumer(s) started successfully", this.internalConsumers.Count);
+        s_logAllConsumersStarted(this.logger, this.internalConsumers.Count, null);
     }
 
     private async Task StartConsumerAsync(IHostedAmqpConsumer consumer, CancellationToken cancellationToken)
@@ -88,7 +92,7 @@ public class ConsumerServer : IHostedService, IAsyncDisposable
         }
         catch (Exception ex)
         {
-            this.logger.LogCritical(ex, "Consumer failed to start - configuration error detected. Failing fast.");
+            s_logConsumerFailedToStart(this.logger, ex);
             throw;
         }
     }

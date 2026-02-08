@@ -217,6 +217,7 @@ public class QueueConsumer : IHostedAmqpConsumer
     }
 
     [SuppressMessage("Style", "IDE0063:Use simple 'using' statement", Justification = "<Pending>")]
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
     private async Task ReceiveAsync(object sender, BasicDeliverEventArgs eventArgs)
     {
         IAmqpContext context = null;
@@ -244,6 +245,7 @@ public class QueueConsumer : IHostedAmqpConsumer
         }
     }
 
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
     private async Task TryNackMessageAsync(IAmqpContext context, ulong deliveryTag)
     {
         if (context?.Channel == null || context.Channel.IsClosed)
@@ -417,7 +419,10 @@ public class QueueConsumer : IHostedAmqpConsumer
     {
         if (this.WasStarted)
         {
-            this.cancellationTokenSource?.Cancel();
+            if (this.cancellationTokenSource != null)
+            {
+                await this.cancellationTokenSource.CancelAsync().ConfigureAwait(true);
+            }
             this.cancellationTokenSource?.Dispose();
         }
 

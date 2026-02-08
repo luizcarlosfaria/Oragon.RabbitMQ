@@ -1,8 +1,6 @@
 // Licensed to LuizCarlosFaria, gaGO.io, Mensageria .NET, Cloud Native .NET and ACADEMIA.DEV under one or more agreements.
 // The ACADEMIA.DEV licenses this file to you under the MIT license.
 
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using RabbitMQ.Client;
 
 namespace Oragon.RabbitMQ;
@@ -26,15 +24,5 @@ public static class TelemetryExtensions
     }
 
     
-    private static BasicProperties SetHeader(this BasicProperties basicProperties, string key, object value)
-    {
-        ArgumentNullException.ThrowIfNull(basicProperties);
-
-        basicProperties = basicProperties.EnsureHeaders();
-
-        basicProperties.Headers![key] = value;
-
-        return basicProperties;
-    }
 
 }
