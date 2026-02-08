@@ -136,6 +136,8 @@ pipeline {
                         'Oragon.RabbitMQ.Serializer.SystemTextJson',
                     ]
 
+                    sh 'git config --global --add safe.directory /var/jenkins_home/workspace'
+
                     if (env.BRANCH_NAME.endsWith("-alpha")) {
 
                         for (int i = 0; i < projetcs.size(); ++i) {
@@ -180,6 +182,8 @@ pipeline {
 
                     def publishOnNuGet = ( env.BRANCH_NAME.endsWith("-alpha") == false );
                     def hasSource = ( env.BRANCH_NAME.endsWith("-alpha") );
+
+                    sh 'git config --global --add safe.directory /var/jenkins_home/workspace'
 
                         withCredentials([usernamePassword(credentialsId: 'myget-oragon', passwordVariable: 'MYGET_KEY', usernameVariable: 'DUMMY' )]) {
 
