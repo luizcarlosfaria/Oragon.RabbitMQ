@@ -83,22 +83,22 @@ pipeline {
                         // sonarcloud issue | https://community.sonarsource.com/t/could-not-find-ref-refs-heads-master-in-refs-heads-refs-remotes-upstream-or-refs-remotes-origin/37016/5
                         // git fetch origin master:master | git fetch origin develop:develop
                         sh  """
-                            
+
                             git fetch origin master:master
 
                             git fetch origin develop:develop
 
                             dotnet restore  ./Oragon.RabbitMQ.slnx
 
-                            dotnet workload restore --framework net9.0 -p:TargetFrameworks=net9.0 ./Oragon.RabbitMQ.slnx
+                            dotnet workload restore --framework net10.0 -p:TargetFrameworks=net10.0 ./Oragon.RabbitMQ.slnx
 
                             export PATH="\$PATH:/root/.dotnet/tools"
 
                             dotnet sonarscanner begin ${sonarParamsText}
 
-                            dotnet build --no-incremental --framework net9.0 -p:TargetFrameworks=net9.0 ./Oragon.RabbitMQ.slnx
+                            dotnet build --no-incremental --framework net10.0 -p:TargetFrameworks=net10.0 ./Oragon.RabbitMQ.slnx
 
-                            dotnet-coverage collect "dotnet test --framework net9.0 -p:TargetFrameworks=net9.0" -f xml -o "/output-coverage/coverage.xml"
+                            dotnet-coverage collect "dotnet test --framework net10.0 -p:TargetFrameworks=net10.0" -f xml -o "/output-coverage/coverage.xml"
 
                             dotnet sonarscanner end /d:sonar.token="\$SONARQUBE_KEY"
 
