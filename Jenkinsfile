@@ -16,6 +16,8 @@ pipeline {
 
                 echo sh(script: 'env|sort', returnStdout: true)
 
+                sh 'git config --global --add safe.directory /var/jenkins_home/workspace/'
+
                 sh 'dotnet workload restore ./Oragon.RabbitMQ.slnx'
 
                 sh 'dotnet build ./Oragon.RabbitMQ.slnx'
