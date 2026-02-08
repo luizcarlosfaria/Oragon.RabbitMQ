@@ -16,8 +16,6 @@ pipeline {
 
                 echo sh(script: 'env|sort', returnStdout: true)
 
-                sh 'git config --global --add safe.directory /var/jenkins_home/workspace/'
-
                 sh 'dotnet workload restore ./Oragon.RabbitMQ.slnx'
 
                 sh 'dotnet build ./Oragon.RabbitMQ.slnx'
@@ -85,8 +83,7 @@ pipeline {
                         // sonarcloud issue | https://community.sonarsource.com/t/could-not-find-ref-refs-heads-master-in-refs-heads-refs-remotes-upstream-or-refs-remotes-origin/37016/5
                         // git fetch origin master:master | git fetch origin develop:develop
                         sh  """
-                            git config --global --add safe.directory /var/jenkins_home/workspace
-
+                            
                             git fetch origin master:master
 
                             git fetch origin develop:develop
@@ -136,8 +133,6 @@ pipeline {
                         'Oragon.RabbitMQ.Serializer.SystemTextJson',
                     ]
 
-                    sh 'git config --global --add safe.directory /var/jenkins_home/workspace'
-
                     if (env.BRANCH_NAME.endsWith("-alpha")) {
 
                         for (int i = 0; i < projetcs.size(); ++i) {
@@ -183,7 +178,6 @@ pipeline {
                     def publishOnNuGet = ( env.BRANCH_NAME.endsWith("-alpha") == false );
                     def hasSource = ( env.BRANCH_NAME.endsWith("-alpha") );
 
-                    sh 'git config --global --add safe.directory /var/jenkins_home/workspace'
 
                         withCredentials([usernamePassword(credentialsId: 'myget-oragon', passwordVariable: 'MYGET_KEY', usernameVariable: 'DUMMY' )]) {
 
