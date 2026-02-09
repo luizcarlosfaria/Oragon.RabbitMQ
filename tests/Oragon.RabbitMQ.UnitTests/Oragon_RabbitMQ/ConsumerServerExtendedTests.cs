@@ -345,9 +345,12 @@ public class ConsumerServerExtendedTests
 
         await consumerServer.StartAsync(CancellationToken.None);
 
-        // Act & Assert - second dispose should not throw
+        // Act - second dispose should not throw
         await consumerServer.DisposeAsync();
         await consumerServer.DisposeAsync();
+
+        // Assert - consumers should be cleared after dispose
+        Assert.Empty(consumerServer.Consumers);
     }
 
     #endregion

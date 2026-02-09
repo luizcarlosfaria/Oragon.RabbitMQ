@@ -297,9 +297,15 @@ public class QueueConsumerExtendedTests
 
         await consumerServer.StartAsync(CancellationToken.None);
         var queueConsumer = (QueueConsumer)consumerServer.Consumers.Single();
+        Assert.True(queueConsumer.WasStarted);
+        Assert.True(queueConsumer.IsConsuming);
 
-        // Act & Assert - should not throw
+        // Act
         await queueConsumer.DisposeAsync();
+
+        // Assert - WasStarted remains true (historical flag), BasicCancel was called during dispose
+        Assert.True(queueConsumer.WasStarted);
+        channelMock.Verify(it => it.BasicCancelAsync(It.IsAny<string>(), true, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -313,8 +319,13 @@ public class QueueConsumerExtendedTests
 
         var queueConsumer = new QueueConsumer(loggerMock.Object, descriptor);
 
-        // Act & Assert - should not throw even when not initialized/started
+        // Act
         await queueConsumer.DisposeAsync();
+
+        // Assert - state should remain unchanged
+        Assert.False(queueConsumer.WasStarted);
+        Assert.False(queueConsumer.IsInitialized);
+        Assert.False(queueConsumer.IsConsuming);
     }
 
     #endregion
