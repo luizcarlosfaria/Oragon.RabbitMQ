@@ -4,6 +4,7 @@
 using System.Buffers;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
+using System.Reflection;
 using Oragon.RabbitMQ.Consumer.Actions;
 using Oragon.RabbitMQ.Consumer.ArgumentBinders;
 using Oragon.RabbitMQ.Consumer.ResultHandlers;
@@ -76,8 +77,8 @@ public class Dispatcher
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Required for AMQP error handling")]
     private object DispatchInternal(IAmqpContext context)
     {
-        var count = this.argumentBinders.Count;
-        var arguments = ArrayPool<object>.Shared.Rent(count);
+        int count = this.argumentBinders.Count;
+        object[] arguments = ArrayPool<object>.Shared.Rent(count);
         try
         {
             for (var i = 0; i < count; i++)
@@ -100,17 +101,17 @@ public class Dispatcher
 
     private static Func<object[], object> BuildCompiledInvoker(Delegate handler)
     {
-        var method = handler.Method;
-        var parameters = method.GetParameters();
+        MethodInfo method = handler.Method;
+        ParameterInfo[] parameters = method.GetParameters();
 
         // Parameter: object[] args
-        var argsParam = Expression.Parameter(typeof(object[]), "args");
+        ParameterExpression argsParam = Expression.Parameter(typeof(object[]), "args");
 
         // Build argument expressions: (T0)args[0], (T1)args[1], ...
         var argExpressions = new Expression[parameters.Length];
         for (int i = 0; i < parameters.Length; i++)
         {
-            var arrayAccess = Expression.ArrayIndex(argsParam, Expression.Constant(i));
+            BinaryExpression arrayAccess = Expression.ArrayIndex(argsParam, Expression.Constant(i));
             argExpressions[i] = Expression.Convert(arrayAccess, parameters[i].ParameterType);
         }
 
@@ -119,7 +120,7 @@ public class Dispatcher
         if (handler.Target != null)
         {
             // Instance method or closure
-            var targetExpression = Expression.Constant(handler.Target);
+            ConstantExpression targetExpression = Expression.Constant(handler.Target);
             callExpression = Expression.Call(targetExpression, method, argExpressions);
         }
         else

@@ -68,7 +68,7 @@ public class TaskOfAmqpResultResultHandler : IResultHandler
             return this.consumerDescriptor.ResultForProcessFailure(context, exception);
         }
 
-        var result = this.resultExtractor(dispatchResult)
+        IAmqpResult result = this.resultExtractor(dispatchResult)
             ?? throw new InvalidOperationException(
                 $"Handler returned null from Task<IAmqpResult>. Queue: {context.QueueName}");
 
@@ -81,10 +81,10 @@ public class TaskOfAmqpResultResultHandler : IResultHandler
     private static Func<object, IAmqpResult> BuildResultExtractor(Type taskType)
     {
         // (object task) => (IAmqpResult)((Task<T>)task).Result
-        var taskParam = Expression.Parameter(typeof(object), "task");
-        var castToTask = Expression.Convert(taskParam, taskType);
-        var resultAccess = Expression.Property(castToTask, "Result");
-        var castToIAmqpResult = Expression.Convert(resultAccess, typeof(IAmqpResult));
+        ParameterExpression taskParam = Expression.Parameter(typeof(object), "task");
+        UnaryExpression castToTask = Expression.Convert(taskParam, taskType);
+        MemberExpression resultAccess = Expression.Property(castToTask, "Result");
+        UnaryExpression castToIAmqpResult = Expression.Convert(resultAccess, typeof(IAmqpResult));
         var lambda = Expression.Lambda<Func<object, IAmqpResult>>(castToIAmqpResult, taskParam);
         return lambda.Compile();
     }

@@ -89,7 +89,7 @@ public static partial class DependencyInjectionExtensions
     /// <exception cref="InvalidOperationException"></exception>
     public static async Task WaitRabbitMQAsync(this IServiceProvider serviceProvider, string keyedServiceKey = null)
     {
-        var logger = serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(DependencyInjectionExtensions));
+        ILogger logger = serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(DependencyInjectionExtensions));
 
         ResiliencePipeline pipeline = new ResiliencePipelineBuilder()
         .AddRetry(new RetryStrategyOptions()
@@ -116,9 +116,9 @@ public static partial class DependencyInjectionExtensions
                 ? serviceProvider.GetRequiredService<IConnectionFactory>()
                 : serviceProvider.GetRequiredKeyedService<IConnectionFactory>(keyedServiceKey);
 
-            using var connection = await connectionFactory.CreateConnectionAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
+            using IConnection connection = await connectionFactory.CreateConnectionAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
 
-            using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
+            using IChannel channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
 
             if (connection.IsOpen)
             {
