@@ -17,6 +17,12 @@
 
 [![Roadmap](https://img.shields.io/badge/Roadmap-%23ff6600?logo=github&logoColor=%23000000&label=GitHub&labelColor=%23f0f0f0)](https://github.com/users/luizcarlosfaria/projects/3/views/3)
 
+
+![.NET 8](https://img.shields.io/badge/.NET_8-5C2D91?style=flat&logo=dotnet&label=target)
+![.NET 9](https://img.shields.io/badge/.NET_9-5C2D91?style=flat&logo=dotnet&label=target)
+![.NET 10](https://img.shields.io/badge/.NET_10-5C2D91?style=flat&logo=dotnet&label=target)
+
+
 ## Official Release
 
 [![NuGet Version](https://img.shields.io/nuget/v/Oragon.RabbitMQ?logo=nuget&label=nuget)](https://www.nuget.org/packages?q=Oragon.RabbitMQ&includeComputedFrameworks=true&prerel=true&sortby=created-desc)
