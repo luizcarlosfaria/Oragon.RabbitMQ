@@ -6,7 +6,7 @@ public static class TestExtensions
 {
     public static RabbitMqContainer BuildRabbitMQ(this RabbitMqBuilder builder)
     {
-        var _rabbitMqContainer = new RabbitMqBuilder()
+        var _rabbitMqContainer = new RabbitMqBuilder(Constants.RabbitMQContainerImage)
             .WithDockerEndpoint(Environment.OSVersion.Platform == PlatformID.Unix
                                 ? "unix:///var/run/docker.sock"
                                 : Environment.OSVersion.Platform == PlatformID.Win32NT
@@ -17,7 +17,7 @@ public static class TestExtensions
             .WithWaitStrategy(
                 Wait
                 .ForUnixContainer()
-                .UntilPortIsAvailable(15672, it => it
+                .UntilInternalTcpPortIsAvailable(15672, it => it
                                                     .WithTimeout(TimeSpan.FromSeconds(120))
                                                     .WithRetries(20)
                                                     .WithInterval(TimeSpan.FromSeconds(3))

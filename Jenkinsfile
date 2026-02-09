@@ -90,15 +90,15 @@ pipeline {
 
                             dotnet restore  ./Oragon.RabbitMQ.slnx
 
-                            dotnet workload restore --framework net9.0 -p:TargetFrameworks=net9.0 ./Oragon.RabbitMQ.slnx
+                            dotnet workload restore --framework net10.0 -p:TargetFrameworks=net10.0 ./Oragon.RabbitMQ.slnx
 
                             export PATH="\$PATH:/root/.dotnet/tools"
 
                             dotnet sonarscanner begin ${sonarParamsText}
 
-                            dotnet build --no-incremental --framework net9.0 -p:TargetFrameworks=net9.0 ./Oragon.RabbitMQ.slnx
+                            dotnet build --no-incremental --framework net10.0 -p:TargetFrameworks=net10.0 ./Oragon.RabbitMQ.slnx
 
-                            dotnet-coverage collect "dotnet test --framework net9.0 -p:TargetFrameworks=net9.0" -f xml -o "/output-coverage/coverage.xml"
+                            dotnet-coverage collect "dotnet test --framework net10.0 -p:TargetFrameworks=net10.0" -f xml -o "/output-coverage/coverage.xml"
 
                             dotnet sonarscanner end /d:sonar.token="\$SONARQUBE_KEY"
 

@@ -34,7 +34,7 @@ public class ForwardResultTests
             It.IsAny<ReadOnlyMemory<byte>>(),
             It.IsAny<CancellationToken>()))
         .Returns(new ValueTask()).Verifiable(Times.Once());
-        channelMock.Setup(c => c.CloseAsync(It.IsAny<ushort>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        _ = channelMock.Setup(c => c.CloseAsync(It.IsAny<ushort>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
         var connectionMock = new Mock<IConnection>();
         connectionMock.Setup(c => c.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>()))
@@ -92,7 +92,7 @@ public class ForwardResultTests
             It.IsAny<ReadOnlyMemory<byte>>(),
             It.IsAny<CancellationToken>()))
         .Returns(new ValueTask()).Verifiable(Times.Once());
-        channelMock.Setup(c => c.CloseAsync(It.IsAny<ushort>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        _ = channelMock.Setup(c => c.CloseAsync(It.IsAny<ushort>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
         var connectionMock = new Mock<IConnection>();
         connectionMock.Setup(c => c.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>()))
@@ -149,7 +149,7 @@ public class ForwardResultTests
             It.IsAny<ReadOnlyMemory<byte>>(),
             It.IsAny<CancellationToken>()))
         .Returns(new ValueTask()).Verifiable(Times.Exactly(2));
-        channelMock.Setup(c => c.CloseAsync(It.IsAny<ushort>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        _ = channelMock.Setup(c => c.CloseAsync(It.IsAny<ushort>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
         var connectionMock = new Mock<IConnection>();
         connectionMock.Setup(c => c.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>()))

@@ -22,6 +22,7 @@ public class ConsumerServerTests
 
 
     [Fact]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2007:Consider calling ConfigureAwait on the awaited task", Justification = "<Pending>")]
     public async Task AddConsumerDescriptor_ShouldAddConsumerDescriptor()
     {
 

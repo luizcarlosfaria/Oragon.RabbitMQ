@@ -48,7 +48,7 @@ public class MultipleConsumersTest : IAsyncLifetime
     }
 
 
-    private readonly RabbitMqContainer _rabbitMqContainer = new RabbitMqBuilder().BuildRabbitMQ();
+    private readonly RabbitMqContainer _rabbitMqContainer = new RabbitMqBuilder(Constants.RabbitMQContainerImage).BuildRabbitMQ();
 
     public async Task InitializeAsync()
     {

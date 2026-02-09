@@ -10,4 +10,9 @@
 		<ProjectReference Include="..\Oragon.RabbitMQ\Oragon.RabbitMQ.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <PackageReference Update="AutomaticInterface" Version="5.2.6" />
+	  <PackageReference Update="RabbitMQ.Client" Version="7.2.0" />
+	</ItemGroup>
+
 </Project>
