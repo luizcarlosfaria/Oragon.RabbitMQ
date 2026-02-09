@@ -25,7 +25,7 @@ public class ReplyResultTests
         string replyTo = Guid.NewGuid().ToString("D");
         var channelMock = new Mock<IChannel>();
         channelMock.Setup(c => c.BasicPublishAsync(It.IsAny<string>(), It.Is<string>(s => s == replyTo), It.IsAny<bool>(), It.Is<BasicProperties>(bp => bp.CorrelationId == originalMessageId), It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>())).Returns(new ValueTask()).Verifiable(Times.Once());
-        channelMock.Setup(c => c.CloseAsync(It.IsAny<ushort>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        _ = channelMock.Setup(c => c.CloseAsync(It.IsAny<ushort>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
         var connectionMock = new Mock<IConnection>();
         connectionMock.Setup(c => c.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>()))
