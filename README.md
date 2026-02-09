@@ -282,8 +282,8 @@ Inside the `Oragon.RabbitMQ.Consumer.Actions` namespace, you can find some resul
 - AckResult (`AmqpResults.Ack();`)
 - NackResult (`AmqpResults.Nack(requeue: bool);`)
 - RejectResult (`AmqpResults.Reject(requeue: bool);`)
-- ReplyResult (`AmqpResults.Reply<T>(T objectToReply);`) ⚠️EXPERIMENTAL⚠️
-- ForwardResult (`AmqpResults.Forward<T>(string exchange, string routingKey, bool mandatory, params T[] objectsToForward);`) ⚠️EXPERIMENTAL⚠️
+- ReplyResult (`AmqpResults.Reply<T>(T objectToReply);`)
+- ForwardResult (`AmqpResults.Forward<T>(string exchange, string routingKey, bool mandatory, params T[] objectsToForward);`)
 - ComposableResult (`AmqpResults.Compose(params IAmqpResult[] results);`)
 
 Example:
