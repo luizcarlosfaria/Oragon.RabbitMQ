@@ -1,123 +1,54 @@
-using System.Diagnostics;
-using Oragon.RabbitMQ.Serialization;
-using Oragon.RabbitMQ;
-using DotNetAspireApp.Worker.Areas;
 using System.Text.Json;
+using DotNetAspireApp.Worker;
+using DotNetAspireApp.Worker.Areas;
+using DotNetAspireApp.Worker.Extensions;
+using Oragon.RabbitMQ;
 using Oragon.RabbitMQ.AspireClient;
-using DotNetAspireApp.Common.Messages.Commands;
-using Oragon.RabbitMQ.Consumer.Dispatch.Attributes;
-using RabbitMQ.Client.Events;
-using RabbitMQ.Client;
 
-public static class Program
-{
-    private static async Task Main(string[] args)
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+
+string? serviceName = OpenTelemetryExtensions.GetOtelServiceName();
+string? instanceId = OpenTelemetryExtensions.GetOtelInstanceId();
+
+
+_ = builder.Services.AddAmqpSerializer(options: JsonSerializerOptions.Default);
+
+builder.AddRabbitMQConsumer();
+
+//_ = builder.Services.AddSingleton(sp => new ActivitySource("RabbitMQ.Gago", "1.0.0"));
+
+builder.AddRabbitMQClient("rabbitmq", null, connectionFactory =>
     {
-        WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-        builder.AddRabbitMQConsumer();
-
-        _ = builder.Services.AddSingleton(sp => new ActivitySource("RabbitMQ.Gago", "1.0.0"));
-
-        builder.AddRabbitMQClient("rabbitmq",
-            rabbitMQClientSettings =>
-            {
-                rabbitMQClientSettings.DisableHealthChecks = false;
-            },
-            connectionFactory =>
-            {
-                connectionFactory.ConsumerDispatchConcurrency = DotNetAspireApp.Worker.Constants.ConsumerDispatchConcurrency;
-                connectionFactory.TopologyRecoveryEnabled = false;
-                connectionFactory.AutomaticRecoveryEnabled = false;
-                connectionFactory.ClientProvidedName = "DotNetAspireApp.Worker";
-
-
-            }
-        );
-
-        _ = builder.Services.AddAmqpSerializer(options: JsonSerializerOptions.Default);
-
-        _ = builder.Services.AddSingleton<EmailService>();
-
-        _ = builder.AddServiceDefaults();
-
-        WebApplication app = builder.Build();
-
-        await app.Services.WaitRabbitMQAsync().ConfigureAwait(false);
-
-        await app.ConfigureRabbitMQAsync().ConfigureAwait(false);
-
-        await app.ConfigureManagedConsumer().ConfigureAwait(false); // Managed Implementation
-
-        await app.ConfigureUnManagedConsumer().ConfigureAwait(false); // UnManaged Implementation (Native Client Only)
-
-
-        await app.RunAsync().ConfigureAwait(false);
+        connectionFactory.ClientProvidedName = $"DotNetAspireApp.Worker | {serviceName} | {instanceId}";
+        connectionFactory.ConsumerDispatchConcurrency = DotNetAspireApp.Worker.Constants.ConsumerDispatchConcurrency;
+        connectionFactory.TopologyRecoveryEnabled = false;
+        connectionFactory.AutomaticRecoveryEnabled = false;
     }
+);
 
+_ = builder.Services.AddSingleton<EmailService>();
 
-    private static Task ConfigureManagedConsumer(this IHost host)
-    {
-        _ = host.MapQueue("events-managed", ([FromServices] EmailService svc, [FromBody] DoSomethingCommand cmd)
-            => svc.DoSomethingAsync(cmd).ConfigureAwait(false))
-        .WithPrefetch(DotNetAspireApp.Worker.Constants.Prefetch)
-        .WithDispatchConcurrency(DotNetAspireApp.Worker.Constants.ConsumerDispatchConcurrency);
+_ = builder.AddServiceDefaults();
 
-        return Task.CompletedTask;
-    }
+// Add services to the container.
+_ = builder.Services.AddProblemDetails();
 
-    private static async Task ConfigureUnManagedConsumer(this IHost host)
-    {
+WebApplication app = builder.Build();
 
-        IConnectionFactory connectionFactory = host.Services.GetRequiredService<IConnectionFactory>();
+// Configure the HTTP request pipeline.
+_ = app.UseExceptionHandler();
 
-        IConnection connection = await connectionFactory.CreateConnectionAsync().ConfigureAwait(false);
+_ = app.MapGet("/", () => $"Alive at {DateTime.Now:yyyyy-MM-dd HH:mm}");
 
-        var channelOptions = new CreateChannelOptions(publisherConfirmationsEnabled: false,
-                                                      publisherConfirmationTrackingEnabled: false,
-                                                      outstandingPublisherConfirmationsRateLimiter: null,
-                                                      consumerDispatchConcurrency: DotNetAspireApp.Worker.Constants.ConsumerDispatchConcurrency);
+await app.Services.WaitRabbitMQAsync().ConfigureAwait(false);
 
-        IChannel channel = await connection.CreateChannelAsync(channelOptions).ConfigureAwait(false);
+await app.ConfigureRabbitMQAsync().ConfigureAwait(false);
 
-        await channel.BasicQosAsync(0, DotNetAspireApp.Worker.Constants.Prefetch, false).ConfigureAwait(false);
+await app.ConfigureManagedConsumer().ConfigureAwait(false); // Managed Implementation
 
-        var consumer = new AsyncEventingBasicConsumer(channel);
+await app.ConfigureUnManagedConsumer().ConfigureAwait(false); // UnManaged Implementation (Native Client Only)
 
-        IAmqpSerializer serializer = host.Services.GetRequiredService<IAmqpSerializer>();
+_ = app.MapDefaultEndpoints();
 
-        consumer.ReceivedAsync += async (sender, ea) =>
-        {
-            using IServiceScope scope = host.Services.CreateScope();
-            EmailService emailService = scope.ServiceProvider.GetRequiredService<EmailService>();
-            DoSomethingCommand message;
-            try
-            {
-                message = serializer.Deserialize<DoSomethingCommand>(ea);
-            }
-            catch
-            {
-                await channel.BasicRejectAsync(ea.DeliveryTag, false).ConfigureAwait(false);
-                return;
-            }
-            try
-            {
-                await emailService.DoSomethingAsync(message).ConfigureAwait(false);
-                await channel.BasicAckAsync(ea.DeliveryTag, false).ConfigureAwait(false);
-            }
-            catch
-            {
-                await channel.BasicNackAsync(ea.DeliveryTag, false, false).ConfigureAwait(false);
-            }
-        };
-
-        _ = await channel.BasicConsumeAsync(queue: "events-unmanaged",
-                                            autoAck: false,
-                                            consumerTag: "events-unmanaged-1",
-                                            noLocal: true,
-                                            exclusive: false,
-                                            arguments: null,
-                                            consumer: consumer).ConfigureAwait(false);
-
-
-    }
-}
+app.Run();

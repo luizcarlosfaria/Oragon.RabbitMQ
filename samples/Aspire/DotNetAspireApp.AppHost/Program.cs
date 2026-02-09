@@ -22,6 +22,14 @@ var apiService = builder.AddProject<Projects.DotNetAspireApp_ApiService>("apiser
 #endif
     ;
 
+var worker = builder.AddProject<Projects.DotNetAspireApp_Worker>("worker")
+    .WithReference(rabbitmq)
+#if NET9_0_OR_GREATER
+    .WaitFor(rabbitmq)
+#endif
+    .WithReplicas(4)
+    ;
+
 builder.AddProject<Projects.DotNetAspireApp_Web>("webfrontend")
     .WithExternalHttpEndpoints()
     .WithReference(redis)
@@ -31,12 +39,5 @@ builder.AddProject<Projects.DotNetAspireApp_Web>("webfrontend")
 #endif
     ;
 
-builder.AddProject<Projects.DotNetAspireApp_Worker>("worker")
-    .WithReference(rabbitmq)
-#if NET9_0_OR_GREATER
-    .WaitFor(rabbitmq)
-#endif
-    .WithReplicas(4)
-    ;
 
 builder.Build().Run();

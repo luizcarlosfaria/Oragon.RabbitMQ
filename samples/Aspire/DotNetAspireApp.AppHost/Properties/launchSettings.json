@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
-    "https": {
+    "aspire-https": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
@@ -13,7 +13,7 @@
         "DOTNET_RESOURCE_SERVICE_ENDPOINT_URL": "https://localhost:22064"
       }
     },
-    "http": {
+    "aspire-http": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
