@@ -34,6 +34,11 @@ public class ForwardResultTests
             It.IsAny<ReadOnlyMemory<byte>>(),
             It.IsAny<CancellationToken>()))
         .Returns(new ValueTask()).Verifiable(Times.Once());
+        channelMock.Setup(c => c.CloseAsync(It.IsAny<ushort>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+
+        var connectionMock = new Mock<IConnection>();
+        connectionMock.Setup(c => c.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(channelMock.Object).Verifiable(Times.Once());
 
         var basicPropertiesMock = new Mock<IReadOnlyBasicProperties>();
         basicPropertiesMock.SetupGet(it => it.MessageId).Returns(originalMessageId).Verifiable(Times.Once());
@@ -52,7 +57,7 @@ public class ForwardResultTests
                 cancellationToken: default);
 
         var contextMock = new Mock<IAmqpContext>();
-        contextMock.Setup(it => it.Channel).Returns(channelMock.Object).Verifiable(Times.Once());
+        contextMock.Setup(it => it.Connection).Returns(connectionMock.Object).Verifiable(Times.Once());
         contextMock.Setup(it => it.Request).Returns(basicDeliverEventArgs).Verifiable(Times.Once());
         contextMock.Setup(it => it.Serializer).Returns(amqpSerializer.Object).Verifiable(Times.Once());
 
@@ -63,6 +68,7 @@ public class ForwardResultTests
 
         // Assert
         channelMock.VerifyAll();
+        connectionMock.VerifyAll();
         basicPropertiesMock.VerifyAll();
         amqpSerializer.VerifyAll();
         contextMock.VerifyAll();
@@ -86,6 +92,11 @@ public class ForwardResultTests
             It.IsAny<ReadOnlyMemory<byte>>(),
             It.IsAny<CancellationToken>()))
         .Returns(new ValueTask()).Verifiable(Times.Once());
+        channelMock.Setup(c => c.CloseAsync(It.IsAny<ushort>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+
+        var connectionMock = new Mock<IConnection>();
+        connectionMock.Setup(c => c.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(channelMock.Object).Verifiable(Times.Once());
 
         var basicPropertiesMock = new Mock<IReadOnlyBasicProperties>();
         basicPropertiesMock.SetupGet(it => it.MessageId).Returns(originalMessageId).Verifiable(Times.Once());
@@ -104,7 +115,7 @@ public class ForwardResultTests
                 cancellationToken: default);
 
         var contextMock = new Mock<IAmqpContext>();
-        contextMock.Setup(it => it.Channel).Returns(channelMock.Object).Verifiable(Times.Once());
+        contextMock.Setup(it => it.Connection).Returns(connectionMock.Object).Verifiable(Times.Once());
         contextMock.Setup(it => it.Request).Returns(basicDeliverEventArgs).Verifiable(Times.Once());
         contextMock.Setup(it => it.Serializer).Returns(amqpSerializer.Object).Verifiable(Times.Once());
 
@@ -115,6 +126,7 @@ public class ForwardResultTests
 
         // Assert
         channelMock.VerifyAll();
+        connectionMock.VerifyAll();
         basicPropertiesMock.VerifyAll();
         amqpSerializer.VerifyAll();
         contextMock.VerifyAll();
@@ -137,6 +149,11 @@ public class ForwardResultTests
             It.IsAny<ReadOnlyMemory<byte>>(),
             It.IsAny<CancellationToken>()))
         .Returns(new ValueTask()).Verifiable(Times.Exactly(2));
+        channelMock.Setup(c => c.CloseAsync(It.IsAny<ushort>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+
+        var connectionMock = new Mock<IConnection>();
+        connectionMock.Setup(c => c.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(channelMock.Object).Verifiable(Times.Once());
 
         var basicPropertiesMock = new Mock<IReadOnlyBasicProperties>();
         basicPropertiesMock.SetupGet(it => it.MessageId).Returns(originalMessageId).Verifiable(Times.Exactly(2));
@@ -156,7 +173,7 @@ public class ForwardResultTests
                 cancellationToken: default);
 
         var contextMock = new Mock<IAmqpContext>();
-        contextMock.Setup(it => it.Channel).Returns(channelMock.Object).Verifiable(Times.Exactly(2));
+        contextMock.Setup(it => it.Connection).Returns(connectionMock.Object).Verifiable(Times.Once());
         contextMock.Setup(it => it.Request).Returns(basicDeliverEventArgs).Verifiable(Times.Exactly(2));
         contextMock.Setup(it => it.Serializer).Returns(amqpSerializer.Object).Verifiable(Times.Exactly(2));
 
@@ -170,6 +187,7 @@ public class ForwardResultTests
 
         // Assert
         channelMock.VerifyAll();
+        connectionMock.VerifyAll();
         basicPropertiesMock.VerifyAll();
         amqpSerializer.VerifyAll();
         contextMock.VerifyAll();

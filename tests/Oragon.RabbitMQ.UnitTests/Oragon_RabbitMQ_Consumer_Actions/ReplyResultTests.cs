@@ -25,6 +25,11 @@ public class ReplyResultTests
         string replyTo = Guid.NewGuid().ToString("D");
         var channelMock = new Mock<IChannel>();
         channelMock.Setup(c => c.BasicPublishAsync(It.IsAny<string>(), It.Is<string>(s => s == replyTo), It.IsAny<bool>(), It.Is<BasicProperties>(bp => bp.CorrelationId == originalMessageId), It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>())).Returns(new ValueTask()).Verifiable(Times.Once());
+        channelMock.Setup(c => c.CloseAsync(It.IsAny<ushort>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+
+        var connectionMock = new Mock<IConnection>();
+        connectionMock.Setup(c => c.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(channelMock.Object).Verifiable(Times.Once());
 
         var basicPropertiesMock = new Mock<IReadOnlyBasicProperties>();
         basicPropertiesMock.SetupGet(it => it.MessageId).Returns(originalMessageId).Verifiable(Times.Once());
@@ -44,7 +49,7 @@ public class ReplyResultTests
                 cancellationToken: default);
 
         var contextMock = new Mock<IAmqpContext>();
-        contextMock.Setup(it => it.Channel).Returns(channelMock.Object).Verifiable(Times.Once());
+        contextMock.Setup(it => it.Connection).Returns(connectionMock.Object).Verifiable(Times.Once());
         contextMock.Setup(it => it.Request).Returns(basicDeliverEventArgs).Verifiable(Times.Exactly(2));
         contextMock.Setup(it => it.Serializer).Returns(amqpSerializer.Object).Verifiable(Times.Once());
 
@@ -55,6 +60,7 @@ public class ReplyResultTests
 
         // Assert
         channelMock.VerifyAll();
+        connectionMock.VerifyAll();
         basicPropertiesMock.VerifyAll();
         amqpSerializer.VerifyAll();
         contextMock.VerifyAll();

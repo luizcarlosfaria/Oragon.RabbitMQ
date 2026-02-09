@@ -181,9 +181,7 @@ public static class AspireRabbitMQExtensions
 
         return resiliencePipeline.Execute(factory =>
         {
-            Console.WriteLine("Criando conexão com o RabbitMQ factory.CreateConnection() ------------------------- ");
-
-            return factory.CreateConnectionAsync().ConfigureAwait(true).GetAwaiter().GetResult();
+            return Task.Run(() => factory.CreateConnectionAsync()).GetAwaiter().GetResult();
 
         }, connectionFactory);
     }

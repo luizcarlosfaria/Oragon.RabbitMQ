@@ -5,7 +5,6 @@ namespace Oragon.RabbitMQ;
 /// <summary>
 /// Represents errors that occur during remote operations.
 /// </summary>
-[Serializable]
 public class AmqpRemoteException : Exception
 {
     private readonly string remoteStackTrace;
@@ -42,6 +41,6 @@ public class AmqpRemoteException : Exception
     /// <summary>
     /// Gets the string representation of the frames on the call stack at the time the current exception was thrown.
     /// </summary>
-    public override string StackTrace => this.remoteStackTrace;
+    public override string StackTrace => this.remoteStackTrace ?? base.StackTrace;
 
 }

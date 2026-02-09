@@ -2,6 +2,7 @@
 // The ACADEMIA.DEV licenses this file to you under the MIT license.
 
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Oragon.RabbitMQ.Consumer;
 
@@ -9,10 +10,23 @@ namespace Oragon.RabbitMQ.Consumer;
 /// <summary>
 /// This class is responsible for consuming messages from RabbitMQ.
 /// </summary>
-public class ConsumerServer : IHostedService, IDisposable
+public class ConsumerServer : IHostedService, IAsyncDisposable
 {
+    private static readonly Action<ILogger, int, Exception> s_logAllConsumersStarted = LoggerMessage.Define<int>(LogLevel.Information, new EventId(1, "AllConsumersStarted"), "All {Count} consumer(s) started successfully");
+
+    private static readonly Action<ILogger, Exception> s_logConsumerFailedToStart = LoggerMessage.Define(LogLevel.Critical, new EventId(2, "ConsumerFailedToStart"), "Consumer failed to start - configuration error detected. Failing fast.");
+
+    private readonly ILogger<ConsumerServer> logger;
     private bool disposedValue;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ConsumerServer"/> class.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
+    public ConsumerServer(ILogger<ConsumerServer> logger)
+    {
+        this.logger = logger;
+    }
 
     /// <summary>
     /// Lock the consumers to Add Consumers
@@ -56,12 +70,30 @@ public class ConsumerServer : IHostedService, IDisposable
 
         foreach (IConsumerDescriptor consumer in this.ConsumerDescriptors)
         {
-            this.internalConsumers.Add(await consumer.BuildConsumerAsync(cancellationToken).ConfigureAwait(false));
+            this.internalConsumers.Add(await consumer.BuildConsumerAsync(cancellationToken).ConfigureAwait(true));
         }
 
-        foreach (IHostedAmqpConsumer consumer in this.internalConsumers)
+        // Start all consumers in parallel
+        var startTasks = this.internalConsumers
+            .Select(consumer => this.StartConsumerAsync(consumer, cancellationToken))
+            .ToList();
+
+        // Wait for ALL to complete - if any fails, propagate exception (fail-fast)
+        await Task.WhenAll(startTasks).ConfigureAwait(true);
+
+        s_logAllConsumersStarted(this.logger, this.internalConsumers.Count, null);
+    }
+
+    private async Task StartConsumerAsync(IHostedAmqpConsumer consumer, CancellationToken cancellationToken)
+    {
+        try
         {
-            _ = Task.Factory.StartNew(() => consumer.StartAsync(cancellationToken), cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            await consumer.StartAsync(cancellationToken).ConfigureAwait(true);
+        }
+        catch (Exception ex)
+        {
+            s_logConsumerFailedToStart(this.logger, ex);
+            throw;
         }
     }
 
@@ -74,41 +106,28 @@ public class ConsumerServer : IHostedService, IDisposable
     {
         foreach (IHostedAmqpConsumer consumer in this.internalConsumers.NewReverseList())
         {
-            await consumer.StopAsync(cancellationToken).ConfigureAwait(false);
+            await consumer.StopAsync(cancellationToken).ConfigureAwait(true);
         }
 
         this.IsReadOnly = false;
     }
 
     /// <summary>
-    /// This method is called when the application host is ready to start the service.
+    /// Disposes the consumer server asynchronously.
     /// </summary>
-    /// <param name="disposing"></param>
-    protected virtual void Dispose(bool disposing)
+    public async ValueTask DisposeAsync()
     {
         if (!this.disposedValue)
         {
-            if (disposing)
+            foreach (IHostedAmqpConsumer consumer in this.internalConsumers.NewReverseList())
             {
-                foreach (IHostedAmqpConsumer consumer in this.internalConsumers.NewReverseList())
-                {
-                    consumer.DisposeAsync().AsTask().GetAwaiter().GetResult();
-
-                    _ = this.internalConsumers.Remove(consumer);
-                }
+                await consumer.DisposeAsync().ConfigureAwait(true);
             }
+            this.internalConsumers.Clear();
             this.disposedValue = true;
         }
-    }
-
-    /// <summary>
-    /// This method is called when the application host is ready to start the service.
-    /// </summary>
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        this.Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
+
 }
 

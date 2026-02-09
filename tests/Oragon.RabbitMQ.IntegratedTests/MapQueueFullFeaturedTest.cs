@@ -214,9 +214,9 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
             .WithTopology(async (channel, ct) =>
             {
                 // This will be executed when the channel is created, before start consuming
-                _ = await channel.QueueDeclareAsync(queue, false, false, false, null);
+                _ = await channel.QueueDeclareAsync(queue, false, false, false, null, cancellationToken: ct).ConfigureAwait(true);
 
-                await channel.BasicPublishAsync(string.Empty, queue, true, Encoding.Default.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(originalMessage)));
+                await channel.BasicPublishAsync(string.Empty, queue, true, Encoding.Default.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(originalMessage)), cancellationToken: ct).ConfigureAwait(true);
             })
             .WithDispatchConcurrency(1)
             .WithConsumerTag("MapQueueBasicSuccessTest")

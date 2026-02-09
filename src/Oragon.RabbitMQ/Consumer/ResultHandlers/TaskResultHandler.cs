@@ -40,7 +40,7 @@ public class TaskResultHandler : IResultHandler
 
         try
         {
-            await ((Task)dispatchResult).ConfigureAwait(false);
+            await ((Task)dispatchResult).ConfigureAwait(true);
         }
         catch (Exception exception)
         {

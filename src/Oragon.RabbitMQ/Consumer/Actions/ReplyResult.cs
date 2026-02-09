@@ -29,22 +29,40 @@ public class ReplyResult<T> : IAmqpResult
     /// </summary>
     /// <param name="context">The Amqp context in which to send the reply.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    public Task ExecuteAsync(IAmqpContext context)
+    public async Task ExecuteAsync(IAmqpContext context)
     {
         ArgumentNullException.ThrowIfNull(context, nameof(context));
 
-        var replyBasicProperties = new BasicProperties
+        var replyTo = context.Request.BasicProperties.ReplyTo;
+        if (string.IsNullOrWhiteSpace(replyTo))
         {
-            DeliveryMode = DeliveryModes.Persistent,
-            MessageId = Guid.NewGuid().ToString("D"),
-            CorrelationId = context.Request.BasicProperties.MessageId,
-        };
+            throw new InvalidOperationException(
+                $"Cannot reply to message {context.Request.BasicProperties.MessageId}: ReplyTo property is not set.");
+        }
 
-        return context.Channel.BasicPublishAsync(
-            exchange: string.Empty,
-            routingKey: context.Request.BasicProperties.ReplyTo,
-            mandatory: true,
-            basicProperties: replyBasicProperties,
-            body: context.Serializer.Serialize(replyBasicProperties, this.objectToReply)).AsTask();
+        // Create a dedicated channel for reply to avoid race conditions
+        // when the consumer channel is used concurrently
+        using IChannel replyChannel = await context.Connection.CreateChannelAsync().ConfigureAwait(true);
+
+        try
+        {
+            var replyBasicProperties = new BasicProperties
+            {
+                DeliveryMode = DeliveryModes.Persistent,
+                MessageId = Guid.NewGuid().ToString("D"),
+                CorrelationId = context.Request.BasicProperties.MessageId ?? context.Request.BasicProperties.CorrelationId,
+            };
+
+            await replyChannel.BasicPublishAsync(
+                exchange: string.Empty,
+                routingKey: replyTo,
+                mandatory: true,
+                basicProperties: replyBasicProperties,
+                body: context.Serializer.Serialize(replyBasicProperties, this.objectToReply)).ConfigureAwait(true);
+        }
+        finally
+        {
+            await replyChannel.CloseAsync().ConfigureAwait(true);
+        }
     }
 }

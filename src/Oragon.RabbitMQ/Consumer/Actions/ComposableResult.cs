@@ -49,9 +49,9 @@ public class ComposableResult : IAmqpResult
     {
         ArgumentNullException.ThrowIfNull(context, nameof(context));
 
-        foreach (IAmqpResult result in this.results)
+        foreach (IAmqpResult result in this.results.ToArray())
         {
-            await result.ExecuteAsync(context).ConfigureAwait(false);
+            await result.ExecuteAsync(context).ConfigureAwait(true);
         }
     }
 }

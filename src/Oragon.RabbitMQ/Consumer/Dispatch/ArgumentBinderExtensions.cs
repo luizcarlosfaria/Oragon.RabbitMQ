@@ -93,7 +93,7 @@ internal static class ArgumentBinderExtensions
             var type when type == Constants.BasicPropertiesType => new DynamicArgumentBinder(context => context.Request.BasicProperties),
             var type when type == Constants.CancellationToken => new DynamicArgumentBinder(context => context.CancellationToken),
             //inference by name
-            var type when type == Constants.String => parameter.Name switch
+            var type when type == Constants.StringType => parameter.Name switch
             {
                 var name when Constants.QueueNameParams.Contains(name) => new DynamicArgumentBinder(context => context.QueueName),
                 var name when Constants.ExchangeNameParams.Contains(name) => new DynamicArgumentBinder(context => context.Request.Exchange),

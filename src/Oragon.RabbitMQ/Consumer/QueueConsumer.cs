@@ -30,22 +30,24 @@ public class QueueConsumer : IHostedAmqpConsumer
     private string consumerTag;
     private CancellationTokenSource cancellationTokenSource;
     private IAmqpSerializer serializer;
+    private volatile bool wasStarted;
+    private volatile bool isConsuming;
+    private volatile bool isInitialized;
+
+    /// <summary>
+    /// Gets a value indicating whether the consumer was started.
+    /// </summary>
+    public bool WasStarted => this.wasStarted;
 
     /// <summary>
     /// Gets a value indicating whether the consumer is consuming messages.
     /// </summary>
-    public bool WasStarted { get; private set; }
-
-    /// <summary>
-    /// Gets a value indicating whether the consumer is consuming messages.
-    /// </summary>
-    public bool IsConsuming { get; private set; }
-
+    public bool IsConsuming => this.isConsuming;
 
     /// <summary>
     /// Gets a value indicating whether the consumer is initialized.
     /// </summary>
-    public bool IsInitialized { get; private set; }
+    public bool IsInitialized => this.isInitialized;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="QueueConsumer"/> class.
@@ -69,22 +71,26 @@ public class QueueConsumer : IHostedAmqpConsumer
 
         this.dispatcher = new Dispatcher(this.consumerDescriptor);
 
-        await this.ValidateAsync(cancellationToken).ConfigureAwait(false);
+        await this.ValidateAsync(cancellationToken).ConfigureAwait(true);
 
         this.serializer = this.consumerDescriptor.SerializerFactory(this.consumerDescriptor.ApplicationServiceProvider);
 
-        this.connection = await this.consumerDescriptor.ConnectionFactory(this.consumerDescriptor.ApplicationServiceProvider, cancellationToken).ConfigureAwait(false);
+        this.connection = await this.consumerDescriptor.ConnectionFactory(this.consumerDescriptor.ApplicationServiceProvider, cancellationToken).ConfigureAwait(true);
 
-        this.channel = await this.consumerDescriptor.ChannelFactory(this.connection, cancellationToken).ConfigureAwait(false);
+        this.channel = await this.consumerDescriptor.ChannelFactory(this.connection, cancellationToken).ConfigureAwait(true);
 
         if (this.consumerDescriptor.TopologyInitializer != null)
         {
-            await this.consumerDescriptor.TopologyInitializer(this.channel, cancellationToken).ConfigureAwait(false);
+            await this.consumerDescriptor.TopologyInitializer(this.channel, cancellationToken).ConfigureAwait(true);
         }
         
-        await this.WaitQueueCreationAsync().ConfigureAwait(false);
+        await this.WaitQueueCreationAsync(cancellationToken).ConfigureAwait(true);
 
-        await this.channel.BasicQosAsync(0, this.consumerDescriptor.PrefetchCount, false, cancellationToken).ConfigureAwait(false);
+        await this.channel.BasicQosAsync(0, this.consumerDescriptor.PrefetchCount, false, cancellationToken).ConfigureAwait(true);
+
+        this.connection.ConnectionShutdownAsync += this.ConnectionShutdownAsync;
+        this.connection.ConnectionBlockedAsync += this.ConnectionBlockedAsync;
+        this.connection.ConnectionUnblockedAsync += this.ConnectionUnblockedAsync;
 
         this.asyncBasicConsumer = new AsyncEventingBasicConsumer(this.channel);
         this.asyncBasicConsumer.ReceivedAsync += this.ReceiveAsync;
@@ -92,7 +98,7 @@ public class QueueConsumer : IHostedAmqpConsumer
         this.asyncBasicConsumer.UnregisteredAsync += this.UnregisteredAsync;
         this.asyncBasicConsumer.ShutdownAsync += this.ShutdownAsync;
 
-        this.IsInitialized = true;
+        this.isInitialized = true;
     }
 
 
@@ -111,7 +117,7 @@ public class QueueConsumer : IHostedAmqpConsumer
     /// Waits for the queue creation asynchronously.
     /// </summary>
     /// <returns></returns>
-    protected virtual async Task WaitQueueCreationAsync()
+    protected virtual async Task WaitQueueCreationAsync(CancellationToken cancellationToken)
     {
         await Policy
             .Handle<OperationInterruptedException>()
@@ -121,14 +127,14 @@ public class QueueConsumer : IHostedAmqpConsumer
                 s_logQueueNotFound(this.logger, this.consumerDescriptor.QueueName, timeToWait, null);
                 return timeToWait;
             })
-            .ExecuteAsync(async () =>
+            .ExecuteAsync(async (ct) =>
             {
-                using IChannel testModel = await this.connection.CreateChannelAsync().ConfigureAwait(false);
+                using IChannel testModel = await this.connection.CreateChannelAsync(cancellationToken: ct).ConfigureAwait(true);
 
-                _ = await testModel.QueueDeclarePassiveAsync(this.consumerDescriptor.QueueName).ConfigureAwait(false);
+                _ = await testModel.QueueDeclarePassiveAsync(this.consumerDescriptor.QueueName, ct).ConfigureAwait(true);
 
-                await testModel.CloseAsync().ConfigureAwait(false);
-            }).ConfigureAwait(false);
+                await testModel.CloseAsync(cancellationToken: ct).ConfigureAwait(true);
+            }, cancellationToken).ConfigureAwait(true);
     }
 
     /// <summary>
@@ -136,20 +142,21 @@ public class QueueConsumer : IHostedAmqpConsumer
     /// </summary>
     public async Task ValidateAsync(CancellationToken cancellationToken)
     {
-        IConnection connection1 = await this.consumerDescriptor.ConnectionFactory(this.consumerDescriptor.ApplicationServiceProvider, cancellationToken).ConfigureAwait(false);
-        IConnection connection2 = await this.consumerDescriptor.ConnectionFactory(this.consumerDescriptor.ApplicationServiceProvider, cancellationToken).ConfigureAwait(false);
-        var mustReuseConnection = connection1 == connection2;
-
+        IConnection connection1 = await this.consumerDescriptor.ConnectionFactory(this.consumerDescriptor.ApplicationServiceProvider, cancellationToken).ConfigureAwait(true);
+        bool mustReuseConnection = false;
         try
         {
+            IConnection connection2 = await this.consumerDescriptor.ConnectionFactory(this.consumerDescriptor.ApplicationServiceProvider, cancellationToken).ConfigureAwait(true);
+            mustReuseConnection = connection1 == connection2;
+
             if (!mustReuseConnection)
             {
-                await connection2.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+                await connection2.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
             }
 
-            using IChannel testChannel = await this.consumerDescriptor.ChannelFactory(connection1, cancellationToken).ConfigureAwait(false);            
+            using IChannel testChannel = await this.consumerDescriptor.ChannelFactory(connection1, cancellationToken).ConfigureAwait(true);
 
-            await testChannel.CloseAsync(cancellationToken).ConfigureAwait(false);
+            await testChannel.CloseAsync(cancellationToken).ConfigureAwait(true);
 
             using IServiceScope scope = this.consumerDescriptor.ApplicationServiceProvider.CreateScope();
 
@@ -175,7 +182,7 @@ public class QueueConsumer : IHostedAmqpConsumer
         {
             if (!mustReuseConnection)
             {
-                await connection1.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+                await connection1.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
             }
         }
 
@@ -202,28 +209,59 @@ public class QueueConsumer : IHostedAmqpConsumer
             exclusive: this.consumerDescriptor.Exclusive,
             noLocal: true,
             cancellationToken: this.cancellationTokenSource.Token)
-            .ConfigureAwait(false);
+            .ConfigureAwait(true);
 
-        this.WasStarted = true;
+        this.wasStarted = true;
 
-        this.IsConsuming = true;
+        this.isConsuming = true;
     }
 
     [SuppressMessage("Style", "IDE0063:Use simple 'using' statement", Justification = "<Pending>")]
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
     private async Task ReceiveAsync(object sender, BasicDeliverEventArgs eventArgs)
     {
-        using (IServiceScope scope = this.consumerDescriptor.ApplicationServiceProvider.CreateScope())
+        IAmqpContext context = null;
+        try
         {
-            (bool canProceed, Exception exception) = this.TryDeserialize(eventArgs, this.dispatcher.MessageType, out var incomingMessage);
+            using (IServiceScope scope = this.consumerDescriptor.ApplicationServiceProvider.CreateScope())
+            {
+                (bool canProceed, Exception exception) = this.TryDeserialize(eventArgs, this.dispatcher.MessageType, out var incomingMessage);
 
-            IAmqpContext context = this.BuildAmqpContext(eventArgs, scope, incomingMessage);
+                context = this.BuildAmqpContext(eventArgs, scope, incomingMessage);
 
-            IAmqpResult result =
-                canProceed
-                ? await this.dispatcher.DispatchAsync(context).ConfigureAwait(false)
-                : this.consumerDescriptor.ResultForSerializationFailure(context, exception);
+                IAmqpResult result =
+                    canProceed
+                    ? await this.dispatcher.DispatchAsync(context).ConfigureAwait(true)
+                    : this.consumerDescriptor.ResultForSerializationFailure(context, exception);
 
-            await result.ExecuteAsync(context).ConfigureAwait(false);
+                await result.ExecuteAsync(context).ConfigureAwait(true);
+            }
+        }
+        catch (Exception ex)
+        {
+            s_logErrorOnExecuteResult(this.logger, eventArgs.DeliveryTag, ex);
+
+            await this.TryNackMessageAsync(context, eventArgs.DeliveryTag).ConfigureAwait(true);
+        }
+    }
+
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
+    private async Task TryNackMessageAsync(IAmqpContext context, ulong deliveryTag)
+    {
+        if (context?.Channel == null || context.Channel.IsClosed)
+        {
+            s_logChannelClosedCannotNack(this.logger, deliveryTag, null);
+            return;
+        }
+
+        try
+        {
+            // requeue: false → message goes to dead-letter queue (if configured)
+            await context.Channel.BasicNackAsync(deliveryTag, multiple: false, requeue: false).ConfigureAwait(true);
+        }
+        catch (Exception nackEx)
+        {
+            s_logFailedToNack(this.logger, deliveryTag, nackEx);
         }
     }
 
@@ -241,22 +279,87 @@ public class QueueConsumer : IHostedAmqpConsumer
         };
     }
 
-    private Task UnregisteredAsync(object sender, ConsumerEventArgs eventArgs)
+    private Task RegisteredAsync(object sender, ConsumerEventArgs eventArgs)
     {
+        s_logConsumerRegistered(this.logger, this.consumerDescriptor.QueueName, null);
         return Task.CompletedTask;
     }
 
-    private Task RegisteredAsync(object sender, ConsumerEventArgs eventArgs)
+    private Task UnregisteredAsync(object sender, ConsumerEventArgs eventArgs)
     {
+        this.isConsuming = false;
+        s_logConsumerUnregistered(this.logger, this.consumerDescriptor.QueueName, null);
         return Task.CompletedTask;
     }
+
     private Task ShutdownAsync(object sender, ShutdownEventArgs eventArgs)
     {
+        this.isConsuming = false;
+        s_logConsumerShutdown(this.logger,
+            this.consumerDescriptor.QueueName,
+            eventArgs?.ReplyCode ?? 0,
+            eventArgs?.ReplyText ?? "Unknown",
+            eventArgs?.Initiator.ToString() ?? "Unknown",
+            $"ClassId={eventArgs?.ClassId ?? 0}/MethodId={eventArgs?.MethodId ?? 0}",
+            eventArgs?.Cause as Exception);
+        return Task.CompletedTask;
+    }
+
+    private Task ConnectionShutdownAsync(object sender, ShutdownEventArgs eventArgs)
+    {
+        this.isConsuming = false;
+        s_logConnectionShutdown(this.logger,
+            this.consumerDescriptor.QueueName,
+            this.connection?.ClientProvidedName ?? "Unknown",
+            eventArgs?.ReplyCode ?? 0,
+            eventArgs?.ReplyText ?? "Unknown",
+            eventArgs?.Initiator.ToString() ?? "Unknown",
+            $"ClassId={eventArgs?.ClassId ?? 0}/MethodId={eventArgs?.MethodId ?? 0}",
+            eventArgs?.Cause as Exception);
+        return Task.CompletedTask;
+    }
+
+    private Task ConnectionBlockedAsync(object sender, ConnectionBlockedEventArgs eventArgs)
+    {
+        s_logConnectionBlocked(this.logger,
+            this.consumerDescriptor.QueueName,
+            this.connection?.ClientProvidedName ?? "Unknown",
+            eventArgs?.Reason ?? "Unknown",
+            null);
+        return Task.CompletedTask;
+    }
+
+    private Task ConnectionUnblockedAsync(object sender, AsyncEventArgs eventArgs)
+    {
+        s_logConnectionUnblocked(this.logger,
+            this.consumerDescriptor.QueueName,
+            this.connection?.ClientProvidedName ?? "Unknown",
+            null);
         return Task.CompletedTask;
     }
 
 
     private static readonly Action<ILogger, Exception, Exception> s_logErrorOnDeserialize = LoggerMessage.Define<Exception>(LogLevel.Error, new EventId(1, "MessageObject rejected during deserialization"), "MessageObject rejected during deserialization {ExceptionDetails}");
+
+    private static readonly Action<ILogger, ulong, Exception> s_logErrorOnExecuteResult = LoggerMessage.Define<ulong>(LogLevel.Error, new EventId(3, "ErrorOnExecuteResult"), "Error executing result for message {DeliveryTag}");
+
+    private static readonly Action<ILogger, ulong, Exception> s_logFailedToNack = LoggerMessage.Define<ulong>(LogLevel.Critical, new EventId(4, "FailedToNack"), "Failed to Nack message {DeliveryTag}. Message may be stuck in unacked state.");
+
+    private static readonly Action<ILogger, ulong, Exception> s_logChannelClosedCannotNack = LoggerMessage.Define<ulong>(LogLevel.Critical, new EventId(5, "ChannelClosedCannotNack"), "Channel is closed, cannot Nack message {DeliveryTag}. Message may be stuck in unacked state.");
+
+    private static readonly Action<ILogger, string, Exception> s_logConsumerRegistered = LoggerMessage.Define<string>(LogLevel.Information, new EventId(6, "ConsumerRegistered"), "Consumer registered on queue {QueueName}");
+
+    private static readonly Action<ILogger, string, Exception> s_logConsumerUnregistered = LoggerMessage.Define<string>(LogLevel.Warning, new EventId(7, "ConsumerUnregistered"), "Consumer unregistered from queue {QueueName}");
+
+    private static readonly Action<ILogger, string, ushort, string, string, string, Exception> s_logConsumerShutdown = LoggerMessage.Define<string, ushort, string, string, string>(LogLevel.Error, new EventId(8, "ConsumerShutdown"), "Consumer shutdown on queue {QueueName}. ReplyCode: {ReplyCode}, Reason: {Reason}, Initiator: {Initiator}, AMQP: {AmqpClassMethod}");
+
+    private static readonly Action<ILogger, string, string, ushort, string, string, string, Exception> s_logConnectionShutdown = LoggerMessage.Define<string, string, ushort, string, string, string>(LogLevel.Critical, new EventId(9, "ConnectionShutdown"), "CONNECTION LOST for consumer on queue {QueueName}. ConnectionName: {ConnectionName}, ReplyCode: {ReplyCode}, Reason: {Reason}, Initiator: {Initiator}, AMQP: {AmqpClassMethod}. Consumer will NOT recover automatically — external restart required.");
+
+    private static readonly Action<ILogger, string, string, string, Exception> s_logConnectionBlocked = LoggerMessage.Define<string, string, string>(LogLevel.Warning, new EventId(10, "ConnectionBlocked"), "Connection BLOCKED for consumer on queue {QueueName}. ConnectionName: {ConnectionName}, Reason: {Reason}. RabbitMQ server is under resource pressure (memory/disk). Message delivery may be delayed.");
+
+    private static readonly Action<ILogger, string, string, Exception> s_logConnectionUnblocked = LoggerMessage.Define<string, string>(LogLevel.Information, new EventId(11, "ConnectionUnblocked"), "Connection UNBLOCKED for consumer on queue {QueueName}. ConnectionName: {ConnectionName}. RabbitMQ server resource pressure resolved. Normal operation resumed.");
+
+    private static readonly Action<ILogger, string, Exception> s_logDeserializedNullMessage = LoggerMessage.Define<string>(LogLevel.Warning, new EventId(12, "DeserializedNullMessage"), "Deserialized message is null on queue {QueueName}. The message body may be empty or whitespace.");
 
 
     /// <summary>
@@ -284,6 +387,11 @@ public class QueueConsumer : IHostedAmqpConsumer
             return (false, exception);
         }
 
+        if (incomingMessage is null)
+        {
+            s_logDeserializedNullMessage(this.logger, this.consumerDescriptor.QueueName, null);
+        }
+
         return (true, null);
     }
 
@@ -297,9 +405,9 @@ public class QueueConsumer : IHostedAmqpConsumer
     {
         if (this.WasStarted)
         {
-            await this.channel.BasicCancelAsync(this.consumerTag, false, cancellationToken).ConfigureAwait(false);
+            await this.channel.BasicCancelAsync(this.consumerTag, false, cancellationToken).ConfigureAwait(true);
         }
-        this.IsConsuming = false;
+        this.isConsuming = false;
     }
 
 
@@ -311,12 +419,23 @@ public class QueueConsumer : IHostedAmqpConsumer
     {
         if (this.WasStarted)
         {
+            if (this.cancellationTokenSource != null)
+            {
+                await this.cancellationTokenSource.CancelAsync().ConfigureAwait(true);
+            }
             this.cancellationTokenSource?.Dispose();
+        }
+
+        if (this.connection != null)
+        {
+            this.connection.ConnectionShutdownAsync -= this.ConnectionShutdownAsync;
+            this.connection.ConnectionBlockedAsync -= this.ConnectionBlockedAsync;
+            this.connection.ConnectionUnblockedAsync -= this.ConnectionUnblockedAsync;
         }
 
         if (this.channel != null && this.WasStarted && this.IsConsuming && !string.IsNullOrWhiteSpace(this.consumerTag))
         {
-            await this.channel.BasicCancelAsync(this.consumerTag, true).ConfigureAwait(false);
+            await this.channel.BasicCancelAsync(this.consumerTag, true).ConfigureAwait(true);
         }
 
         this.channel?.Dispose();

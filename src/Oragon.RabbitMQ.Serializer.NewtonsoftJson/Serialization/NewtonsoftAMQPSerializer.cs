@@ -7,10 +7,10 @@ using System.Text;
 namespace Oragon.RabbitMQ.Serialization;
 
 /// <summary>
-/// Implements serialization using System.Text.Json
+/// Implements serialization using Newtonsoft.Json
 /// </summary>
 /// <remarks>
-/// Create a instance of SystemTextJsonAmqpSerializer
+/// Create a instance of NewtonsoftAmqpSerializer
 /// </remarks>    
 [SuppressMessage("Sonar", "S100", Justification = "Amqp is a acronym for Advanced MessageObject Queuing Protocol, so it's a name.")]
 [SuppressMessage("Sonar", "S101", Justification = "Amqp is a acronym for Advanced MessageObject Queuing Protocol, so it's a name.")]
@@ -19,7 +19,7 @@ public class NewtonsoftAmqpSerializer(JsonSerializerSettings options) : IAmqpSer
     private readonly JsonSerializerSettings options = options ?? new();
 
     /// <summary>
-    /// Deserialize a message using System.Text.Json
+    /// Deserialize a message using Newtonsoft.Json
     /// </summary>
     /// <typeparam name="TMessage"></typeparam>
     /// <param name="eventArgs"></param>    
@@ -41,7 +41,7 @@ public class NewtonsoftAmqpSerializer(JsonSerializerSettings options) : IAmqpSer
     }
 
     /// <summary>
-    /// Deserialize a message using System.Text.Json
+    /// Deserialize a message using Newtonsoft.Json
     /// </summary>
     /// <param name="eventArgs"></param>    
     /// <param name="type"></param>    
@@ -65,7 +65,7 @@ public class NewtonsoftAmqpSerializer(JsonSerializerSettings options) : IAmqpSer
     }
 
     /// <summary>
-    /// Serialize a message using System.Text.Json  
+    /// Serialize a message using Newtonsoft.Json  
     /// </summary>
     /// <typeparam name="TMessage"></typeparam>
     /// <param name="basicProperties"></param>
@@ -79,7 +79,7 @@ public class NewtonsoftAmqpSerializer(JsonSerializerSettings options) : IAmqpSer
     }
 
     /// <summary>
-    /// Serialize a message using System.Text.Json  
+    /// Serialize a message using Newtonsoft.Json  
     /// </summary>    
     /// <param name="basicProperties"></param>
     /// <param name="message"></param>
