@@ -37,7 +37,7 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
 
         public Task<ResponseMessage> TestRpcAsync(RequestMessage requestMessage)
         {
-            var returnValue = requestMessage.Num1 + requestMessage.Num2;
+            int returnValue = requestMessage.Num1 + requestMessage.Num2;
 
             var returnMessage = new ResponseMessage() { Result = returnValue };
 
@@ -151,7 +151,7 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
             return Task.CompletedTask;
         };
 
-        var consumerTag = await channel.BasicConsumeAsync(replyQueue.QueueName, true, consumer);
+        string consumerTag = await channel.BasicConsumeAsync(replyQueue.QueueName, true, consumer);
 
         _ = waitHandle.WaitOne(
            Debugger.IsAttached

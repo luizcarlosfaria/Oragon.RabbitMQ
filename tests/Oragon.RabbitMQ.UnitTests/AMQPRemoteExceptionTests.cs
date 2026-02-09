@@ -20,7 +20,7 @@ public class AmqpRemoteExceptionTests
     public void AmqpRemoteException_MessageConstructor_ShouldCreateInstanceWithMessage()
     {
         // Arrange
-        var message = "Test exception message";
+        string message = "Test exception message";
 
         // Act
         var exception = new AmqpRemoteException(message);
@@ -35,7 +35,7 @@ public class AmqpRemoteExceptionTests
     public void AmqpRemoteException_MessageInnerExceptionConstructor_ShouldCreateInstanceWithMessageAndInnerException()
     {
         // Arrange
-        var message = "Test exception message";
+        string message = "Test exception message";
         var innerException = new Exception("Inner exception");
 
         // Act
@@ -52,8 +52,8 @@ public class AmqpRemoteExceptionTests
     public void AmqpRemoteException_MessageRemoteStackTraceInnerExceptionConstructor_ShouldCreateInstanceWithMessageRemoteStackTraceAndInnerException()
     {
         // Arrange
-        var message = "Test exception message";
-        var remoteStackTrace = "Test remote stack trace";
+        string message = "Test exception message";
+        string remoteStackTrace = "Test remote stack trace";
         var innerException = new Exception("Inner exception");
 
         // Act

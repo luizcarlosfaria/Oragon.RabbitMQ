@@ -28,7 +28,7 @@ public class DynamicArgumentBinder : IAmqpArgumentBinder
     {
         ArgumentNullException.ThrowIfNull(context, nameof(context));
 
-        var result = this.func(context);
+        object result = this.func(context);
 
         return result;
     }

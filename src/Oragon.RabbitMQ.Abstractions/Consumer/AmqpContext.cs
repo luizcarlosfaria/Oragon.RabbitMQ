@@ -88,8 +88,8 @@ public partial class AmqpContext : IAmqpContext
     {
         ArgumentNullException.ThrowIfNull(exception, nameof(exception));
 
-        var messageType = this.MessageObject?.GetType().FullName ?? string.Empty;
-        var messageContent = Encoding.UTF8.GetString(this.Request?.Body.ToArray()) ?? string.Empty;
+        string messageType = this.MessageObject?.GetType().FullName ?? string.Empty;
+        string messageContent = Encoding.UTF8.GetString(this.Request?.Body.ToArray()) ?? string.Empty;
 
         this.LogExceptionInternal(messageType, this.QueueName, messageContent, exception.ToString());
     }

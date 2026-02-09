@@ -168,7 +168,7 @@ public class QueueConsumer : IHostedAmqpConsumer
                 }
                 catch (Exception exception)
                 {
-                    var exceptionMessage = $"Error on get service {binder.ParameterType} ";
+                    string exceptionMessage = $"Error on get service {binder.ParameterType} ";
                     if (!string.IsNullOrWhiteSpace(binder.ServiceKey))
                     {
                         exceptionMessage += $" with key '{binder.ServiceKey}'";
@@ -225,7 +225,7 @@ public class QueueConsumer : IHostedAmqpConsumer
         {
             using (IServiceScope scope = this.consumerDescriptor.ApplicationServiceProvider.CreateScope())
             {
-                (bool canProceed, Exception exception) = this.TryDeserialize(eventArgs, this.dispatcher.MessageType, out var incomingMessage);
+                (bool canProceed, Exception exception) = this.TryDeserialize(eventArgs, this.dispatcher.MessageType, out object incomingMessage);
 
                 context = this.BuildAmqpContext(eventArgs, scope, incomingMessage);
 

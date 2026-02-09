@@ -26,7 +26,7 @@ public class TestContainersTest: IAsyncLifetime
     {
         const string queue = "hello";
 
-        var message = "Hello World! " + Guid.NewGuid().ToString("D");
+        string message = "Hello World! " + Guid.NewGuid().ToString("D");
 
         string actualMessage = null;
 

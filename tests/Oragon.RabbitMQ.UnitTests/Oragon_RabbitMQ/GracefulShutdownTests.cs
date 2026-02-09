@@ -114,7 +114,7 @@ public class GracefulShutdownTests
         ReadOnlyBasicProperties properties = new BasicProperties().ToReadOnly();
 
         // Act
-        var bytes = Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(new ExampleMessage() { Error = false }));
+        byte[] bytes = Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(new ExampleMessage() { Error = false }));
 
         await queueConsumer.HandleBasicDeliverAsync(consumerTag: consumerTag, deliveryTag: 1, redelivered: false, exchange: "e", routingKey: "r", properties: properties, body: new ReadOnlyMemory<byte>(bytes));
 

@@ -28,10 +28,10 @@ public class NewtonsoftAmqpSerializer(JsonSerializerSettings options) : IAmqpSer
     {
         ArgumentNullException.ThrowIfNull(eventArgs);
 
-        var bytes = eventArgs.Body.ToArray();
+        byte[] bytes = eventArgs.Body.ToArray();
         if (bytes.Length > 0)
         {
-            var message = Encoding.UTF8.GetString(bytes);
+            string message = Encoding.UTF8.GetString(bytes);
             if (!string.IsNullOrWhiteSpace(message))
             {
                 return JsonConvert.DeserializeObject<TMessage>(message, this.options);
@@ -51,10 +51,10 @@ public class NewtonsoftAmqpSerializer(JsonSerializerSettings options) : IAmqpSer
         ArgumentNullException.ThrowIfNull(eventArgs);
         ArgumentNullException.ThrowIfNull(type);
 
-        var bytes = eventArgs.Body.ToArray();
+        byte[] bytes = eventArgs.Body.ToArray();
         if (bytes.Length > 0)
         {
-            var message = Encoding.UTF8.GetString(bytes);
+            string message = Encoding.UTF8.GetString(bytes);
             if (!string.IsNullOrWhiteSpace(message))
             {
                 return JsonConvert.DeserializeObject(message, type, this.options);

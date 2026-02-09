@@ -98,7 +98,7 @@ public static class AspireRabbitMQExtensions
             configurationOptionsSection.Bind(factory);
 
             // the connection string from settings should win over the one from the ConnectionFactory section
-            var connectionString = settings.ConnectionString;
+            string connectionString = settings.ConnectionString;
             if (!string.IsNullOrEmpty(connectionString))
             {
                 factory.Uri = new(connectionString);

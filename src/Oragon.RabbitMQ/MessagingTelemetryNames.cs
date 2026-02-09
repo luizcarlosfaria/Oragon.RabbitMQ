@@ -27,7 +27,7 @@ public static class MessagingTelemetryNames
     /// <exception cref="InvalidOperationException"></exception>
     public static string GetName(string name)
     {
-        var fullName = $"gaGO.io/RabbitMQ/{name}";
+        string fullName = $"gaGO.io/RabbitMQ/{name}";
         return !names.Contains(fullName)
             ? throw new InvalidOperationException($"Name '{name}' is not registered")
             : fullName;
@@ -42,7 +42,7 @@ public static class MessagingTelemetryNames
     {
         ArgumentNullException.ThrowIfNull(tracerProviderBuilder);
 
-        foreach (var name in names)
+        foreach (string name in names)
         {
             _ = tracerProviderBuilder.AddSource(name);
         }

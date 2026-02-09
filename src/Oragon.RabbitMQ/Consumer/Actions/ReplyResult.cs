@@ -33,7 +33,7 @@ public class ReplyResult<T> : IAmqpResult
     {
         ArgumentNullException.ThrowIfNull(context, nameof(context));
 
-        var replyTo = context.Request.BasicProperties.ReplyTo;
+        string replyTo = context.Request.BasicProperties.ReplyTo;
         if (string.IsNullOrWhiteSpace(replyTo))
         {
             throw new InvalidOperationException(

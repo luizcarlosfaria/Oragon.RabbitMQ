@@ -29,9 +29,9 @@ public class SystemTextJsonAmqpSerializerTests
 
         var serializer = new SystemTextJsonAmqpSerializer(null);
 
-        var serializerOutput = serializer.Serialize(targetBasicProperties, sourceObject);
+        byte[] serializerOutput = serializer.Serialize(targetBasicProperties, sourceObject);
 
-        var reference = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(sourceObject));
+        byte[] reference = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(sourceObject));
 
         Assert.Equal(reference, serializerOutput);
 
@@ -44,7 +44,7 @@ public class SystemTextJsonAmqpSerializerTests
 
         var sourceObject = new Teste() { Name = "Oragon.RabbitMQ", Age = 2 };
 
-        var reference = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(sourceObject));
+        byte[] reference = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(sourceObject));
 
         var serializer = new SystemTextJsonAmqpSerializer(null);
 
@@ -92,7 +92,7 @@ public class SystemTextJsonAmqpSerializerTests
     {
         var basicProperties = new BasicProperties();
 
-        var reference = Encoding.UTF8.GetBytes("");
+        byte[] reference = Encoding.UTF8.GetBytes("");
 
         var serializer = new SystemTextJsonAmqpSerializer(null);
 
@@ -116,7 +116,7 @@ public class SystemTextJsonAmqpSerializerTests
     {
         var basicProperties = new BasicProperties();
 
-        var reference = Encoding.UTF8.GetBytes(" ");
+        byte[] reference = Encoding.UTF8.GetBytes(" ");
 
         var serializer = new SystemTextJsonAmqpSerializer(null);
 
@@ -143,7 +143,7 @@ public class SystemTextJsonAmqpSerializerTests
     [InlineData([@"{ ""name"": ""Oragon.RabbitMQ"", ""Age"": ""3"" }", "Oragon.RabbitMQ", 3, null])]
     public void TheoryOfDeserializationTest(string json, string expectedName, int expectedAge, Type exceptionType)
     {
-        var jsonInBytes = Encoding.UTF8.GetBytes(json);
+        byte[] jsonInBytes = Encoding.UTF8.GetBytes(json);
 
         SystemTextJsonAmqpSerializer serializer = new SystemTextJsonAmqpSerializer(new JsonSerializerOptions()
         {

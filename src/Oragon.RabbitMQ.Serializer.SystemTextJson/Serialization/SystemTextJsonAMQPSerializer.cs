@@ -31,10 +31,10 @@ public class SystemTextJsonAmqpSerializer(JsonSerializerOptions options) : IAmqp
         ArgumentNullException.ThrowIfNull(eventArgs);
 
 
-        var bytes = eventArgs.Body.ToArray();
+        byte[] bytes = eventArgs.Body.ToArray();
         if (bytes.Length > 0)
         {
-            var message = Encoding.UTF8.GetString(bytes);
+            string message = Encoding.UTF8.GetString(bytes);
             if (!string.IsNullOrWhiteSpace(message))
             {
                 return JsonSerializer.Deserialize<TMessage>(message, this.options);
@@ -54,10 +54,10 @@ public class SystemTextJsonAmqpSerializer(JsonSerializerOptions options) : IAmqp
         ArgumentNullException.ThrowIfNull(eventArgs);
         ArgumentNullException.ThrowIfNull(type);
 
-        var bytes = eventArgs.Body.ToArray();
+        byte[] bytes = eventArgs.Body.ToArray();
         if (bytes.Length > 0)
         {
-            var message = Encoding.UTF8.GetString(bytes);
+            string message = Encoding.UTF8.GetString(bytes);
             if (!string.IsNullOrWhiteSpace(message))
             {
                 return JsonSerializer.Deserialize(message, type, this.options);

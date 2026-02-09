@@ -383,7 +383,7 @@ public class QueueConsumerExtendedTests
         SafeRunner.Wait(() => queueConsumer != null);
 
         ReadOnlyBasicProperties properties = new BasicProperties().ToReadOnly();
-        var bytes = Encoding.UTF8.GetBytes("{}");
+        byte[] bytes = Encoding.UTF8.GetBytes("{}");
 
         // Act
         await queueConsumer.HandleBasicDeliverAsync(
@@ -454,7 +454,7 @@ public class QueueConsumerExtendedTests
 
         // Send empty body (whitespace) - deserializer should return null for empty body
         ReadOnlyBasicProperties properties = new BasicProperties().ToReadOnly();
-        var bytes = Encoding.UTF8.GetBytes("   ");
+        byte[] bytes = Encoding.UTF8.GetBytes("   ");
 
         // Act - should not throw
         await queueConsumer.HandleBasicDeliverAsync(

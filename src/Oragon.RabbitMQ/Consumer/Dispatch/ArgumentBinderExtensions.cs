@@ -29,7 +29,7 @@ internal static class ArgumentBinderExtensions
 
         var argumentBinders = consumerDescriptor.Handler.Method.GetParameters().Select(BuildArgumentBinder).ToList();
 
-        var messageObjectCount = argumentBinders.Count(it => it is MessageObjectArgumentBinder);
+        int messageObjectCount = argumentBinders.Count(it => it is MessageObjectArgumentBinder);
 
         if (messageObjectCount > 1) throw new InvalidOperationException("Only one parameter can be a message object");
 

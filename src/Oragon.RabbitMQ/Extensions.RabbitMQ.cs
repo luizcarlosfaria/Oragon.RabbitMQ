@@ -138,7 +138,7 @@ public static class RabbitMQExtensions
             return null;
         }
 
-        if (!dic.TryGetValue(key, out var content) || content is null)
+        if (!dic.TryGetValue(key, out object content) || content is null)
         {
             return null;
         }

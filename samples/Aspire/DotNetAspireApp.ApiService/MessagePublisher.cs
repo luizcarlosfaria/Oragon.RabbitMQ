@@ -237,7 +237,7 @@ public class MessagePublisher
 
     public async Task PublishAsync<T>(T message, string exchange, string routingKey, CancellationToken cancellationToken)
     {
-        for (var retryWait = 0; this.isBlocked && retryWait < 90; retryWait++)
+        for (int retryWait = 0; this.isBlocked && retryWait < 90; retryWait++)
         {
             this.Log($"Connection is blocked. Waiting 10s to try publish... ");
             await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken).ConfigureAwait(false);
@@ -252,7 +252,7 @@ public class MessagePublisher
 
         BasicProperties properties = channel.CreateBasicProperties().EnsureHeaders().SetDurable(true);
 
-        var body = this.serializer.Serialize(basicProperties: properties, message: message);
+        byte[] body = this.serializer.Serialize(basicProperties: properties, message: message);
 
         await channel.BasicPublishAsync(exchange, routingKey, false, properties, body, cancellationToken).ConfigureAwait(configureAwait);
     }

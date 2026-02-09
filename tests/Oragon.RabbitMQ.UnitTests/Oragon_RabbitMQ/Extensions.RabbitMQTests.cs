@@ -29,7 +29,7 @@ public class Extensions_RabbitMQ_Tests
     {
         // Arrange
         var basicProperties = new BasicProperties();
-        var messageId = "12345";
+        string messageId = "12345";
 
         // Act
         var result = basicProperties.SetMessageId(messageId);
@@ -59,7 +59,7 @@ public class Extensions_RabbitMQ_Tests
     {
         // Arrange
         var basicProperties = new BasicProperties();
-        var correlationId = "54321";
+        string correlationId = "54321";
 
         // Act
         var result = basicProperties.SetCorrelationId(correlationId);
@@ -74,7 +74,7 @@ public class Extensions_RabbitMQ_Tests
     {
         // Arrange
         var basicProperties = new BasicProperties();
-        var durable = true;
+        bool durable = true;
 
         // Act
         var result = basicProperties.SetDurable(durable);
@@ -89,7 +89,7 @@ public class Extensions_RabbitMQ_Tests
     {
         // Arrange
         var basicProperties = new BasicProperties();
-        var transient = true;
+        bool transient = true;
 
         // Act
         var result = basicProperties.SetTransient(transient);
@@ -104,7 +104,7 @@ public class Extensions_RabbitMQ_Tests
     {
         // Arrange
         var basicProperties = new BasicProperties();
-        var replyTo = "reply_queue";
+        string replyTo = "reply_queue";
 
         // Act
         var result = basicProperties.SetReplyTo(replyTo);
@@ -119,7 +119,7 @@ public class Extensions_RabbitMQ_Tests
     {
         // Arrange
         var basicProperties = new BasicProperties();
-        var appId = "my_app";
+        string appId = "my_app";
 
         // Act
         var result = basicProperties.SetAppId(appId);

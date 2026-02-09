@@ -92,7 +92,7 @@ internal sealed class RabbitMQEventSourceLogForwarder(ILoggerFactory loggerFacto
 
         public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
         {
-            for (var i = 0; i < this.Count; i++)
+            for (int i = 0; i < this.Count; i++)
             {
                 yield return this[i];
             }
@@ -114,7 +114,7 @@ internal sealed class RabbitMQEventSourceLogForwarder(ILoggerFactory loggerFacto
 
         public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
         {
-            for (var i = 0; i < this.Count; i++)
+            for (int i = 0; i < this.Count; i++)
             {
                 yield return this[i];
             }

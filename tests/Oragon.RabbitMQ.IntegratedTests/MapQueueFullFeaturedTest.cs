@@ -148,7 +148,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
 
         waitHandleRef.TryGetTarget(out ManualResetEvent waitHandle);
 
-        for (var i = 0; i < 10; i++)
+        for (int i = 0; i < 10; i++)
         {
             if (waitHandle == null)
             {
@@ -242,7 +242,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
 
         waitHandleRef.TryGetTarget(out ManualResetEvent waitHandle);
 
-        for (var i = 0; i < 10; i++)
+        for (int i = 0; i < 10; i++)
         {
             if (waitHandle == null)
             {

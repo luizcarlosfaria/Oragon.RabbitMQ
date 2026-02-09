@@ -81,7 +81,7 @@ public class Dispatcher
         object[] arguments = ArrayPool<object>.Shared.Rent(count);
         try
         {
-            for (var i = 0; i < count; i++)
+            for (int i = 0; i < count; i++)
             {
                 arguments[i] = this.argumentBinders[i].GetValue(context);
             }

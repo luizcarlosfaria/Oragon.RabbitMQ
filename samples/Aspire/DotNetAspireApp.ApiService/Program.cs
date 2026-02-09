@@ -31,7 +31,7 @@ WebApplication app = builder.Build();
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler();
 
-var summaries = new[]
+string[] summaries = new[]
 {
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 };
@@ -49,7 +49,7 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 });
 
-var progressBarWidth = 20;
+int progressBarWidth = 20;
 
 app.MapPost("/enqueue", ([FromBody]DoSomethingRequest requestObject, CancellationToken cancellationToken, [FromServices] MessagePublisher messagePublisher)
     =>
@@ -57,7 +57,7 @@ app.MapPost("/enqueue", ([FromBody]DoSomethingRequest requestObject, Cancellatio
     _ = Task.Run(async () =>
         {
             messagePublisher.Log($"Starting to publish {requestObject.quantity:n0}");
-            for (var i = 1; i <= requestObject.quantity; i++)
+            for (int i = 1; i <= requestObject.quantity; i++)
             {
                 var command = new DoSomethingCommand(requestObject.Text, i, requestObject.quantity);
 
@@ -65,7 +65,7 @@ app.MapPost("/enqueue", ([FromBody]DoSomethingRequest requestObject, Cancellatio
 
                 if (i % (requestObject.quantity / progressBarWidth) == 0) // Update progress bar
                 {
-                    var progress = (i * progressBarWidth / requestObject.quantity);
+                    int progress = (i * progressBarWidth / requestObject.quantity);
                     messagePublisher.Log($"[{new string('#', progress)}{new string(' ', progressBarWidth - progress)}] {i * 100 / requestObject.quantity}%");
                 }
 

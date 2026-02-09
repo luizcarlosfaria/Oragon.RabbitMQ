@@ -12,7 +12,7 @@ internal static class ResultHandlerExtensions
         Type taskType = Constants.Task;
         Type returnType = consumerDescriptor.Handler.Method.ReturnType;
 
-        var isTask = returnType.IsAssignableTo(taskType);
+        bool isTask = returnType.IsAssignableTo(taskType);
         if (isTask)
         {
             if (returnType.IsGenericType && returnType.GenericTypeArguments.Length == 1)

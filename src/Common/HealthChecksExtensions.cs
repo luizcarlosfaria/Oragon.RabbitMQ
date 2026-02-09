@@ -22,7 +22,7 @@ internal static class HealthChecksExtensions
     /// </summary>
     public static void TryAddHealthCheck(this IHostApplicationBuilder builder, string name, Action<IHealthChecksBuilder> addHealthCheck)
     {
-        var healthCheckKey = $"Aspire.HealthChecks.{name}";
+        string healthCheckKey = $"Aspire.HealthChecks.{name}";
         if (!builder.Properties.ContainsKey(healthCheckKey))
         {
             builder.Properties[healthCheckKey] = true;
