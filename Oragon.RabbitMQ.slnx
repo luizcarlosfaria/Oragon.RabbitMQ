@@ -25,6 +25,9 @@
     <Project Path="samples/Aspire/DotNetAspireApp.ServiceDefaults/DotNetAspireApp.ServiceDefaults.csproj" />
   </Folder>
   <Folder Name="/Samples/Standalone/" />
+  <Folder Name="/Benchmarks/">
+    <Project Path="benchmarks/Oragon.RabbitMQ.Benchmarks/Oragon.RabbitMQ.Benchmarks.csproj" />
+  </Folder>
   <Folder Name="/Tests/">
     <File Path="tests/Oragon.RabbitMQ.Tests.props" />
     <Project Path="tests/Oragon.RabbitMQ.IntegratedTests/Oragon.RabbitMQ.IntegratedTests.csproj" />

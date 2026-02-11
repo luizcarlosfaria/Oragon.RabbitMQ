@@ -1,5 +1,4 @@
 using System.Text.Json;
-using DotNetAspireApp.Worker;
 using DotNetAspireApp.Worker.Areas;
 using DotNetAspireApp.Worker.Extensions;
 using Oragon.RabbitMQ;

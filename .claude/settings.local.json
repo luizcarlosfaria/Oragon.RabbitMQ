@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell -Command \"Get-ChildItem -Recurse | Select-Object FullName | head -150\")",
+      "Bash(powershell:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet --list-sdks:*)",
+      "Bash(dotnet --version:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(dotnet nuget locals:*)",
+      "WebFetch(domain:dotnet.testcontainers.org)",
+      "Bash(dotnet test:*)",
+      "WebFetch(domain:sonarcloud.io)"
+    ]
+  }
+}
