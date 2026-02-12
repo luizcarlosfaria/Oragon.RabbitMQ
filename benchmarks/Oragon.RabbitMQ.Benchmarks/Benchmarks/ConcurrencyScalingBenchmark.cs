@@ -1,5 +1,7 @@
 using BenchmarkDotNet.Attributes;
+using Microsoft.Extensions.DependencyInjection;
 using Oragon.RabbitMQ.Benchmarks.Infrastructure;
+using Oragon.RabbitMQ.Serialization;
 using RabbitMQ.Client;
 
 namespace Oragon.RabbitMQ.Benchmarks.Benchmarks;
@@ -21,17 +23,25 @@ public class ConcurrencyScalingBenchmark
 
     private IConnection connection;
     private string queueName;
+    private ServiceProvider nativeServiceProvider;
+    private IAmqpSerializer nativeSerializer;
 
     [GlobalSetup]
     public void GlobalSetup()
     {
         RabbitMqFixture.WarmupAsync().GetAwaiter().GetResult();
         this.connection = RabbitMqFixture.CreateConnectionAsync().GetAwaiter().GetResult();
+
+        var services = new ServiceCollection();
+        _ = services.AddAmqpSerializer(options: MessagePayloads.JsonOptions);
+        this.nativeServiceProvider = services.BuildServiceProvider();
+        this.nativeSerializer = this.nativeServiceProvider.GetRequiredService<IAmqpSerializer>();
     }
 
     [GlobalCleanup]
     public void GlobalCleanup()
     {
+        this.nativeServiceProvider?.Dispose();
         this.connection?.Dispose();
     }
 
@@ -67,7 +77,8 @@ public class ConcurrencyScalingBenchmark
         using var countdown = new CountdownEvent(MessageCount);
 
         var (channel, consumerTag) = await NativeConsumerHelper.StartConsumingAsync(
-            this.connection, this.queueName, this.PrefetchCount, this.DispatchConcurrency, this.GetHandler(), countdown).ConfigureAwait(false);
+            this.connection, this.queueName, this.PrefetchCount, this.DispatchConcurrency,
+            this.GetHandler(), countdown, this.nativeServiceProvider, this.nativeSerializer).ConfigureAwait(false);
 
         _ = countdown.Wait(TimeSpan.FromSeconds(120));
         await NativeConsumerHelper.StopConsumingAsync(channel, consumerTag).ConfigureAwait(false);

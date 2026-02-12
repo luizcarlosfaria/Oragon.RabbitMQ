@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Text.Json;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Oragon.RabbitMQ.Benchmarks.Infrastructure;
 using Oragon.RabbitMQ.Consumer.Actions;
+using Oragon.RabbitMQ.Serialization;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -22,6 +22,12 @@ public class RpcBenchmark
     private IChannel publishChannel;
     private string requestQueue;
     private string replyQueue;
+    private IAmqpSerializer nativeSerializer;
+    private ServiceProvider nativeServiceProvider;
+
+    // Oragon RPC: pre-built infrastructure (P7 fix)
+    private ServiceProvider oragonServiceProvider;
+    private IHostedService oragonHostedService;
 
     [GlobalSetup]
     public async Task GlobalSetup()
@@ -33,11 +39,17 @@ public class RpcBenchmark
                 publisherConfirmationsEnabled: true,
                 publisherConfirmationTrackingEnabled: true
             )).ConfigureAwait(false);
+
+        var services = new ServiceCollection();
+        _ = services.AddAmqpSerializer(options: MessagePayloads.JsonOptions);
+        this.nativeServiceProvider = services.BuildServiceProvider();
+        this.nativeSerializer = this.nativeServiceProvider.GetRequiredService<IAmqpSerializer>();
     }
 
     [GlobalCleanup]
     public async Task GlobalCleanup()
     {
+        this.nativeServiceProvider?.Dispose();
         if (this.publishChannel != null)
         {
             await this.publishChannel.CloseAsync().ConfigureAwait(false);
@@ -56,11 +68,43 @@ public class RpcBenchmark
         _ = setupChannel.QueueDeclareAsync(this.requestQueue, false, false, false).GetAwaiter().GetResult();
         _ = setupChannel.QueueDeclareAsync(this.replyQueue, false, false, false).GetAwaiter().GetResult();
         setupChannel.CloseAsync().GetAwaiter().GetResult();
+
+        // Pre-build Oragon infrastructure (P7 fix: move out of benchmark method)
+        var services = new ServiceCollection();
+        services.AddRabbitMQConsumer();
+        _ = services.AddAmqpSerializer(options: MessagePayloads.JsonOptions);
+        _ = services.AddLogging(b => b.SetMinimumLevel(LogLevel.Warning));
+        _ = services.AddSingleton(this.connection);
+
+        this.oragonServiceProvider = services.BuildServiceProvider();
+
+        // Dispatch by MessageSize (P6 fix)
+        switch (this.MessageSize)
+        {
+            case "Small":
+                _ = this.oragonServiceProvider.MapQueue(this.requestQueue, (SmallMessage msg) => AmqpResults.ReplyAndAck(msg))
+                    .WithPrefetch(1).WithDispatchConcurrency(1)
+                    .WithConnection((svc, ct) => Task.FromResult(svc.GetRequiredService<IConnection>()));
+                break;
+            case "Medium":
+                _ = this.oragonServiceProvider.MapQueue(this.requestQueue, (MediumMessage msg) => AmqpResults.ReplyAndAck(msg))
+                    .WithPrefetch(1).WithDispatchConcurrency(1)
+                    .WithConnection((svc, ct) => Task.FromResult(svc.GetRequiredService<IConnection>()));
+                break;
+        }
+
+        this.oragonHostedService = this.oragonServiceProvider.GetRequiredService<IHostedService>();
+        this.oragonHostedService.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
     }
 
     [IterationCleanup]
     public void IterationCleanup()
     {
+        this.oragonHostedService?.StopAsync(CancellationToken.None).GetAwaiter().GetResult();
+        this.oragonServiceProvider?.DisposeAsync().AsTask().GetAwaiter().GetResult();
+        this.oragonHostedService = null;
+        this.oragonServiceProvider = null;
+
         RabbitMqFixture.DeleteQueueAsync(this.connection, this.requestQueue).GetAwaiter().GetResult();
         RabbitMqFixture.DeleteQueueAsync(this.connection, this.replyQueue).GetAwaiter().GetResult();
     }
@@ -86,7 +130,13 @@ public class RpcBenchmark
         var requestConsumer = new AsyncEventingBasicConsumer(requestChannel);
         requestConsumer.ReceivedAsync += async (_, ea) =>
         {
-            SmallMessage msg = JsonSerializer.Deserialize<SmallMessage>(ea.Body.Span, MessagePayloads.JsonOptions);
+            // Dispatch by MessageSize (P6 fix) + use IAmqpSerializer (P2 fix)
+            object msg = this.MessageSize switch
+            {
+                "Small" => this.nativeSerializer.Deserialize<SmallMessage>(ea),
+                "Medium" => this.nativeSerializer.Deserialize<MediumMessage>(ea),
+                _ => throw new ArgumentException()
+            };
 
             // Reply using dedicated channel (fair comparison with Oragon)
             using IChannel dedicatedReplyChannel = await this.connection.CreateChannelAsync().ConfigureAwait(false);
@@ -95,7 +145,12 @@ public class RpcBenchmark
                 CorrelationId = ea.BasicProperties.MessageId,
                 MessageId = Guid.NewGuid().ToString("D")
             };
-            byte[] replyBody = MessagePayloads.SerializeToBytes(msg);
+            byte[] replyBody = this.MessageSize switch
+            {
+                "Small" => MessagePayloads.SerializeToBytes((SmallMessage)msg),
+                "Medium" => MessagePayloads.SerializeToBytes((MediumMessage)msg),
+                _ => throw new ArgumentException()
+            };
             await dedicatedReplyChannel.BasicPublishAsync(string.Empty, ea.BasicProperties.ReplyTo, false, replyProps, replyBody).ConfigureAwait(false);
             await dedicatedReplyChannel.CloseAsync().ConfigureAwait(false);
 
@@ -145,7 +200,13 @@ public class RpcBenchmark
         var requestConsumer = new AsyncEventingBasicConsumer(requestChannel);
         requestConsumer.ReceivedAsync += async (_, ea) =>
         {
-            SmallMessage msg = JsonSerializer.Deserialize<SmallMessage>(ea.Body.Span, MessagePayloads.JsonOptions);
+            // Dispatch by MessageSize (P6 fix) + use IAmqpSerializer (P2 fix)
+            object msg = this.MessageSize switch
+            {
+                "Small" => this.nativeSerializer.Deserialize<SmallMessage>(ea),
+                "Medium" => this.nativeSerializer.Deserialize<MediumMessage>(ea),
+                _ => throw new ArgumentException()
+            };
 
             // Reply using the SAME channel (optimized, avoids channel creation overhead)
             var replyProps = new BasicProperties
@@ -153,7 +214,12 @@ public class RpcBenchmark
                 CorrelationId = ea.BasicProperties.MessageId,
                 MessageId = Guid.NewGuid().ToString("D")
             };
-            byte[] replyBody = MessagePayloads.SerializeToBytes(msg);
+            byte[] replyBody = this.MessageSize switch
+            {
+                "Small" => MessagePayloads.SerializeToBytes((SmallMessage)msg),
+                "Medium" => MessagePayloads.SerializeToBytes((MediumMessage)msg),
+                _ => throw new ArgumentException()
+            };
             await requestChannel.BasicPublishAsync(string.Empty, ea.BasicProperties.ReplyTo, false, replyProps, replyBody).ConfigureAwait(false);
 
             await requestChannel.BasicAckAsync(ea.DeliveryTag, false).ConfigureAwait(false);
@@ -192,22 +258,7 @@ public class RpcBenchmark
         };
         string replyConsumerTag = await replyChannel.BasicConsumeAsync(this.replyQueue, false, replyConsumer).ConfigureAwait(false);
 
-        // Start Oragon consumer with ReplyAndAck
-        var services = new ServiceCollection();
-        services.AddRabbitMQConsumer();
-        _ = services.AddAmqpSerializer(options: MessagePayloads.JsonOptions);
-        _ = services.AddLogging(b => b.SetMinimumLevel(LogLevel.Warning));
-        _ = services.AddSingleton(this.connection);
-
-        ServiceProvider sp = services.BuildServiceProvider();
-
-        _ = sp.MapQueue(this.requestQueue, (SmallMessage msg) => AmqpResults.ReplyAndAck(msg))
-            .WithPrefetch(1)
-            .WithDispatchConcurrency(1)
-            .WithConnection((svc, ct) => Task.FromResult(svc.GetRequiredService<IConnection>()));
-
-        IHostedService hostedService = sp.GetRequiredService<IHostedService>();
-        await hostedService.StartAsync(CancellationToken.None).ConfigureAwait(false);
+        // Oragon consumer already started in IterationSetup (P7 fix)
 
         // Publish request
         ReadOnlyMemory<byte> body = MessagePayloads.GetBytesForSize(this.MessageSize);
@@ -220,9 +271,7 @@ public class RpcBenchmark
 
         _ = replyReceived.Wait(TimeSpan.FromSeconds(10));
 
-        await hostedService.StopAsync(CancellationToken.None).ConfigureAwait(false);
         await replyChannel.BasicCancelAsync(replyConsumerTag).ConfigureAwait(false);
         await replyChannel.CloseAsync().ConfigureAwait(false);
-        await sp.DisposeAsync().ConfigureAwait(false);
     }
 }

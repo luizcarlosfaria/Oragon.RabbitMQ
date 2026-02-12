@@ -90,11 +90,10 @@ public sealed class OragonConsumerHelper : IAsyncDisposable
         // and the scoped container would dispose the shared instance after
         // the first message scope ends.
         _ = helper.serviceProvider.MapQueue(queueName,
-                (TMessage msg) =>
+                async (TMessage msg) =>
                 {
-                    Task result = handler(msg);
-                    _ = countdown.Signal();
-                    return result;
+                    await handler(msg).ConfigureAwait(false);
+                    countdown.Signal();
                 })
             .WithPrefetch(prefetchCount)
             .WithDispatchConcurrency(dispatchConcurrency)

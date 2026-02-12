@@ -1,4 +1,5 @@
-using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
+using Oragon.RabbitMQ.Serialization;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -12,7 +13,9 @@ public static class NativeConsumerHelper
         ushort prefetchCount,
         ushort dispatchConcurrency,
         Func<TMessage, Task> handler,
-        CountdownEvent countdown)
+        CountdownEvent countdown,
+        IServiceProvider serviceProvider,
+        IAmqpSerializer serializer)
     {
         IChannel channel = await connection.CreateChannelAsync(
             new CreateChannelOptions(
@@ -26,10 +29,27 @@ public static class NativeConsumerHelper
         var consumer = new AsyncEventingBasicConsumer(channel);
         consumer.ReceivedAsync += async (sender, eventArgs) =>
         {
-            TMessage message = JsonSerializer.Deserialize<TMessage>(eventArgs.Body.Span, MessagePayloads.JsonOptions);
-            await handler(message).ConfigureAwait(false);
-            await channel.BasicAckAsync(eventArgs.DeliveryTag, false).ConfigureAwait(false);
-            _ = countdown.Signal();
+            using IServiceScope scope = serviceProvider.CreateScope();
+            TMessage message;
+            try
+            {
+                message = serializer.Deserialize<TMessage>(eventArgs);
+            }
+            catch
+            {
+                await channel.BasicRejectAsync(eventArgs.DeliveryTag, false).ConfigureAwait(false);
+                return;
+            }
+            try
+            {
+                await handler(message).ConfigureAwait(false);
+                countdown.Signal();
+                await channel.BasicAckAsync(eventArgs.DeliveryTag, false).ConfigureAwait(false);
+            }
+            catch
+            {
+                await channel.BasicNackAsync(eventArgs.DeliveryTag, false, false).ConfigureAwait(false);
+            }
         };
 
         string consumerTag = await channel.BasicConsumeAsync(
@@ -49,12 +69,14 @@ public static class NativeConsumerHelper
         string queueName,
         ushort prefetchCount,
         ushort dispatchConcurrency,
-        CountdownEvent countdown)
+        CountdownEvent countdown,
+        IServiceProvider serviceProvider,
+        IAmqpSerializer serializer)
     {
         return await StartConsumingAsync<TMessage>(
             connection, queueName, prefetchCount, dispatchConcurrency,
             _ => Task.CompletedTask,
-            countdown).ConfigureAwait(false);
+            countdown, serviceProvider, serializer).ConfigureAwait(false);
     }
 
     public static async Task<(IChannel Channel, string ConsumerTag)> StartConsumingCpuBoundAsync<TMessage>(
@@ -62,7 +84,9 @@ public static class NativeConsumerHelper
         string queueName,
         ushort prefetchCount,
         ushort dispatchConcurrency,
-        CountdownEvent countdown)
+        CountdownEvent countdown,
+        IServiceProvider serviceProvider,
+        IAmqpSerializer serializer)
     {
         return await StartConsumingAsync<TMessage>(
             connection, queueName, prefetchCount, dispatchConcurrency,
@@ -76,7 +100,7 @@ public static class NativeConsumerHelper
                 }
                 return Task.CompletedTask;
             },
-            countdown).ConfigureAwait(false);
+            countdown, serviceProvider, serializer).ConfigureAwait(false);
     }
 
     public static async Task StopConsumingAsync(IChannel channel, string consumerTag)

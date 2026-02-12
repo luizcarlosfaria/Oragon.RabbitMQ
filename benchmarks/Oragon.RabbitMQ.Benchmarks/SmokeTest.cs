@@ -31,9 +31,15 @@ public static class SmokeTest
             using IConnection connection = await RabbitMqFixture.CreateConnectionAsync().ConfigureAwait(false);
             Log($"  OK - Connected: {connection.IsOpen}");
 
+            // Build shared DI for native tests
+            var services = new ServiceCollection();
+            _ = services.AddAmqpSerializer(options: MessagePayloads.JsonOptions);
+            using ServiceProvider nativeSp = services.BuildServiceProvider();
+            IAmqpSerializer nativeSerializer = nativeSp.GetRequiredService<IAmqpSerializer>();
+
             // 3. Native consumer (publish + consume)
             Log("[3/6] Testing native consumer pipeline...");
-            failures += await TestNativeConsumerAsync(connection).ConfigureAwait(false);
+            failures += await TestNativeConsumerAsync(connection, nativeSp, nativeSerializer).ConfigureAwait(false);
 
             // 4. Oragon consumer (publish + consume via MapQueue)
             Log("[4/6] Testing Oragon consumer pipeline...");
@@ -62,7 +68,7 @@ public static class SmokeTest
         return failures;
     }
 
-    private static async Task<int> TestNativeConsumerAsync(IConnection connection)
+    private static async Task<int> TestNativeConsumerAsync(IConnection connection, IServiceProvider serviceProvider, IAmqpSerializer serializer)
     {
         string queueName = RabbitMqFixture.GenerateQueueName();
         try
@@ -71,7 +77,7 @@ public static class SmokeTest
 
             using var countdown = new CountdownEvent(5);
             var (channel, consumerTag) = await NativeConsumerHelper.StartConsumingNoOpAsync<SmallMessage>(
-                connection, queueName, 5, 1, countdown).ConfigureAwait(false);
+                connection, queueName, 5, 1, countdown, serviceProvider, serializer).ConfigureAwait(false);
 
             bool drained = countdown.Wait(TimeSpan.FromSeconds(10));
             await NativeConsumerHelper.StopConsumingAsync(channel, consumerTag).ConfigureAwait(false);
@@ -101,8 +107,8 @@ public static class SmokeTest
             await RabbitMqFixture.PreloadQueueAsync(connection, queueName, 5, MessagePayloads.SmallBytes).ConfigureAwait(false);
 
             using var countdown = new CountdownEvent(5);
-            await using OragonConsumerHelper helper = (await OragonConsumerHelper.StartConsumingNoOpAsync<SmallMessage>(
-                connection, queueName, 5, 1, countdown).ConfigureAwait(false));
+            await using OragonConsumerHelper helper = await OragonConsumerHelper.StartConsumingNoOpAsync<SmallMessage>(
+                connection, queueName, 5, 1, countdown).ConfigureAwait(false);
 
             bool drained = countdown.Wait(TimeSpan.FromSeconds(10));
 

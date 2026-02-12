@@ -1,5 +1,7 @@
 using BenchmarkDotNet.Attributes;
+using Microsoft.Extensions.DependencyInjection;
 using Oragon.RabbitMQ.Benchmarks.Infrastructure;
+using Oragon.RabbitMQ.Serialization;
 using RabbitMQ.Client;
 
 namespace Oragon.RabbitMQ.Benchmarks.Benchmarks;
@@ -16,17 +18,25 @@ public class AllocationBenchmark
 
     private IConnection connection;
     private string queueName;
+    private ServiceProvider nativeServiceProvider;
+    private IAmqpSerializer nativeSerializer;
 
     [GlobalSetup]
     public void GlobalSetup()
     {
         RabbitMqFixture.WarmupAsync().GetAwaiter().GetResult();
         this.connection = RabbitMqFixture.CreateConnectionAsync().GetAwaiter().GetResult();
+
+        var services = new ServiceCollection();
+        _ = services.AddAmqpSerializer(options: MessagePayloads.JsonOptions);
+        this.nativeServiceProvider = services.BuildServiceProvider();
+        this.nativeSerializer = this.nativeServiceProvider.GetRequiredService<IAmqpSerializer>();
     }
 
     [GlobalCleanup]
     public void GlobalCleanup()
     {
+        this.nativeServiceProvider?.Dispose();
         this.connection?.Dispose();
     }
 
@@ -52,9 +62,9 @@ public class AllocationBenchmark
         var (channel, consumerTag) = this.MessageSize switch
         {
             "Small" => await NativeConsumerHelper.StartConsumingNoOpAsync<SmallMessage>(
-                this.connection, this.queueName, 50, 1, countdown).ConfigureAwait(false),
+                this.connection, this.queueName, 50, 1, countdown, this.nativeServiceProvider, this.nativeSerializer).ConfigureAwait(false),
             "Large" => await NativeConsumerHelper.StartConsumingNoOpAsync<LargeMessage>(
-                this.connection, this.queueName, 50, 1, countdown).ConfigureAwait(false),
+                this.connection, this.queueName, 50, 1, countdown, this.nativeServiceProvider, this.nativeSerializer).ConfigureAwait(false),
             _ => throw new ArgumentException()
         };
 
