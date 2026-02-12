@@ -438,7 +438,7 @@ Oragon is **7% faster** and allocates **17% less memory** for RPC by reusing pre
 
 > Full benchmark results are available in `benchmarks/Oragon.RabbitMQ.Benchmarks/BenchmarkDotNet.Artifacts/results/`.
 
-## Stages and Requirements for Launch
+## Stages and Requirements for Launch (Version 1)
 - [x] Migrate Demo to Library Project
 - [x] Core: Queue Consumer
 - [x] Core: Rpc Queue Consumer
