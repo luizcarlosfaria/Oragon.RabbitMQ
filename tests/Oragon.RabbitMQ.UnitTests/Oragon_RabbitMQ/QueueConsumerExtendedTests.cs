@@ -284,6 +284,72 @@ public class QueueConsumerExtendedTests
         Assert.True(topologyInvoked);
     }
 
+    [Fact]
+    public async Task InitializeAsync_ShouldNotCreateExtraValidationChannel()
+    {
+        // Arrange
+        var (sp, channelMock, connectionMock) = BuildTestInfrastructure();
+        var descriptor = sp.GetRequiredService<ConsumerServer>().ConsumerDescriptors.Single();
+
+        // Act
+        _ = await descriptor.BuildConsumerAsync(CancellationToken.None);
+
+        // Assert
+        connectionMock.Verify(
+            it => it.CreateChannelAsync(It.Is<CreateChannelOptions>(options => options != null), It.IsAny<CancellationToken>()),
+            Times.Once);
+        connectionMock.Verify(
+            it => it.CreateChannelAsync(null, It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_ShouldProbeConnectionOwnershipOnlyOnce()
+    {
+        // Arrange
+        ServiceCollection services = new();
+        services.AddRabbitMQConsumer();
+
+        var channelMock = new Mock<IChannel>();
+        _ = channelMock.Setup(it => it.BasicConsumeAsync(
+            It.IsAny<string>(), false, It.IsAny<string>(), true, false,
+            It.IsAny<IDictionary<string, object>>(),
+            It.IsAny<IAsyncBasicConsumer>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync("tag");
+
+        var runtimeConnectionMock = new Mock<IConnection>();
+        _ = runtimeConnectionMock
+            .Setup(it => it.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(channelMock.Object);
+
+        var probeConnectionMock = new Mock<IConnection>();
+        probeConnectionMock.Setup(it => it.IsOpen).Returns(false);
+
+        var connections = new Queue<IConnection>([
+            runtimeConnectionMock.Object,
+            probeConnectionMock.Object
+        ]);
+
+        _ = services.AddLogging();
+        _ = services.AddNewtonsoftAmqpSerializer();
+        _ = services.AddScoped<TestService>();
+
+        var sp = services.BuildServiceProvider();
+
+        _ = sp.MapQueue("test-queue", ([FromServices] TestService svc, [FromBody] TestMessage msg) => svc.HandleAsync(msg))
+            .WithConnection((_, _) => Task.FromResult(connections.Dequeue()));
+
+        var descriptor = sp.GetRequiredService<ConsumerServer>().ConsumerDescriptors.Single();
+
+        // Act
+        _ = await descriptor.BuildConsumerAsync(CancellationToken.None);
+
+        // Assert
+        probeConnectionMock.Verify(it => it.Dispose(), Times.Once);
+        Assert.Empty(connections);
+    }
+
     #endregion
 
     #region DisposeAsync
@@ -326,12 +392,7 @@ public class QueueConsumerExtendedTests
         _ = startupChannelMock.Setup(it => it.BasicQosAsync(It.IsAny<uint>(), It.IsAny<ushort>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()));
         startupChannelMock.Setup(it => it.IsClosed).Returns(false);
 
-        var validationChannel1Mock = new Mock<IChannel>();
         var validationChannel2Mock = new Mock<IChannel>();
-
-        var validationConnection1Mock = new Mock<IConnection>();
-        _ = validationConnection1Mock.Setup(it => it.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(validationChannel1Mock.Object);
 
         var validationConnection2Mock = new Mock<IConnection>();
 
@@ -341,9 +402,8 @@ public class QueueConsumerExtendedTests
         runtimeConnectionMock.Setup(it => it.IsOpen).Returns(true);
 
         var connections = new Queue<IConnection>([
-            validationConnection1Mock.Object,
-            validationConnection2Mock.Object,
-            runtimeConnectionMock.Object
+            runtimeConnectionMock.Object,
+            validationConnection2Mock.Object
         ]);
 
         _ = services.AddLogging();

@@ -72,13 +72,13 @@ public class QueueConsumer : IHostedAmqpConsumer
 
         this.dispatcher = new Dispatcher(this.consumerDescriptor);
 
-        await this.ValidateAsync(cancellationToken).ConfigureAwait(true);
-
         this.serializer = this.consumerDescriptor.SerializerFactory(this.consumerDescriptor.ApplicationServiceProvider);
 
         this.connection = await this.consumerDescriptor.ConnectionFactory(this.consumerDescriptor.ApplicationServiceProvider, cancellationToken).ConfigureAwait(true);
+        await this.DetermineConnectionOwnershipAsync(cancellationToken).ConfigureAwait(true);
 
         this.channel = await this.consumerDescriptor.ChannelFactory(this.connection, cancellationToken).ConfigureAwait(true);
+        await this.ValidateServiceBindingsAsync().ConfigureAwait(true);
 
         if (this.consumerDescriptor.TopologyInitializer != null)
         {
@@ -141,53 +141,48 @@ public class QueueConsumer : IHostedAmqpConsumer
     /// <summary>
     /// Validates the consumer configuration.
     /// </summary>
-    public async Task ValidateAsync(CancellationToken cancellationToken)
+    public Task ValidateServiceBindingsAsync()
     {
-        IConnection connection1 = await this.consumerDescriptor.ConnectionFactory(this.consumerDescriptor.ApplicationServiceProvider, cancellationToken).ConfigureAwait(true);
-        bool mustReuseConnection = false;
-        try
+        using IServiceScope scope = this.consumerDescriptor.ApplicationServiceProvider.CreateScope();
+
+        foreach (FromServicesArgumentBinder binder in this.dispatcher.GetArgumentBindersOfType<FromServicesArgumentBinder>())
         {
-            IConnection connection2 = await this.consumerDescriptor.ConnectionFactory(this.consumerDescriptor.ApplicationServiceProvider, cancellationToken).ConfigureAwait(true);
-            mustReuseConnection = connection1 == connection2;
-            this.ownsConnection = !mustReuseConnection;
-
-            if (!mustReuseConnection)
+            try
             {
-                await connection2.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
+                _ = binder.GetValue(scope.ServiceProvider);
             }
-
-            using IChannel testChannel = await this.consumerDescriptor.ChannelFactory(connection1, cancellationToken).ConfigureAwait(true);
-
-            await testChannel.CloseAsync(cancellationToken).ConfigureAwait(true);
-
-            using IServiceScope scope = this.consumerDescriptor.ApplicationServiceProvider.CreateScope();
-
-            foreach (FromServicesArgumentBinder binder in this.dispatcher.GetArgumentBindersOfType<FromServicesArgumentBinder>())
+            catch (Exception exception)
             {
-                try
+                string exceptionMessage = $"Error on get service {binder.ParameterType} ";
+                if (!string.IsNullOrWhiteSpace(binder.ServiceKey))
                 {
-                    _ = binder.GetValue(scope.ServiceProvider);
-                }
-                catch (Exception exception)
-                {
-                    string exceptionMessage = $"Error on get service {binder.ParameterType} ";
-                    if (!string.IsNullOrWhiteSpace(binder.ServiceKey))
-                    {
-                        exceptionMessage += $" with key '{binder.ServiceKey}'";
-                    }
-                    throw new InvalidOperationException(exceptionMessage, exception);
+                    exceptionMessage += $" with key '{binder.ServiceKey}'";
                 }
 
-            }
-        }
-        finally
-        {
-            if (!mustReuseConnection)
-            {
-                await connection1.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
+                throw new InvalidOperationException(exceptionMessage, exception);
             }
         }
 
+        return Task.CompletedTask;
+    }
+
+    private async Task DetermineConnectionOwnershipAsync(CancellationToken cancellationToken)
+    {
+        IConnection probeConnection = await this.consumerDescriptor.ConnectionFactory(this.consumerDescriptor.ApplicationServiceProvider, cancellationToken).ConfigureAwait(true);
+        if (ReferenceEquals(this.connection, probeConnection))
+        {
+            this.ownsConnection = false;
+            return;
+        }
+
+        this.ownsConnection = true;
+
+        if (probeConnection.IsOpen)
+        {
+            await probeConnection.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
+        }
+
+        probeConnection.Dispose();
     }
 
     /// <summary>
