@@ -514,5 +514,84 @@ public class ConsumerDescriptorTests
         Assert.False(queueConsumer.IsConsuming);
     }
 
+    [Fact]
+    public async Task BuildConsumerAsync_WhenInitializeFails_ShouldNotLockDescriptor()
+    {
+        // Arrange
+        ServiceCollection services = new();
+        services.AddRabbitMQConsumer();
+        _ = services.AddLogging();
+        _ = services.AddNewtonsoftAmqpSerializer();
+        _ = services.AddScoped<TestService>();
+
+        var firstConnectionMock = new Mock<IConnection>();
+        _ = firstConnectionMock
+            .Setup(it => it.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("channel factory failed"));
+
+        _ = services.AddSingleton(firstConnectionMock.Object);
+
+        var sp = services.BuildServiceProvider();
+
+        var descriptor = new ConsumerDescriptor(
+            sp,
+            "test-queue",
+            ([FromServices] TestService svc, [FromBody] TestMessage msg) => svc.HandleAsync(msg));
+
+        // Act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => descriptor.BuildConsumerAsync(CancellationToken.None));
+
+        // Assert
+        Assert.Equal("channel factory failed", exception.Message);
+        _ = descriptor.WithPrefetch(5);
+        Assert.Equal((ushort)5, descriptor.PrefetchCount);
+    }
+
+    [Fact]
+    public async Task BuildConsumerAsync_AfterInitializationFailure_ShouldAllowRetryAndLockOnSuccess()
+    {
+        // Arrange
+        ServiceCollection services = new();
+        services.AddRabbitMQConsumer();
+        _ = services.AddLogging();
+        _ = services.AddNewtonsoftAmqpSerializer();
+        _ = services.AddScoped<TestService>();
+
+        var workingChannelMock = new Mock<IChannel>();
+        var workingConnectionMock = new Mock<IConnection>();
+        _ = workingConnectionMock
+            .Setup(it => it.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(workingChannelMock.Object);
+
+        _ = services.AddSingleton(workingConnectionMock.Object);
+        var sp = services.BuildServiceProvider();
+        var shouldFailInitialization = true;
+
+        var descriptor = new ConsumerDescriptor(
+            sp,
+            "test-queue",
+            ([FromServices] TestService svc, [FromBody] TestMessage msg) => svc.HandleAsync(msg))
+            .WithTopology((_, _) =>
+            {
+                if (shouldFailInitialization)
+                {
+                    throw new InvalidOperationException("topology failed");
+                }
+
+                return Task.CompletedTask;
+            });
+
+        // Act
+        _ = await Assert.ThrowsAsync<InvalidOperationException>(() => descriptor.BuildConsumerAsync(CancellationToken.None));
+        _ = descriptor.WithConsumerTag("retry-consumer");
+        shouldFailInitialization = false;
+        var consumer = await descriptor.BuildConsumerAsync(CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(consumer);
+        Assert.Equal("retry-consumer", descriptor.ConsumerTag);
+        _ = Assert.Throws<InvalidOperationException>(() => descriptor.WithPrefetch(10));
+    }
+
     #endregion
 }

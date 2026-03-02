@@ -333,10 +333,18 @@ public class ConsumerDescriptor : IConsumerDescriptor
     public async Task<IHostedAmqpConsumer> BuildConsumerAsync(CancellationToken cancellationToken)
     {
         this.Validate();
-        this.isLocked = true;
         var queueConsumer = new QueueConsumer(this.ApplicationServiceProvider.GetRequiredService<ILogger<QueueConsumer>>(), this);
-        await queueConsumer.InitializeAsync(cancellationToken).ConfigureAwait(true);
-        return queueConsumer;
+        try
+        {
+            await queueConsumer.InitializeAsync(cancellationToken).ConfigureAwait(true);
+            this.isLocked = true;
+            return queueConsumer;
+        }
+        catch
+        {
+            await queueConsumer.DisposeAsync().ConfigureAwait(true);
+            throw;
+        }
     }
     #endregion
 
