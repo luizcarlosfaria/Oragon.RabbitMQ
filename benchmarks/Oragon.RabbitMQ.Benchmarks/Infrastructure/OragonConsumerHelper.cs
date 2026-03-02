@@ -93,7 +93,7 @@ public sealed class OragonConsumerHelper : IAsyncDisposable
                 async (TMessage msg) =>
                 {
                     await handler(msg).ConfigureAwait(false);
-                    countdown.Signal();
+                    _ = countdown.Signal();
                 })
             .WithPrefetch(prefetchCount)
             .WithDispatchConcurrency(dispatchConcurrency)

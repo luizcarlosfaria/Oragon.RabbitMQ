@@ -30,6 +30,7 @@ public class QueueConsumer : IHostedAmqpConsumer
     private string consumerTag;
     private CancellationTokenSource cancellationTokenSource;
     private IAmqpSerializer serializer;
+    private bool ownsConnection;
     private volatile bool wasStarted;
     private volatile bool isConsuming;
     private volatile bool isInitialized;
@@ -148,6 +149,7 @@ public class QueueConsumer : IHostedAmqpConsumer
         {
             IConnection connection2 = await this.consumerDescriptor.ConnectionFactory(this.consumerDescriptor.ApplicationServiceProvider, cancellationToken).ConfigureAwait(true);
             mustReuseConnection = connection1 == connection2;
+            this.ownsConnection = !mustReuseConnection;
 
             if (!mustReuseConnection)
             {
@@ -440,6 +442,18 @@ public class QueueConsumer : IHostedAmqpConsumer
 
         this.channel?.Dispose();
         this.channel = null;
+
+        if (this.connection != null && this.ownsConnection)
+        {
+            if (this.connection.IsOpen)
+            {
+                await this.connection.CloseAsync(cancellationToken: CancellationToken.None).ConfigureAwait(true);
+            }
+
+            this.connection.Dispose();
+        }
+
+        this.connection = null;
 
         GC.SuppressFinalize(this);
     }
