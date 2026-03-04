@@ -200,8 +200,8 @@ public static class SmokeTest
                     publisherConfirmationsEnabled: true,
                     publisherConfirmationTrackingEnabled: true)).ConfigureAwait(false);
 
-            await setupChannel.QueueDeclareAsync(requestQueue, false, false, false).ConfigureAwait(false);
-            await setupChannel.QueueDeclareAsync(replyQueue, false, false, false).ConfigureAwait(false);
+            _ = await setupChannel.QueueDeclareAsync(requestQueue, false, false, false).ConfigureAwait(false);
+            _ = await setupChannel.QueueDeclareAsync(replyQueue, false, false, false).ConfigureAwait(false);
 
             using var replyReceived = new ManualResetEventSlim(false);
 
