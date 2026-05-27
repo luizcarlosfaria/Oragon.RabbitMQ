@@ -42,7 +42,7 @@ public class TestContainersTest: IAsyncLifetime
         // Send a message to the channel.
         using var channel = await connection.CreateChannelAsync();
 
-        _ = await channel.QueueDeclareAsync(queue, false, false, false, null);
+        _ = await channel.QueueDeclareAsync(queue, true, false, false, null);
 
         await channel.BasicPublishAsync(string.Empty, queue, false, Encoding.Default.GetBytes(message));
 

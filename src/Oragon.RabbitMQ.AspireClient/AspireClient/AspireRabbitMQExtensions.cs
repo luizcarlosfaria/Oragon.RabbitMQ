@@ -38,8 +38,8 @@ public static class AspireRabbitMQExtensions
     public static void AddRabbitMQClient(
         this IHostApplicationBuilder builder,
         string connectionName,
-        Action<RabbitMQClientSettings> configureSettings = null,
-        Action<ConnectionFactory> configureConnectionFactory = null)
+        Action<RabbitMQClientSettings>? configureSettings = null,
+        Action<ConnectionFactory>? configureConnectionFactory = null)
     {
         AddRabbitMQClient(builder, DefaultConfigSectionName, configureSettings, configureConnectionFactory, connectionName, serviceKey: null);
     }
@@ -56,8 +56,8 @@ public static class AspireRabbitMQExtensions
     public static void AddKeyedRabbitMQClient(
         this IHostApplicationBuilder builder,
         string name,
-        Action<RabbitMQClientSettings> configureSettings = null,
-        Action<ConnectionFactory> configureConnectionFactory = null)
+        Action<RabbitMQClientSettings>? configureSettings = null,
+        Action<ConnectionFactory>? configureConnectionFactory = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(name);
 
@@ -68,10 +68,10 @@ public static class AspireRabbitMQExtensions
     private static void AddRabbitMQClient(
         IHostApplicationBuilder builder,
         string configurationSectionName,
-        Action<RabbitMQClientSettings> configureSettings,
-        Action<ConnectionFactory> configureConnectionFactory,
+        Action<RabbitMQClientSettings>? configureSettings,
+        Action<ConnectionFactory>? configureConnectionFactory,
         string connectionName,
-        object serviceKey)
+        object? serviceKey)
     {
         ArgumentNullException.ThrowIfNull(builder);
 

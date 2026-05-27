@@ -43,6 +43,7 @@
     <File Path=".editorconfig" />
     <File Path=".gitattributes" />
     <File Path=".gitignore" />
+    <File Path="Directory.Packages.props" />
     <File Path="Global.Build.props" />
     <File Path="nuget.config" />
     <File Path="README.md" />

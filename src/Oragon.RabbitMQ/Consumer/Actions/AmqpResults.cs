@@ -3,6 +3,8 @@
 
 
 
+using RabbitMQ.Client;
+
 namespace Oragon.RabbitMQ.Consumer.Actions;
 
 /// <summary>
@@ -71,21 +73,34 @@ public static class AmqpResults
     /// <param name="routingKey">The routing key used to route the forwarded objects. Cannot be <see langword="null"/>.</param>
     /// <param name="mandatory">A value indicating whether the forwarding operation is mandatory. If <see langword="true"/>, the operation
     /// requires confirmation that the message was routed successfully.</param>
+    /// <param name="basicPropertiesConfigureAction"></param>    
+    /// <param name="objectsToForward">The objects to be forwarded. Cannot be <see langword="null"/> and must contain at least one object.</param>
+
+    public static ForwardResult<T> Forward<T>(string exchange, string routingKey, bool mandatory, Action<T, IBasicProperties> basicPropertiesConfigureAction = null, params T[] objectsToForward)
+        => new(exchange, routingKey, mandatory, basicPropertiesConfigureAction, objectsToForward);
+
+    /// <summary>
+    /// Return a ForwardResult to represents a AMQP Forward to another exchange and routing key
+    /// </summary>
+    /// <param name="exchange">The name of the exchange to which the objects will be forwarded. Cannot be <see langword="null"/>.</param>
+    /// <param name="routingKey">The routing key used to route the forwarded objects. Cannot be <see langword="null"/>.</param>
+    /// <param name="mandatory">A value indicating whether the forwarding operation is mandatory. If <see langword="true"/>, the operation
+    /// requires confirmation that the message was routed successfully.</param>
+    /// <param name="objectsToForward">The objects to be forwarded. Cannot be <see langword="null"/> and must contain at least one object.</param>
+    public static ForwardResult<T> Forward<T>(string exchange, string routingKey, bool mandatory, params T[] objectsToForward)
+        => Forward(exchange, routingKey, mandatory, (Action<T, IBasicProperties>)null, objectsToForward);
+
+    /// <summary>
+    /// Return a ForwardResult to represents a AMQP Forward to another exchange and routing key
+    /// </summary>
+    /// <param name="exchange">The name of the exchange to which the objects will be forwarded. Cannot be <see langword="null"/>.</param>
+    /// <param name="routingKey">The routing key used to route the forwarded objects. Cannot be <see langword="null"/>.</param>
+    /// <param name="mandatory">A value indicating whether the forwarding operation is mandatory. If <see langword="true"/>, the operation
+    /// requires confirmation that the message was routed successfully.</param>
     /// <param name="replyTo">An optional reply-to address for responses. Can be <see langword="null"/> if no reply-to address is specified.</param>
     /// <param name="objectsToForward">The objects to be forwarded. Cannot be <see langword="null"/> and must contain at least one object.</param>
-
-    public static ForwardResult<T> Forward<T>(string exchange, string routingKey, bool mandatory, string replyTo = null, params T[] objectsToForward) => new(exchange, routingKey, mandatory, replyTo, objectsToForward);
-
-    /// <summary>
-    /// Return a ForwardResult to represents a AMQP Forward to another exchange and routing key
-    /// </summary>
-    /// <param name="exchange">The name of the exchange to which the objects will be forwarded. Cannot be <see langword="null"/>.</param>
-    /// <param name="routingKey">The routing key used to route the forwarded objects. Cannot be <see langword="null"/>.</param>
-    /// <param name="mandatory">A value indicating whether the forwarding operation is mandatory. If <see langword="true"/>, the operation
-    /// requires confirmation that the message was routed successfully.</param>
-    /// <param name="objectsToForward">The objects to be forwarded. Cannot be <see langword="null"/> and must contain at least one object.</param>
-
-    public static ForwardResult<T> Forward<T>(string exchange, string routingKey, bool mandatory, params T[] objectsToForward) => new(exchange, routingKey, mandatory, (string)null, objectsToForward);
+    public static ForwardResult<T> Forward<T>(string exchange, string routingKey, bool mandatory, string replyTo, params T[] objectsToForward)
+        => Forward(exchange, routingKey, mandatory, (_, basicProperties) => basicProperties.ReplyTo = replyTo, objectsToForward);
 
 
     /// <summary>
@@ -97,7 +112,7 @@ public static class AmqpResults
     /// requires confirmation that the message was routed successfully.</param>
     /// <param name="objectsToForward">The objects to be forwarded. Cannot be <see langword="null"/> and must contain at least one object.</param>
 
-    public static ComposableResult ForwardAndAck<T>(string exchange, string routingKey, bool mandatory, params T[] objectsToForward) => new(Forward(exchange, routingKey, mandatory, (string)null, objectsToForward), s_forSuccess);
+    public static ComposableResult ForwardAndAck<T>(string exchange, string routingKey, bool mandatory, params T[] objectsToForward) => new(Forward(exchange, routingKey, mandatory, (Action<T, IBasicProperties>)null, objectsToForward), s_forSuccess);
 
 
     /// <summary>

@@ -116,8 +116,8 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
 
         using var channel = await connection.CreateChannelAsync(new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true));
 
-        _ = await channel.QueueDeclareAsync(serverQueue, false, false, false, null);
-        var replyQueue = await channel.QueueDeclareAsync(queue: string.Empty, exclusive: true, autoDelete: true);
+        _ = await channel.QueueDeclareAsync(serverQueue, true, false, false, null);
+        var replyQueue = await channel.QueueDeclareAsync(queue: string.Empty, durable: true, exclusive: true, autoDelete: true);
 
         var basicProperties = channel.CreateBasicProperties()
             .SetReplyTo(replyQueue.QueueName)

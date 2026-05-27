@@ -10,7 +10,9 @@ namespace Oragon.RabbitMQ.Consumer.Actions;
 /// </summary>
 /// <remarks>This class encapsulates the details required to forward messages to a RabbitMQ exchange, including
 /// the exchange name, routing key,  mandatory flag, and the objects to be forwarded. It is designed to be used in
-/// AMQP-based messaging scenarios.</remarks>
+/// AMQP-based messaging scenarios.
+/// BasicProperties.[DeliveryMode|MessageId|CorrelationId] will be overrided after action BasicPropertiesConfigureAction execution.
+/// </remarks>
 /// <typeparam name="T">The type of objects being forwarded.</typeparam>
 public class ForwardResult<T> : IAmqpResult
 {
@@ -26,9 +28,10 @@ public class ForwardResult<T> : IAmqpResult
     /// <param name="routingKey">The routing key used to route the forwarded objects. Cannot be <see langword="null"/>.</param>
     /// <param name="mandatory">A value indicating whether the forwarding operation is mandatory. If <see langword="true"/>, the operation
     /// requires confirmation that the message was routed successfully.</param>
-    /// <param name="replyTo">An optional reply-to address for responses. Can be <see langword="null"/> if no reply-to address is specified.</param>
+    /// <param name="basicPropertiesConfigureAction">Action for configure BasicProperties. Use to set properties like Expiration, Priority, ReplyTo etc</param>
     /// <param name="objectsToForward">The objects to be forwarded. Cannot be <see langword="null"/> and must contain at least one object.</param>
-    internal ForwardResult(string exchange, string routingKey, bool mandatory, string replyTo = null, params T[] objectsToForward)
+
+    internal ForwardResult(string exchange, string routingKey, bool mandatory, Action<T, IBasicProperties> basicPropertiesConfigureAction = null, params T[] objectsToForward)
     {
         ArgumentNullException.ThrowIfNull(exchange, nameof(exchange));
         ArgumentNullException.ThrowIfNull(routingKey, nameof(routingKey));
@@ -37,7 +40,7 @@ public class ForwardResult<T> : IAmqpResult
         this.Exchange = exchange;
         this.RoutingKey = routingKey;
         this.Mandatory = mandatory;
-        this.ReplyTo = replyTo;
+        this.BasicPropertiesConfigureAction = basicPropertiesConfigureAction;
         this.objectsToForward = objectsToForward;
     }
 
@@ -57,9 +60,10 @@ public class ForwardResult<T> : IAmqpResult
     public bool Mandatory { get; }
 
     /// <summary>
-    /// Gets the address to which replies should be sent.
+    /// Action for configure BasicProperties. Use to set properties like Expiration, Priority, ReplyTo etc. that are not set by default in the ForwardResult class. The action
+    /// is invoked for each object being forwarded, allowing customization of the message properties before publishing.
     /// </summary>
-    public string ReplyTo { get; }
+    public Action<T, IBasicProperties> BasicPropertiesConfigureAction { get; }
 
 
     /// <summary>
@@ -99,11 +103,16 @@ public class ForwardResult<T> : IAmqpResult
     {
         var forwardBasicProperties = new BasicProperties
         {
-            DeliveryMode = DeliveryModes.Persistent,
-            MessageId = Guid.NewGuid().ToString("D"),
-            CorrelationId = context.Request.BasicProperties.MessageId ?? context.Request.BasicProperties.CorrelationId,
-            ReplyTo = this.ReplyTo
+            //ReplyTo = this.ReplyTo,
+            //Priority = this.Priority,
+            //Expiration = this.Expiration,
         };
+
+        this.BasicPropertiesConfigureAction?.Invoke(objectToForward, forwardBasicProperties);
+
+        forwardBasicProperties.DeliveryMode = DeliveryModes.Persistent;
+        forwardBasicProperties.MessageId = Guid.NewGuid().ToString("D");
+        forwardBasicProperties.CorrelationId = context.Request.BasicProperties.MessageId ?? context.Request.BasicProperties.CorrelationId;
 
         await channel.BasicPublishAsync(
             exchange: this.Exchange,

@@ -145,7 +145,7 @@ public class MultipleConsumersTest : IAsyncLifetime
         {
             using var channel = await connection.CreateChannelAsync(new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true));
 
-            _ = await channel.QueueDeclareAsync(pack.QueueName, false, false, false, null);
+            _ = await channel.QueueDeclareAsync(pack.QueueName, true, false, false, null);
 
             await channel.BasicPublishAsync(string.Empty, pack.QueueName, true, Encoding.Default.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(pack.MessageToSend)));
 

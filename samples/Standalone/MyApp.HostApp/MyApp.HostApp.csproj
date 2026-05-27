@@ -10,11 +10,11 @@
   
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
-    <PackageReference Include="Oragon.RabbitMQ" Version="1.1.0" />
-    <PackageReference Include="Oragon.RabbitMQ.AspireClient" Version="1.1.0" />
-    <PackageReference Include="Oragon.RabbitMQ.Serializer.SystemTextJson" Version="1.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
+    <PackageReference Include="Oragon.RabbitMQ" />
+    <PackageReference Include="Oragon.RabbitMQ.AspireClient" />
+    <PackageReference Include="Oragon.RabbitMQ.Serializer.SystemTextJson" />
   </ItemGroup>
   
 
