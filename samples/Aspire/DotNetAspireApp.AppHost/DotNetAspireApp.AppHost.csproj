@@ -9,10 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AspNetCore.HealthChecks.Rabbitmq" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\DotNetAspireApp.ApiService\DotNetAspireApp.ApiService.csproj" />
     <ProjectReference Include="..\DotNetAspireApp.Web\DotNetAspireApp.Web.csproj" />
     <ProjectReference Include="..\DotNetAspireApp.Worker\DotNetAspireApp.Worker.csproj" />

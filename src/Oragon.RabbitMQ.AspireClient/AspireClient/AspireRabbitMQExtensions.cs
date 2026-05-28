@@ -4,7 +4,6 @@
 using System.Diagnostics;
 using System.Net.Sockets;
 using Aspire;
-using HealthChecks.RabbitMQ;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -138,7 +137,7 @@ public static class AspireRabbitMQExtensions
                 {
                     try
                     {
-                        return new RabbitMQHealthCheck(serviceKey is null ? sp.GetRequiredService<IConnection>() : sp.GetRequiredKeyedService<IConnection>(serviceKey));
+                        return new RabbitMQConnectionHealthCheck(serviceKey is null ? sp.GetRequiredService<IConnection>() : sp.GetRequiredKeyedService<IConnection>(serviceKey));
                     }
                     catch (Exception ex)
                     {
@@ -147,6 +146,29 @@ public static class AspireRabbitMQExtensions
                 },
                 failureStatus: default,
                 tags: default));
+        }
+    }
+
+    private sealed class RabbitMQConnectionHealthCheck(IConnection connection) : IHealthCheck
+    {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Health checks must report dependency failures instead of throwing.")]
+        public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                if (!connection.IsOpen)
+                {
+                    return new HealthCheckResult(context.Registration.FailureStatus, description: "RabbitMQ connection is closed.");
+                }
+
+                using IChannel channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                return HealthCheckResult.Healthy();
+            }
+            catch (Exception ex)
+            {
+                return new HealthCheckResult(context.Registration.FailureStatus, exception: ex);
+            }
         }
     }
 

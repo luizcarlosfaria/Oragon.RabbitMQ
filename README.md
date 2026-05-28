@@ -35,7 +35,6 @@
 [![GitHub Repo stars](https://img.shields.io/github/stars/luizcarlosfaria/Oragon.RabbitMQ)](https://github.com/luizcarlosfaria/Oragon.RabbitMQ)
 [![GitHub last commit](https://img.shields.io/github/last-commit/luizcarlosfaria/Oragon.RabbitMQ)](https://github.com/luizcarlosfaria/Oragon.RabbitMQ/commits/)
 [![Roadmap](https://img.shields.io/badge/Roadmap-%23ff6600?logo=github&logoColor=%23000000&label=GitHub&labelColor=%23f0f0f0)](https://github.com/users/luizcarlosfaria/projects/3/views/3)
-![.NET 8](https://img.shields.io/badge/.NET_8-5C2D91?style=flat&logo=dotnet&label=target)
 ![.NET 9](https://img.shields.io/badge/.NET_9-5C2D91?style=flat&logo=dotnet&label=target)
 ![.NET 10](https://img.shields.io/badge/.NET_10-5C2D91?style=flat&logo=dotnet&label=target)
 
@@ -68,7 +67,7 @@ It provides everything you need to create resilient RabbitMQ consumers without t
 - **Composable flow control** — Ack, Nack, Reject, Reply, Forward, and Compose results
 - **.NET Aspire integration** — first-class support via `Oragon.RabbitMQ.AspireClient`
 - **OpenTelemetry native** — via RabbitMQ.Client 7.x built-in instrumentation
-- **Multi-framework** — targets .NET 8, 9, and 10
+- **Multi-framework** — targets .NET 9 and 10
 
 ## Quick Start
 
@@ -119,7 +118,7 @@ app.Run();
 
 ### Example 2
 
-Asume the controller has a method `CanProcess` that returns a boolean.
+Assume the service has a method `CanProcess` that returns a boolean.
 
 ```csharp
 app.MapQueue("orders", async ([FromServices] OrderService svc, OrderCreated msg) =>
@@ -155,7 +154,7 @@ app.MapQueue("orders", async ([FromServices] OrderService svc, OrderCreated msg)
 
 ### With .NET Aspire
 
-Replace `Aspire.RabbitMQ.Client` with `Oragon.RabbitMQ.AspireClient` to get RabbitMQ.Client 7.x support:
+Replace `Aspire.RabbitMQ.Client` with `Oragon.RabbitMQ.AspireClient` to get RabbitMQ.Client 7.x support and a built-in RabbitMQ health check without the `AspNetCore.HealthChecks.Rabbitmq` dependency:
 
 ```bash
 dotnet add package Oragon.RabbitMQ.AspireClient

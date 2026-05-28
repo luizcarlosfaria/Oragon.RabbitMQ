@@ -1,4 +1,4 @@
-# Aspire.RabbitMQ.Client library
+# Oragon.RabbitMQ.AspireClient library
 
 Registers an [IConnection](https://rabbitmq.github.io/rabbitmq-dotnet-client/api/RabbitMQ.Client.IConnection.html) in the DI container for connecting to a RabbitMQ server. Enables corresponding health check, logging and telemetry.
 
@@ -10,10 +10,10 @@ Registers an [IConnection](https://rabbitmq.github.io/rabbitmq-dotnet-client/api
 
 ### Install the package
 
-Install the .NET Aspire RabbitMQ library with [NuGet](https://www.nuget.org):
+Install the Oragon .NET Aspire RabbitMQ client library with [NuGet](https://www.nuget.org):
 
 ```dotnetcli
-dotnet add package Aspire.RabbitMQ.Client
+dotnet add package Oragon.RabbitMQ.AspireClient
 ```
 
 ## Usage example

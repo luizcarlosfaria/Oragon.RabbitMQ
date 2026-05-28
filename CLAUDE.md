@@ -27,7 +27,7 @@ dotnet pack ./src/Oragon.RabbitMQ/Oragon.RabbitMQ.csproj --configuration Release
 
 ## Target Frameworks
 
-Projects target `net8.0`, `net9.0`, and `net10.0`. The solution uses C# preview language features with nullable enabled by default (disabled in test projects).
+Projects target `net9.0` and `net10.0`. The solution uses C# preview language features with nullable enabled by default (disabled in test projects).
 
 ## Architecture
 
