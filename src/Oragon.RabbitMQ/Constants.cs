@@ -13,6 +13,21 @@ namespace Oragon.RabbitMQ;
 /// </summary>
 public static class Constants
 {
+    /// <summary>Cached type reference for <see cref="byte"/>.</summary>
+    public static Type ByteType { get; } = typeof(byte);
+
+    /// <summary>Cached type reference for <see cref="long"/>.</summary>
+    public static Type LongType { get; } = typeof(long);
+
+    /// <summary>Cached type reference for <see cref="Nullable{T}"/> of <see cref="long"/>.</summary>
+    public static Type NullableLongType { get; } = typeof(long?);
+
+    /// <summary>Cached type reference for <see cref="int"/>.</summary>
+    public static Type IntType { get; } = typeof(int);
+
+    /// <summary>Cached type reference for <see cref="Nullable{T}"/> of <see cref="int"/>.</summary>
+    public static Type NullableIntType { get; } = typeof(int?);
+
     /// <summary>Cached type reference for <see cref="string"/>.</summary>
     public static Type StringType { get; } = typeof(string);
 
@@ -58,21 +73,30 @@ public static class Constants
     /// <summary>Cached type reference for <see langword="void"/>.</summary>
     public static Type VoidResult { get; } = typeof(void);
 
+    /// <summary>AMQP header that carries the delivery count on quorum queues.</summary>
+    public const string XDeliveryCountHeader = "x-delivery-count";
+
+    /// <summary>Parameter names recognized as priority by convention.</summary>
+    public static ReadOnlyCollection<string> PriorityParams { get; } = Array.AsReadOnly(["priority"]);
+
+    /// <summary>Parameter names recognized as delivery count (<c>x-delivery-count</c> header) by convention.</summary>
+    public static ReadOnlyCollection<string> DeliveryCountParams { get; } = Array.AsReadOnly(["deliveryCount", "attempts"]);
+
     /// <summary>Parameter names recognized as queue name by convention.</summary>
-    public static ReadOnlyCollection<string> QueueNameParams { get; } = Array.AsReadOnly(new[] { "queue", "queueName" });
+    public static ReadOnlyCollection<string> QueueNameParams { get; } = Array.AsReadOnly(["queue", "queueName"]);
 
     /// <summary>Parameter names recognized as routing key by convention.</summary>
-    public static ReadOnlyCollection<string> RoutingKeyNameParams { get; } = Array.AsReadOnly(new[] { "routing", "routingKey" });
+    public static ReadOnlyCollection<string> RoutingKeyNameParams { get; } = Array.AsReadOnly(["routing", "routingKey"]);
 
     /// <summary>Parameter names recognized as exchange name by convention.</summary>
-    public static ReadOnlyCollection<string> ExchangeNameParams { get; } = Array.AsReadOnly(new[] { "exchange", "exchangeName" });
+    public static ReadOnlyCollection<string> ExchangeNameParams { get; } = Array.AsReadOnly(["exchange", "exchangeName"]);
 
     /// <summary>Parameter names recognized as consumer tag by convention.</summary>
-    public static ReadOnlyCollection<string> ConsumerTagParams { get; } = Array.AsReadOnly(new[] { "consumer", "consumerTag" });
+    public static ReadOnlyCollection<string> ConsumerTagParams { get; } = Array.AsReadOnly(["consumer", "consumerTag"]);
 
     /// <summary>ASP.NET MVC attribute type names that are prohibited on handler parameters.</summary>
-    public static ReadOnlyCollection<string> MvcAttributesTypeNames { get; } = Array.AsReadOnly(new[] { "FromBodyAttribute", "FromFormAttribute", "FromHeaderAttribute", "FromQueryAttribute", "FromRouteAttribute", "FromServicesAttribute" });
+    public static ReadOnlyCollection<string> MvcAttributesTypeNames { get; } = Array.AsReadOnly(["FromBodyAttribute", "FromFormAttribute", "FromHeaderAttribute", "FromQueryAttribute", "FromRouteAttribute", "FromServicesAttribute"]);
 
     /// <summary>ASP.NET MVC namespaces used to detect prohibited attributes.</summary>
-    public static ReadOnlyCollection<string> MvcAttributeNamespaces { get; } = Array.AsReadOnly(new[] { "Microsoft.AspNetCore.Mvc" });
+    public static ReadOnlyCollection<string> MvcAttributeNamespaces { get; } = Array.AsReadOnly(["Microsoft.AspNetCore.Mvc"]);
 }

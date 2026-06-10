@@ -247,16 +247,22 @@ These types are resolved automatically by the model binder without any attribute
 | `IAmqpContext`             | Full AMQP context           |
 | `CancellationToken`        | Cancellation token          |
 
-### Auto-bound String Parameters
+### Auto-bound Parameters by Name Convention
 
-String parameters are matched by name convention:
+Parameters are matched by name and type convention:
 
-| Parameter names            | Value                      |
-| -------------------------- | -------------------------- |
-| `queue`, `queueName`       | Name of the consumed queue |
-| `routing`, `routingKey`    | Message routing key        |
-| `exchange`, `exchangeName` | Source exchange name       |
-| `consumer`, `consumerTag`  | Consumer tag               |
+| Parameter names             | Type(s)                | Value                                                             |
+| --------------------------- | ---------------------- | ----------------------------------------------------------------- |
+| `queue`, `queueName`        | `string`               | Name of the consumed queue                                        |
+| `routing`, `routingKey`     | `string`               | Message routing key                                               |
+| `exchange`, `exchangeName`  | `string`               | Source exchange name                                              |
+| `consumer`, `consumerTag`   | `string`               | Consumer tag                                                      |
+| `priority`                  | `byte`, `int`, `long`  | Message priority (`BasicProperties.Priority`)                     |
+| `deliveryCount`, `attempts` | `int`, `int?`, `long`, `long?` | Delivery count from the `x-delivery-count` header (quorum queues) |
+
+When the `x-delivery-count` header is absent (first delivery on a quorum queue, or a classic queue, which never sets it), `int`/`long` parameters receive `0` and nullable types (`int?`/`long?`) receive `null`.
+
+> **Note:** `byte`, `int`, `int?`, `long` and `long?` parameters whose names don't match a convention above throw an `InvalidOperationException` at startup (fail-fast), since they can't be bound.
 
 ## Telemetry
 

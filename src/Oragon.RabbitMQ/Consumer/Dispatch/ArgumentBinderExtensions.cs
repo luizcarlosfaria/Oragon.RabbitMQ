@@ -2,6 +2,7 @@
 // The ACADEMIA.DEV licenses this file to you under the MIT license.
 
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Reflection;
 using Oragon.RabbitMQ.Consumer.ArgumentBinders;
 using Oragon.RabbitMQ.Consumer.Dispatch.Attributes;
@@ -92,7 +93,10 @@ internal static class ArgumentBinderExtensions
             var type when type == Constants.IAmqpContext => new DynamicArgumentBinder(context => context),
             var type when type == Constants.BasicPropertiesType => new DynamicArgumentBinder(context => context.Request.BasicProperties),
             var type when type == Constants.CancellationToken => new DynamicArgumentBinder(context => context.CancellationToken),
-            //inference by name
+
+            //string values inference by type/name
+
+            //string
             var type when type == Constants.StringType => parameter.Name switch
             {
                 var name when Constants.QueueNameParams.Contains(name) => new DynamicArgumentBinder(context => context.QueueName),
@@ -101,9 +105,62 @@ internal static class ArgumentBinderExtensions
                 var name when Constants.ConsumerTagParams.Contains(name) => new DynamicArgumentBinder(context => context.Request.ConsumerTag),
                 _ => throw new InvalidOperationException($"Can't determine binder for {parameter.Name}")
             },
+
+            //byte
+            var type when type == Constants.ByteType => parameter.Name switch
+            {
+                var name when Constants.PriorityParams.Contains(name) => new DynamicArgumentBinder(context => context.Request.BasicProperties.Priority),
+                _ => throw new InvalidOperationException($"Can't determine binder for {parameter.Name}")
+            },
+
+            //int
+            var type when type == Constants.IntType => parameter.Name switch
+            {
+                var name when Constants.PriorityParams.Contains(name) => new DynamicArgumentBinder(context => (int)context.Request.BasicProperties.Priority),
+                var name when Constants.DeliveryCountParams.Contains(name) => new DynamicArgumentBinder(context => (int)(GetDeliveryCountOrNull(context) ?? 0L)),
+                _ => throw new InvalidOperationException($"Can't determine binder for {parameter.Name}")
+            },
+
+            //long
+            var type when type == Constants.LongType => parameter.Name switch
+            {
+                var name when Constants.PriorityParams.Contains(name) => new DynamicArgumentBinder(context => (long)context.Request.BasicProperties.Priority),
+                var name when Constants.DeliveryCountParams.Contains(name) => new DynamicArgumentBinder(context => GetDeliveryCountOrNull(context) ?? 0L),
+                _ => throw new InvalidOperationException($"Can't determine binder for {parameter.Name}")
+            },
+
+            //int?
+            var type when type == Constants.NullableIntType => parameter.Name switch
+            {
+                var name when Constants.DeliveryCountParams.Contains(name) => new DynamicArgumentBinder(context => (int?)GetDeliveryCountOrNull(context)),
+                _ => throw new InvalidOperationException($"Can't determine binder for {parameter.Name}")
+            },
+
+            //long?
+            var type when type == Constants.NullableLongType => parameter.Name switch
+            {
+                var name when Constants.DeliveryCountParams.Contains(name) => new DynamicArgumentBinder(context => GetDeliveryCountOrNull(context)),
+                _ => throw new InvalidOperationException($"Can't determine binder for {parameter.Name}")
+            },
+
             //inference by default
             _ => new MessageObjectArgumentBinder(parameter.ParameterType)
         };
+    }
+
+    /// <summary>
+    /// Reads the <c>x-delivery-count</c> header, returning <see langword="null"/> when the header is absent
+    /// (first delivery on quorum queues or classic queues, which never set it).
+    /// </summary>
+    private static long? GetDeliveryCountOrNull(IAmqpContext context)
+    {
+        IDictionary<string, object> headers = context.Request.BasicProperties.Headers;
+
+        return headers != null
+            && headers.TryGetValue(Constants.XDeliveryCountHeader, out object value)
+            && value != null
+                ? Convert.ToInt64(value, CultureInfo.InvariantCulture)
+                : null;
     }
 
 
