@@ -1,44 +1,25 @@
-# Syntax
+# Oragon.RabbitMQ Docs
 
-Syntax is a [Tailwind UI](https://tailwindui.com) site template built using [Tailwind CSS](https://tailwindcss.com) and [Next.js](https://nextjs.org).
+Documentation site for Oragon.RabbitMQ, built with Next.js, Markdoc, Tailwind CSS, and the Tailwind UI Syntax template.
 
-## Getting started
+## Development
 
-To get started with this template, first install the npm dependencies:
-
-```bash
-npm install
-```
-
-Next, run the development server:
+Install dependencies with Yarn:
 
 ```bash
-npm run dev
+yarn install
 ```
 
-Finally, open [http://localhost:3000](http://localhost:3000) in your browser to view the website.
+Run the development server:
 
-## Customizing
+```bash
+yarn dev
+```
 
-You can start editing this template by modifying the files in the `/src` folder. The site will auto-update as you edit these files.
+Open [http://localhost:3000](http://localhost:3000).
 
-## Global search
+## Content
 
-This template includes a global search that's powered by the [FlexSearch](https://github.com/nextapps-de/flexsearch) library. It's available by clicking the search input or by using the `⌘K` shortcut.
+Documentation pages live under `src/app` as Markdoc `page.md` files. The navigation is configured in `src/lib/navigation.ts`.
 
-This feature requires no configuration, and works out of the box by automatically scanning your documentation pages to build its index. You can adjust the search parameters by editing the `/src/markdoc/search.mjs` file.
-
-## License
-
-This site template is a commercial product and is licensed under the [Tailwind UI license](https://tailwindui.com/license).
-
-## Learn more
-
-To learn more about the technologies used in this site template, see the following resources:
-
-- [Tailwind CSS](https://tailwindcss.com/docs) - the official Tailwind CSS documentation
-- [Next.js](https://nextjs.org/docs) - the official Next.js documentation
-- [Headless UI](https://headlessui.dev) - the official Headless UI documentation
-- [Markdoc](https://markdoc.io) - the official Markdoc documentation
-- [Algolia Autocomplete](https://www.algolia.com/doc/ui-libraries/autocomplete/introduction/what-is-autocomplete/) - the official Algolia Autocomplete documentation
-- [FlexSearch](https://github.com/nextapps-de/flexsearch) - the official FlexSearch documentation
+Search is generated at build time from `src/app/**/page.md` by `src/markdoc/search.mjs`.

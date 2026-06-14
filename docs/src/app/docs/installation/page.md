@@ -3,72 +3,73 @@ title: Installation
 nextjs:
   metadata:
     title: Installation
-    description: Quidem magni aut exercitationem maxime rerum eos.
+    description: Install Oragon.RabbitMQ packages.
 ---
 
-Quasi sapiente voluptates aut minima non doloribus similique quisquam. In quo expedita ipsum nostrum corrupti incidunt. Et aut eligendi ea perferendis.
+Install the core package and a serializer. Serializers are separate so you can choose System.Text.Json or Newtonsoft.Json. {% .lead %}
 
 ---
 
-## Quis vel iste dicta
+## Core packages
 
-Sit commodi iste iure molestias qui amet voluptatem sed quaerat. Nostrum aut pariatur. Sint ipsa praesentium dolor error cumque velit tenetur.
+For the common System.Text.Json setup:
 
-### Et pariatur ab quas
-
-Sit commodi iste iure molestias qui amet voluptatem sed quaerat. Nostrum aut pariatur. Sint ipsa praesentium dolor error cumque velit tenetur quaerat exercitationem. Consequatur et cum atque mollitia qui quia necessitatibus.
-
-```js
-/** @type {import('@tailwindlabs/lorem').ipsum} */
-export default {
-  lorem: 'ipsum',
-  dolor: ['sit', 'amet', 'consectetur'],
-  adipiscing: {
-    elit: true,
-  },
-}
+```shell
+dotnet add package Oragon.RabbitMQ
+dotnet add package Oragon.RabbitMQ.Serializer.SystemTextJson
 ```
 
-Possimus saepe veritatis sint nobis et quam eos. Architecto consequatur odit perferendis fuga eveniet possimus rerum cumque. Ea deleniti voluptatum deserunt voluptatibus ut non iste. Provident nam asperiores vel laboriosam omnis ducimus enim nesciunt quaerat. Minus tempora cupiditate est quod.
+For Newtonsoft.Json:
 
-### Natus aspernatur iste
+```shell
+dotnet add package Oragon.RabbitMQ
+dotnet add package Oragon.RabbitMQ.Serializer.NewtonsoftJson
+```
 
-Sit commodi iste iure molestias qui amet voluptatem sed quaerat. Nostrum aut pariatur. Sint ipsa praesentium dolor error cumque velit tenetur quaerat exercitationem. Consequatur et cum atque mollitia qui quia necessitatibus.
+## Service registration
 
-Voluptas beatae omnis omnis voluptas. Cum architecto ab sit ad eaque quas quia distinctio. Molestiae aperiam qui quis deleniti soluta quia qui. Dolores nostrum blanditiis libero optio id. Mollitia ad et asperiores quas saepe alias.
+In a Generic Host application, register the consumer infrastructure, serializer, and RabbitMQ connection.
 
----
+```csharp
+using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Oragon.RabbitMQ;
+using RabbitMQ.Client;
 
-## Quos porro ut molestiae
+var builder = Host.CreateApplicationBuilder(args);
 
-Sit commodi iste iure molestias qui amet voluptatem sed quaerat. Nostrum aut pariatur. Sint ipsa praesentium dolor error cumque velit tenetur.
+builder.AddRabbitMQConsumer();
+builder.Services.AddAmqpSerializer(options: JsonSerializerOptions.Default);
 
-### Voluptatem quas possimus
+builder.Services.AddSingleton<IConnectionFactory>(_ => new ConnectionFactory
+{
+    Uri = new Uri("amqp://guest:guest@localhost:5672"),
+});
 
-Sit commodi iste iure molestias qui amet voluptatem sed quaerat. Nostrum aut pariatur. Sint ipsa praesentium dolor error cumque velit tenetur quaerat exercitationem. Consequatur et cum atque mollitia qui quia necessitatibus.
+builder.Services.AddSingleton(sp =>
+    sp.GetRequiredService<IConnectionFactory>()
+        .CreateConnectionAsync()
+        .GetAwaiter()
+        .GetResult());
+```
 
-Possimus saepe veritatis sint nobis et quam eos. Architecto consequatur odit perferendis fuga eveniet possimus rerum cumque. Ea deleniti voluptatum deserunt voluptatibus ut non iste. Provident nam asperiores vel laboriosam omnis ducimus enim nesciunt quaerat. Minus tempora cupiditate est quod.
+## Aspire
 
-### Id vitae minima
+In .NET Aspire applications, use `Oragon.RabbitMQ.AspireClient` to register `IConnectionFactory`, `IConnection`, and health checks with RabbitMQ.Client 7.x.
 
-Sit commodi iste iure molestias qui amet voluptatem sed quaerat. Nostrum aut pariatur. Sint ipsa praesentium dolor error cumque velit tenetur quaerat exercitationem. Consequatur et cum atque mollitia qui quia necessitatibus.
+```shell
+dotnet add package Oragon.RabbitMQ.AspireClient
+```
 
-Voluptas beatae omnis omnis voluptas. Cum architecto ab sit ad eaque quas quia distinctio. Molestiae aperiam qui quis deleniti soluta quia qui. Dolores nostrum blanditiis libero optio id. Mollitia ad et asperiores quas saepe alias.
+```csharp
+builder.AddRabbitMQClient("rabbitmq");
+```
 
----
+{% callout title="Aspire note" %}
+The Aspire package exists to cover RabbitMQ.Client 7.x. When official Aspire support reaches that client version, this package can be retired.
+{% /callout %}
 
-## Vitae laborum maiores
+## Next step
 
-Sit commodi iste iure molestias qui amet voluptatem sed quaerat. Nostrum aut pariatur. Sint ipsa praesentium dolor error cumque velit tenetur.
-
-### Corporis exercitationem
-
-Sit commodi iste iure molestias qui amet voluptatem sed quaerat. Nostrum aut pariatur. Sint ipsa praesentium dolor error cumque velit tenetur quaerat exercitationem. Consequatur et cum atque mollitia qui quia necessitatibus.
-
-Possimus saepe veritatis sint nobis et quam eos. Architecto consequatur odit perferendis fuga eveniet possimus rerum cumque. Ea deleniti voluptatum deserunt voluptatibus ut non iste. Provident nam asperiores vel laboriosam omnis ducimus enim nesciunt quaerat. Minus tempora cupiditate est quod.
-
-### Reprehenderit magni
-
-Sit commodi iste iure molestias qui amet voluptatem sed quaerat. Nostrum aut pariatur. Sint ipsa praesentium dolor error cumque velit tenetur quaerat exercitationem. Consequatur et cum atque mollitia qui quia necessitatibus.
-
-Voluptas beatae omnis omnis voluptas. Cum architecto ab sit ad eaque quas quia distinctio. Molestiae aperiam qui quis deleniti soluta quia qui. Dolores nostrum blanditiis libero optio id. Mollitia ad et asperiores quas saepe alias.
+After installation, create the first handler with `MapQueue`.

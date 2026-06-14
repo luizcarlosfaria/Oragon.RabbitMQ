@@ -1,25 +1,32 @@
 import { Fragment } from 'react'
 import Image from 'next/image'
 import clsx from 'clsx'
-import { Highlight } from 'prism-react-renderer'
+import { Highlight, themes } from 'prism-react-renderer'
 
 import { Button } from '@/components/Button'
 import { HeroBackground } from '@/components/HeroBackground'
+import '@/lib/prism'
 import blurCyanImage from '@/images/blur-cyan.png'
 import blurIndigoImage from '@/images/blur-indigo.png'
 
-const codeLanguage = 'javascript'
-const code = `export default {
-  strategy: 'predictive',
-  engine: {
-    cpus: 12,
-    backups: ['./storage/cache.wtf'],
-  },
-}`
+const codeLanguage = 'csharp'
+const code = `builder.AddRabbitMQConsumer();
+builder.Services.AddAmqpSerializer();
+
+var app = builder.Build();
+
+app.MapQueue("orders",
+    ([FromServices] OrderService svc,
+     [FromBody] OrderCreated msg) =>
+        svc.HandleAsync(msg))
+    .WithPrefetch(20)
+    .WithDispatchConcurrency(4);
+
+app.Run();`
 
 const tabs = [
-  { name: 'cache-advance.config.js', isActive: true },
-  { name: 'package.json', isActive: false },
+  { name: 'Program.cs', isActive: true },
+  { name: 'Oragon.RabbitMQ', isActive: false },
 ]
 
 function TrafficLightsIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
@@ -49,15 +56,18 @@ export function Hero() {
             />
             <div className="relative">
               <p className="inline bg-gradient-to-r from-indigo-200 via-sky-400 to-indigo-200 bg-clip-text font-display text-5xl tracking-tight text-transparent">
-                Never miss the cache again.
+                Minimal APIs for RabbitMQ in .NET.
               </p>
               <p className="mt-3 text-2xl tracking-tight text-slate-400">
-                Cache every single thing your app could ever do ahead of time,
-                so your code never even has to run at all.
+                Consume queues with the same mapping style you already use in
+                ASP.NET Core.
               </p>
               <div className="mt-8 flex gap-4 md:justify-center lg:justify-start">
-                <Button href="/">Get started</Button>
-                <Button href="/" variant="secondary">
+                <Button href="/docs/installation">Get started</Button>
+                <Button
+                  href="https://github.com/luizcarlosfaria/Oragon.RabbitMQ"
+                  variant="secondary"
+                >
                   View on GitHub
                 </Button>
               </div>
@@ -132,7 +142,7 @@ export function Hero() {
                     <Highlight
                       code={code}
                       language={codeLanguage}
-                      theme={{ plain: {}, styles: [] }}
+                      theme={themes.oneDark}
                     >
                       {({
                         className,
@@ -144,9 +154,9 @@ export function Hero() {
                         <pre
                           className={clsx(
                             className,
-                            'flex overflow-x-auto pb-6',
+                            'flex overflow-x-auto pb-6 font-mono',
                           )}
-                          style={style}
+                          style={{ ...style, backgroundColor: 'transparent' }}
                         >
                           <code className="px-4">
                             {tokens.map((line, lineIndex) => (

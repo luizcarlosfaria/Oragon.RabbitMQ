@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <title>Logo test — claro/escuro</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            height: 100vh;
+            width: 100vw;
+        }
+        .cell {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .cell img {
+            max-width: 90%;
+            max-height: 80%;
+            display: block;
+        }
+        .label {
+            position: absolute;
+            top: 8px;
+            left: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            user-select: none;
+        }
+        .light { background: #ffffff; }
+        .light .label { color: #555; }
+        .dark  { background: #383636; }
+        .dark  .label { color: #888; }
+
+        /* Linhas finas de separação entre quadrantes */
+        .cell + .cell { border-left: 1px solid rgba(127,127,127,0.2); }
+        .grid > .cell:nth-child(3),
+        .grid > .cell:nth-child(4) {
+            border-top: 1px solid rgba(127,127,127,0.2);
+        }
+        .grid > .cell:nth-child(3) { border-left: none; }
+    </style>
+</head>
+<body>
+    <div class="grid">
+        <div class="cell light">
+            <span class="label">logo_black.svg &middot; fundo claro</span>
+            <img data-src="logo_black.svg" alt="logo_black em fundo claro">
+        </div>
+        <div class="cell dark">
+            <span class="label">logo_black.svg &middot; fundo escuro</span>
+            <img data-src="logo_black.svg" alt="logo_black em fundo escuro">
+        </div>
+        <div class="cell light">
+            <span class="label">logo_white.svg &middot; fundo claro</span>
+            <img data-src="logo_white.svg" alt="logo_white em fundo claro">
+        </div>
+        <div class="cell dark">
+            <span class="label">logo_white.svg &middot; fundo escuro</span>
+            <img data-src="logo_white.svg" alt="logo_white em fundo escuro">
+        </div>
+    </div>
+
+    <script>
+        // Auto-reload: a cada 1s, reatribui src com cache-busting.
+        // O filesystem responde 304 quando o arquivo nao mudou, entao o custo e baixo.
+        // Mantemos o caminho canonico em data-src para nao acumular querystrings.
+        function refreshLogos() {
+            const stamp = Date.now();
+            document.querySelectorAll('img[data-src]').forEach(img => {
+                img.src = img.dataset.src + '?t=' + stamp;
+            });
+        }
+        refreshLogos();
+        setInterval(refreshLogos, 1000);
+    </script>
+</body>
+</html>

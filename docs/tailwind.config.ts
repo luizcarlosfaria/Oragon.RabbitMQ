@@ -24,6 +24,7 @@ export default {
       fontFamily: {
         sans: 'var(--font-inter)',
         display: ['var(--font-lexend)', { fontFeatureSettings: '"ss01"' }],
+        mono: ['var(--font-fira-code)', 'ui-monospace', 'SFMono-Regular'],
       },
       maxWidth: {
         '8xl': '88rem',

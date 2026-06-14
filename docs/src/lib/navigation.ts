@@ -1,33 +1,21 @@
 export const navigation = [
   {
-    title: 'Introduction',
+    title: 'Getting started',
     links: [
-      { title: 'Getting started', href: '/' },
+      { title: 'Introduction', href: '/' },
       { title: 'Installation', href: '/docs/installation' },
+      { title: 'Quick start', href: '/docs/quick-start' },
     ],
   },
   {
     title: 'Core concepts',
     links: [
-      { title: 'Predicting user behavior', href: '/docs/installation', },
-    ],
-  },
-  {
-    title: 'Advanced guides',
-    links: [
-      { title: 'Writing plugins', href: '/docs/installation', },
-    ],
-  },
-  {
-    title: 'API reference',
-    links: [
-      { title: 'CacheAdvance.predict()', href: '/docs/installation' },
-    ],
-  },
-  {
-    title: 'Contributing',
-    links: [
-      { title: 'How to contribute', href: '/docs/installation' },
+      { title: 'MapQueue', href: '/docs/map-queue' },
+      { title: 'Flow control', href: '/docs/flow-control' },
+      { title: 'Serialization', href: '/docs/serialization' },
+      { title: 'Model binding', href: '/docs/model-binding' },
+      { title: 'Concepts', href: '/docs/concepts' },
+      { title: 'Benchmarks', href: '/docs/benchmarks' },
     ],
   },
 ]

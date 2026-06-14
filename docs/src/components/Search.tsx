@@ -26,6 +26,16 @@ import { type Result } from '@/markdoc/search.mjs'
 
 type EmptyObject = Record<string, never>
 
+type HighlighterComponentProps = {
+  highlightClassName: string
+  searchWords: string[]
+  autoEscape: boolean
+  textToHighlight: string
+}
+
+const TypedHighlighter =
+  Highlighter as unknown as React.ComponentType<HighlighterComponentProps>
+
 type Autocomplete = AutocompleteApi<
   Result,
   React.SyntheticEvent,
@@ -139,7 +149,7 @@ function LoadingIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
 
 function HighlightQuery({ text, query }: { text: string; query: string }) {
   return (
-    <Highlighter
+    <TypedHighlighter
       highlightClassName="group-aria-selected:underline bg-transparent text-sky-600 dark:text-sky-400"
       searchWords={[query]}
       autoEscape={true}

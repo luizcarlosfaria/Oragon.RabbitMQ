@@ -1,5 +1,5 @@
 import { type Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Fira_Code, Inter } from 'next/font/google'
 import localFont from 'next/font/local'
 import clsx from 'clsx'
 
@@ -14,6 +14,12 @@ const inter = Inter({
   variable: '--font-inter',
 })
 
+const firaCode = Fira_Code({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-fira-code',
+})
+
 // Use local version of Lexend so that we can use OpenType features
 const lexend = localFont({
   src: '../fonts/lexend.woff2',
@@ -24,10 +30,10 @@ const lexend = localFont({
 export const metadata: Metadata = {
   title: {
     template: '%s - Docs',
-    default: 'CacheAdvance - Never miss the cache again.',
+    default: 'Oragon.RabbitMQ - Minimal APIs for RabbitMQ in .NET.',
   },
   description:
-    'Cache every single thing your app could ever do ahead of time, so your code never even has to run at all.',
+    'Build RabbitMQ consumers in .NET with a Minimal APIs style.',
 }
 
 export default function RootLayout({
@@ -38,7 +44,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={clsx('h-full antialiased', inter.variable, lexend.variable)}
+      className={clsx(
+        'h-full antialiased',
+        inter.variable,
+        lexend.variable,
+        firaCode.variable,
+      )}
       suppressHydrationWarning
     >
       <body className="flex min-h-full bg-white dark:bg-slate-900">
