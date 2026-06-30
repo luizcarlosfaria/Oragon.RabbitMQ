@@ -1,5 +1,5 @@
-# Set default behavior to automatically normalize line endings.
-* text=auto
+# Set default behavior to automatically normalize line endings as LF.
+* text=auto eol=lf
 
 # Collapse these files in PRs by default
 *.xlf linguist-generated=true
@@ -14,9 +14,8 @@
 *.in text eol=lf
 *.sh text eol=lf
 
-# Likewise, force cmd and batch scripts to always use crlf
-*.cmd text eol=crlf
-*.bat text eol=crlf
+*.cmd text eol=lf
+*.bat text eol=lf
 
 *.cs text=auto diff=csharp
 *.vb text=auto
@@ -52,8 +51,8 @@
 *.vbproj text=auto
 *.fsproj text=auto
 *.dbproj text=auto
-*.sln text=auto eol=crlf
-*.slnx text=auto eol=crlf
+*.sln text=auto eol=lf
+*.slnx text=auto eol=lf
 
 # Set linguist language for .h files explicitly based on
 # https://github.com/github/linguist/issues/1626#issuecomment-401442069

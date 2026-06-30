@@ -6,12 +6,12 @@
       "Bash(dotnet build:*)",
       "Bash(dotnet --list-sdks:*)",
       "Bash(dotnet --version:*)",
+      "Bash(dotnet test:*)",
+      "Bash(dotnet nuget locals:*)",
       "WebSearch",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(dotnet nuget locals:*)",
       "WebFetch(domain:dotnet.testcontainers.org)",
-      "Bash(dotnet test:*)",
       "WebFetch(domain:sonarcloud.io)"
     ]
   }
