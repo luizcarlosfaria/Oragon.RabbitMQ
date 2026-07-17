@@ -73,3 +73,17 @@ The Aspire package exists to cover RabbitMQ.Client 7.x. When official Aspire sup
 ## Next step
 
 After installation, create the first handler with `MapQueue`.
+
+## Wait for RabbitMQ
+
+For startup flows that need to wait until the broker is reachable before declaring topology or publishing seed messages, call `WaitRabbitMQAsync()`.
+
+```csharp
+await app.Services.WaitRabbitMQAsync();
+```
+
+When using keyed connection factories, pass the key:
+
+```csharp
+await app.Services.WaitRabbitMQAsync("orders");
+```

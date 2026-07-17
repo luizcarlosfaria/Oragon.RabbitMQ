@@ -83,7 +83,11 @@ public class ForwardResult<T> : IAmqpResult
         {
             // Create a dedicated channel for forwarding to avoid race conditions
             // when the consumer channel is used concurrently
-            using IChannel forwardChannel = await context.Connection.CreateChannelAsync().ConfigureAwait(true);
+            using IChannel forwardChannel = await context.Connection.CreateChannelAsync(
+                new CreateChannelOptions(
+                    publisherConfirmationsEnabled: true,
+                    publisherConfirmationTrackingEnabled: true),
+                context.CancellationToken).ConfigureAwait(true);
 
             try
             {
@@ -94,7 +98,7 @@ public class ForwardResult<T> : IAmqpResult
             }
             finally
             {
-                await forwardChannel.CloseAsync().ConfigureAwait(true);
+                await forwardChannel.CloseAsync(cancellationToken: CancellationToken.None).ConfigureAwait(true);
             }
         }
     }
@@ -114,11 +118,14 @@ public class ForwardResult<T> : IAmqpResult
         forwardBasicProperties.MessageId = Guid.NewGuid().ToString("D");
         forwardBasicProperties.CorrelationId = context.Request.BasicProperties.MessageId ?? context.Request.BasicProperties.CorrelationId;
 
+        // With publisher confirmation tracking enabled, mandatory: true makes the client
+        // surface an unroutable message as a PublishException — the caller's choice.
         await channel.BasicPublishAsync(
             exchange: this.Exchange,
             routingKey: this.RoutingKey,
             mandatory: this.Mandatory,
             basicProperties: forwardBasicProperties,
-            body: context.Serializer.Serialize(forwardBasicProperties, objectToForward)).ConfigureAwait(true);
+            body: context.Serializer.Serialize(forwardBasicProperties, objectToForward),
+            cancellationToken: context.CancellationToken).ConfigureAwait(true);
     }
 }

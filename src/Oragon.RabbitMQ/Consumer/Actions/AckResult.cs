@@ -21,7 +21,10 @@ public class AckResult : IAmqpResult
     {
         ArgumentNullException.ThrowIfNull(context, nameof(context));
 
-        await context.Channel.BasicAckAsync(context.Request.DeliveryTag, false).ConfigureAwait(true);
+        await context.Channel.BasicAckAsync(
+            context.Request.DeliveryTag,
+            multiple: false,
+            cancellationToken: context.CancellationToken).ConfigureAwait(true);
     }
 }
 

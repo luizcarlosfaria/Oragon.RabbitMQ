@@ -2,9 +2,11 @@
 // The ACADEMIA.DEV licenses this file to you under the MIT license.
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Oragon.RabbitMQ.Consumer;
+using Oragon.RabbitMQ.Consumer.DynamicQueues;
 using Polly;
 using Polly.Retry;
 using RabbitMQ.Client;
@@ -41,6 +43,8 @@ public static partial class DependencyInjectionExtensions
         ArgumentNullException.ThrowIfNull(services);
 
         _ = services.AddSingleton<ConsumerServer>();
+        services.TryAddSingleton<IAmqpContextAccessor, AmqpContextAccessor>();
+        services.TryAddScoped<IAmqpDynamicQueueConsumer, DynamicQueueConsumer>();
 
         _ = services.AddHostedService(sp => sp.GetRequiredService<ConsumerServer>());
     }

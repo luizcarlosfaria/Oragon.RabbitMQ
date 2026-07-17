@@ -125,13 +125,13 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
 
         await channel.BasicPublishAsync(string.Empty, serverQueue, true, basicProperties, Encoding.Default.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(originalMessage)));
 
-        var sp = services.BuildServiceProvider();
+        await using ServiceProvider sp = services.BuildServiceProvider();
 
         sp.MapQueue(serverQueue, async ([FromServices] ExampleRpcService svc, RequestMessage msg) =>
         {
             ResponseMessage reply = await svc.TestRpcAsync(msg).ConfigureAwait(true);
 
-            return AmqpResults.Compose(AmqpResults.Ack(), AmqpResults.Reply(reply));
+            return AmqpResults.ReplyAndAck(reply);
         }).WithPrefetch(1);
 
 
@@ -153,7 +153,7 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
 
         string consumerTag = await channel.BasicConsumeAsync(replyQueue.QueueName, true, consumer);
 
-        _ = waitHandle.WaitOne(
+        bool replyReceived = waitHandle.WaitOne(
            Debugger.IsAttached
            ? TimeSpan.FromMinutes(5)
            : TimeSpan.FromSeconds(5)
@@ -163,6 +163,7 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
 
         await hostedService.StopAsync(CancellationToken.None);
 
+        Assert.True(replyReceived, "RPC reply was not received within the timeout.");
         Assert.NotNull(receivedMessage);
 
         Assert.Equal(originalMessage.Num1 + originalMessage.Num2, receivedMessage.Result);

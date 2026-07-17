@@ -3,6 +3,7 @@
 
 using RabbitMQ.Client;
 using System.Text;
+using System.Globalization;
 using Testcontainers.RabbitMq;
 using Microsoft.Extensions.DependencyInjection;
 using Oragon.RabbitMQ.Serialization;
@@ -97,7 +98,7 @@ public class ConventionBindingTest : IAsyncLifetime
 
         ServiceProvider sp = services.BuildServiceProvider();
 
-        _ = sp.MapQueue(byteQueue, (ExampleMessage msg, byte priority) =>
+        _ = sp.MapQueue(byteQueue, (ExampleMessage msg, byte? priority) =>
             {
                 receivedBytePriority = priority;
                 _ = countdown.Signal();
@@ -108,7 +109,7 @@ public class ConventionBindingTest : IAsyncLifetime
             .WithConnection((sp, ct) => Task.FromResult(sp.GetRequiredService<IConnection>()))
             .WithSerializer((sp) => sp.GetRequiredService<IAmqpSerializer>());
 
-        _ = sp.MapQueue(intQueue, (ExampleMessage msg, int priority) =>
+        _ = sp.MapQueue(intQueue, (ExampleMessage msg, int? priority) =>
             {
                 receivedIntPriority = priority;
                 _ = countdown.Signal();
@@ -119,7 +120,7 @@ public class ConventionBindingTest : IAsyncLifetime
             .WithConnection((sp, ct) => Task.FromResult(sp.GetRequiredService<IConnection>()))
             .WithSerializer((sp) => sp.GetRequiredService<IAmqpSerializer>());
 
-        _ = sp.MapQueue(longQueue, (ExampleMessage msg, long priority) =>
+        _ = sp.MapQueue(longQueue, (ExampleMessage msg, long? priority) =>
             {
                 receivedLongPriority = priority;
                 _ = countdown.Signal();
@@ -155,8 +156,8 @@ public class ConventionBindingTest : IAsyncLifetime
 
         var originalMessage = new ExampleMessage() { Name = $"Teste - {Guid.NewGuid():D}", Age = 8 };
 
-        var queue1Deliveries = new List<(long DeliveryCount, long? Attempts)>();
-        var queue2Deliveries = new List<(long DeliveryCount, long? Attempts)>();
+        var queue1Deliveries = new List<(long? DeliveryCount, long? Attempts)>();
+        var queue2Deliveries = new List<(long? DeliveryCount, long? Attempts)>();
 
         // Create and establish a connection.
         using var connection = await this.CreateConnectionAsync().ConfigureAwait(true);
@@ -190,9 +191,9 @@ public class ConventionBindingTest : IAsyncLifetime
 
         ServiceProvider sp = services.BuildServiceProvider();
 
-        _ = sp.MapQueue(queue1, IAmqpResult (ExampleMessage msg, int deliveryCount, long? attempts) =>
+        _ = sp.MapQueue(queue1, IAmqpResult (ExampleMessage msg, int? deliveryCount, long? attempts) =>
             {
-                Console.WriteLine($"[queue1] delivery: deliveryCount={deliveryCount} attempts={attempts?.ToString() ?? "null"}");
+                Console.WriteLine($"[queue1] delivery: deliveryCount={deliveryCount} attempts={attempts?.ToString(CultureInfo.InvariantCulture) ?? "null"}");
                 queue1Deliveries.Add((deliveryCount, attempts));
 
                 //first delivery: force a counted broker redelivery (on RabbitMQ 4.x quorum queues,
@@ -208,9 +209,9 @@ public class ConventionBindingTest : IAsyncLifetime
             .WithConnection((sp, ct) => Task.FromResult(sp.GetRequiredService<IConnection>()))
             .WithSerializer((sp) => sp.GetRequiredService<IAmqpSerializer>());
 
-        _ = sp.MapQueue(queue2, IAmqpResult (ExampleMessage msg, long deliveryCount, int? attempts) =>
+        _ = sp.MapQueue(queue2, IAmqpResult (ExampleMessage msg, long? deliveryCount, int? attempts) =>
             {
-                Console.WriteLine($"[queue2] delivery: deliveryCount={deliveryCount} attempts={attempts?.ToString() ?? "null"}");
+                Console.WriteLine($"[queue2] delivery: deliveryCount={deliveryCount} attempts={attempts?.ToString(CultureInfo.InvariantCulture) ?? "null"}");
                 queue2Deliveries.Add((deliveryCount, attempts));
 
                 //first delivery: force a counted broker redelivery (on RabbitMQ 4.x quorum queues,
@@ -239,10 +240,10 @@ public class ConventionBindingTest : IAsyncLifetime
         Assert.True(queue1Received, "Queue1 did not receive the redelivery within the timeout");
         Assert.True(queue2Received, "Queue2 did not receive the redelivery within the timeout");
 
-        // First delivery: header is absent -> 0 for int/long, null for nullable types.
+        // First delivery: header is absent -> null for nullable types.
         // Redelivery: broker sets x-delivery-count = 1.
-        Assert.Equal([(0L, null), (1L, 1L)], queue1Deliveries);
-        Assert.Equal([(0L, null), (1L, 1L)], queue2Deliveries);
+        Assert.Equal([(null, null), (1L, 1L)], queue1Deliveries);
+        Assert.Equal([(null, null), (1L, 1L)], queue2Deliveries);
     }
 
 }

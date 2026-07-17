@@ -25,6 +25,15 @@
     <Project Path="samples/Aspire/DotNetAspireApp.ServiceDefaults/DotNetAspireApp.ServiceDefaults.csproj" />
   </Folder>
   <Folder Name="/Samples/Standalone/" />
+  <Folder Name="/Samples/Demos/">
+    <File Path="samples/Demos/README.md" />
+    <File Path="samples/Demos/docker-compose.yml" />
+    <File Path="samples/Demos/Oragon.RabbitMQ.Demos.slnx" />
+  </Folder>
+  <Folder Name="/Samples/Demos/src/">
+    <Project Path="samples/Demos/src/DemoHost/DemoHost.csproj" />
+    <Project Path="samples/Demos/src/DemoShared/DemoShared.csproj" />
+  </Folder>
   <Folder Name="/Benchmarks/">
     <Project Path="benchmarks/Oragon.RabbitMQ.Benchmarks/Oragon.RabbitMQ.Benchmarks.csproj" />
   </Folder>

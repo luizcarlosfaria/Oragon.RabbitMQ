@@ -54,6 +54,8 @@ public class ConsumerDescriptor : IConsumerDescriptor
 
             .WhenProcessFail((amqpContext, exception) => AmqpResults.Nack(false))
 
+            .WhenResultExecutionFail((amqpContext, exception) => AmqpResults.Nack(false))
+
             .WithConnection((sp, ct) => Task.FromResult(sp.GetRequiredService<IConnection>()))
 
             .WithSerializer((sp) => sp.GetRequiredService<IAmqpSerializer>())
@@ -211,18 +213,33 @@ public class ConsumerDescriptor : IConsumerDescriptor
     }
     #endregion
 
-    #region ChannelFactory / WithChannel(Func<IConnection, CancellationToken, Task<IChannel>> channelFactory)
+    #region ChannelFactory / WithChannel
     /// <summary>
     /// Gets the channel factory.
     /// </summary>
-    public Func<IConnection, CancellationToken, Task<IChannel>> ChannelFactory { get; private set; }
+    public Func<IServiceProvider, IConnection, CancellationToken, Task<IChannel>> ChannelFactory { get; private set; }
 
     /// <summary>
-    /// Sets the serializer using a factory function.
+    /// Sets the channel using a factory function.
     /// </summary>
     /// <param name="channelFactory">The factory function to create the channel</param>    
     /// <returns>The current instance of <see cref="ConsumerDescriptor"/>.</returns>
     public IConsumerDescriptor WithChannel(Func<IConnection, CancellationToken, Task<IChannel>> channelFactory)
+    {
+        ArgumentNullException.ThrowIfNull(channelFactory);
+        if (this.isLocked) throw new InvalidOperationException(LockedMessage);
+
+        this.ChannelFactory = (_, connection, cancellationToken) => channelFactory(connection, cancellationToken);
+
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the channel using a factory function.
+    /// </summary>
+    /// <param name="channelFactory">The factory function to create the channel</param>
+    /// <returns>The current instance of <see cref="ConsumerDescriptor"/>.</returns>
+    public IConsumerDescriptor WithChannel(Func<IServiceProvider, IConnection, CancellationToken, Task<IChannel>> channelFactory)
     {
         ArgumentNullException.ThrowIfNull(channelFactory);
         if (this.isLocked) throw new InvalidOperationException(LockedMessage);
@@ -234,11 +251,11 @@ public class ConsumerDescriptor : IConsumerDescriptor
     #endregion
 
 
-    #region TopologyInitializer / WithTopology(Func<IChannel, CancellationToken, Task> channelInitializer)
+    #region TopologyInitializer / WithTopology
     /// <summary>
     /// Gets the topology initializer.
     /// </summary>
-    public Func<IChannel, CancellationToken, Task> TopologyInitializer { get; private set; }
+    public Func<IServiceProvider, IChannel, CancellationToken, Task> TopologyInitializer { get; private set; }
 
     /// <summary>
     /// Configures a channel initializer to be invoked when a channel is created.
@@ -248,6 +265,23 @@ public class ConsumerDescriptor : IConsumerDescriptor
     /// <returns>The current <see cref="IConsumerDescriptor"/> instance, allowing for method chaining.</returns>
     /// <exception cref="InvalidOperationException">Thrown if the descriptor is locked and cannot be modified.</exception>
     public IConsumerDescriptor WithTopology(Func<IChannel, CancellationToken, Task> topologyInitializer)
+    {
+        ArgumentNullException.ThrowIfNull(topologyInitializer);
+
+        if (this.isLocked) throw new InvalidOperationException(LockedMessage);
+
+        this.TopologyInitializer = (_, channel, cancellationToken) => topologyInitializer(channel, cancellationToken);
+
+        return this;
+    }
+
+    /// <summary>
+    /// Configures a channel initializer to be invoked when a channel is created.
+    /// </summary>
+    /// <param name="topologyInitializer">A delegate that represents the asynchronous operation to initialize the channel.</param>
+    /// <returns>The current <see cref="IConsumerDescriptor"/> instance, allowing for method chaining.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the descriptor is locked and cannot be modified.</exception>
+    public IConsumerDescriptor WithTopology(Func<IServiceProvider, IChannel, CancellationToken, Task> topologyInitializer)
     {
         ArgumentNullException.ThrowIfNull(topologyInitializer);
 
@@ -307,6 +341,56 @@ public class ConsumerDescriptor : IConsumerDescriptor
     }
     #endregion
 
+    #region ResultForResultExecutionFailure / WhenResultExecutionFail(IAmqpResult amqpResult)
+
+    /// <summary>
+    /// Gets the ResultForResultExecutionFailure.
+    /// </summary>
+    public Func<IAmqpContext, Exception, IAmqpResult> ResultForResultExecutionFailure { get; private set; }
+
+
+    /// <summary>
+    /// Define the behavior when the result execution fails.
+    /// </summary>
+    /// <param name="amqpResult"></param>
+    /// <returns></returns>
+    public IConsumerDescriptor WhenResultExecutionFail(Func<IAmqpContext, Exception, IAmqpResult> amqpResult)
+    {
+        ArgumentNullException.ThrowIfNull(amqpResult);
+        if (this.isLocked) throw new InvalidOperationException(LockedMessage);
+
+        this.ResultForResultExecutionFailure = amqpResult;
+
+        return this;
+    }
+    #endregion
+
+    #region GracefulShutdownOptions / WithGracefulShutdown(Action<GracefulShutdownOptions> configure)
+
+    /// <summary>
+    /// Gets the graceful shutdown options.
+    /// </summary>
+    public GracefulShutdownOptions GracefulShutdownOptions { get; private set; }
+
+    /// <summary>
+    /// Configures graceful shutdown behavior.
+    /// </summary>
+    /// <param name="configure">Options configure action.</param>
+    /// <returns>The current <see cref="IConsumerDescriptor"/> instance.</returns>
+    public IConsumerDescriptor WithGracefulShutdown(Action<GracefulShutdownOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+        if (this.isLocked) throw new InvalidOperationException(LockedMessage);
+
+        var options = new GracefulShutdownOptions();
+        configure(options);
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(options.DrainTimeout, TimeSpan.Zero);
+        this.GracefulShutdownOptions = options;
+
+        return this;
+    }
+    #endregion
+
     #region Validate & BuildConsumerAsync(CancellationToken cancellationToken)
 
     /// <summary>
@@ -323,6 +407,7 @@ public class ConsumerDescriptor : IConsumerDescriptor
         ArgumentNullException.ThrowIfNull(this.ChannelFactory);
         ArgumentNullException.ThrowIfNull(this.ResultForProcessFailure);
         ArgumentNullException.ThrowIfNull(this.ResultForSerializationFailure);
+        ArgumentNullException.ThrowIfNull(this.ResultForResultExecutionFailure);
     }
 
 

@@ -12,7 +12,8 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:dotnet.testcontainers.org)",
-      "WebFetch(domain:sonarcloud.io)"
+      "WebFetch(domain:sonarcloud.io)",
+      "Bash(awk '{print $1}')"
     ]
   }
 }

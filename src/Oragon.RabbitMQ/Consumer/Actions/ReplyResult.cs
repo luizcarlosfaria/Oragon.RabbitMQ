@@ -42,7 +42,11 @@ public class ReplyResult<T> : IAmqpResult
 
         // Create a dedicated channel for reply to avoid race conditions
         // when the consumer channel is used concurrently
-        using IChannel replyChannel = await context.Connection.CreateChannelAsync().ConfigureAwait(true);
+        using IChannel replyChannel = await context.Connection.CreateChannelAsync(
+            new CreateChannelOptions(
+                publisherConfirmationsEnabled: true,
+                publisherConfirmationTrackingEnabled: true),
+            context.CancellationToken).ConfigureAwait(true);
 
         try
         {
@@ -53,16 +57,19 @@ public class ReplyResult<T> : IAmqpResult
                 CorrelationId = context.Request.BasicProperties.MessageId ?? context.Request.BasicProperties.CorrelationId,
             };
 
+            // mandatory: false — the delivery guarantee is broker receipt (publisher confirms);
+            // routing to the replyTo queue is the requester's responsibility.
             await replyChannel.BasicPublishAsync(
                 exchange: string.Empty,
                 routingKey: replyTo,
-                mandatory: true,
+                mandatory: false,
                 basicProperties: replyBasicProperties,
-                body: context.Serializer.Serialize(replyBasicProperties, this.objectToReply)).ConfigureAwait(true);
+                body: context.Serializer.Serialize(replyBasicProperties, this.objectToReply),
+                cancellationToken: context.CancellationToken).ConfigureAwait(true);
         }
         finally
         {
-            await replyChannel.CloseAsync().ConfigureAwait(true);
+            await replyChannel.CloseAsync(cancellationToken: CancellationToken.None).ConfigureAwait(true);
         }
     }
 }

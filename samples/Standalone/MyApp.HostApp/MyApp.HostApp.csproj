@@ -12,13 +12,13 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
-    <PackageReference Include="Oragon.RabbitMQ" />
-    <PackageReference Include="Oragon.RabbitMQ.AspireClient" />
-    <PackageReference Include="Oragon.RabbitMQ.Serializer.SystemTextJson" />
   </ItemGroup>
-  
+
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Oragon.RabbitMQ\Oragon.RabbitMQ.csproj" />
+    <ProjectReference Include="..\..\..\src\Oragon.RabbitMQ.AspireClient\Oragon.RabbitMQ.AspireClient.csproj" />
+    <ProjectReference Include="..\..\..\src\Oragon.RabbitMQ.Serializer.SystemTextJson\Oragon.RabbitMQ.Serializer.SystemTextJson.csproj" />
     <ProjectReference Include="..\MyApp.ApplicationContracts\MyApp.ApplicationContracts.csproj" />
     <ProjectReference Include="..\MyApp.Application\MyApp.Application.csproj" />
   </ItemGroup>

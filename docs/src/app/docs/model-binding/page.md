@@ -38,6 +38,10 @@ Some types are resolved automatically without an attribute.
 | `IChannel` | Current RabbitMQ channel |
 | `BasicDeliverEventArgs` | Raw delivery event |
 | `IReadOnlyBasicProperties` | Message properties |
+| `IDictionary<string, object>` | Message headers |
+| `IReadOnlyDictionary<string, object>` | Message headers |
+| `DeliveryModes?` | AMQP delivery mode |
+| `AmqpTimestamp?` | AMQP timestamp |
 | `IServiceProvider` | Message service scope |
 | `IAmqpContext` | Full AMQP context |
 | `CancellationToken` | Cancellation token |
@@ -52,9 +56,36 @@ Parameters can also be resolved by name and type.
 | `routing`, `routingKey` | `string` | Routing key |
 | `exchange`, `exchangeName` | `string` | Source exchange |
 | `consumer`, `consumerTag` | `string` | Consumer tag |
-| `priority` | `byte`, `int`, `long` | Message priority |
-| `deliveryCount`, `attempts` | `int`, `int?`, `long`, `long?` | `x-delivery-count` header |
+| `priority` | `byte?`, `int?`, `long?` | Message priority |
+| `deliveryCount`, `attempts` | `int?`, `long?` | `x-delivery-count` header |
+| `contentType` | `string` | AMQP content type |
+| `contentEncoding` | `string` | AMQP content encoding |
+| `headers` | `IDictionary<string, object>`, `IReadOnlyDictionary<string, object>` | AMQP headers |
+| `deliveryMode` | `DeliveryModes?`, `byte?`, `int?`, `long?` | AMQP delivery mode |
+| `correlationId` | `string` | AMQP correlation id |
+| `replyTo` | `string` | AMQP reply-to |
+| `expiration` | `string` | AMQP expiration |
+| `messageId` | `string`, `Guid?` | AMQP message id |
+| `timestamp` | `AmqpTimestamp?`, `long?`, `DateTimeOffset?` | AMQP timestamp |
+| `type`, `messageType` | `string` | AMQP type |
+| `userId` | `string` | AMQP user id |
+| `appId` | `string` | AMQP app id |
+| `clusterId` | `string` | AMQP cluster id |
 
 {% callout title="Fail fast" %}
-Numeric parameters without an attribute and without a recognized name fail during startup. This prevents handlers that look valid but cannot be resolved.
+Numeric parameters without an attribute and without a recognized name fail during startup. Optional AMQP metadata such as `priority`, `deliveryMode`, `timestamp`, `deliveryCount`, and `attempts` must use nullable types.
 {% /callout %}
+
+## Typed headers
+
+`[FromAmqpHeader]` can bind strings, booleans, numeric types, nullable types, byte arrays, and enums when the header value can be converted.
+
+```csharp
+app.MapQueue("orders", (
+    [FromAmqpHeader("tenant-id")] string tenantId,
+    [FromAmqpHeader("enabled")] bool enabled,
+    [FromAmqpHeader("attempt")] int? attempt) =>
+{
+    return Task.CompletedTask;
+});
+```

@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/Demos/">
+    <File Path="README.md" />
+    <File Path="docker-compose.yml" />
+  </Folder>
+
+
+
+  <Folder Name="/Demos/src/">
+    <Project Path="src/DemoHost/DemoHost.csproj" />
+    <Project Path="src/DemoShared/DemoShared.csproj" />
+  </Folder>
+
+  <Folder Name="/Oragon.RabbitMQ/">
+    <Project Path="../../src/Oragon.RabbitMQ/Oragon.RabbitMQ.csproj" />
+    <Project Path="../../src/Oragon.RabbitMQ.Abstractions/Oragon.RabbitMQ.Abstractions.csproj" />
+    <Project Path="../../src/Oragon.RabbitMQ.AspireClient/Oragon.RabbitMQ.AspireClient.csproj" />
+    <Project Path="../../src/Oragon.RabbitMQ.Serializer.NewtonsoftJson/Oragon.RabbitMQ.Serializer.NewtonsoftJson.csproj" />
+    <Project Path="../../src/Oragon.RabbitMQ.Serializer.SystemTextJson/Oragon.RabbitMQ.Serializer.SystemTextJson.csproj" />
+  </Folder>
+
+</Solution>

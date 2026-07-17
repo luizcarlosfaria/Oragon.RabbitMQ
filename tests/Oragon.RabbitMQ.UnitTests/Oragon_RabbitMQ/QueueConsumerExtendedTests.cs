@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Oragon.RabbitMQ.Consumer;
+using Oragon.RabbitMQ.Consumer.Actions;
 using Oragon.RabbitMQ.Consumer.Dispatch.Attributes;
 using Oragon.RabbitMQ.TestsExtensions;
 using RabbitMQ.Client;
@@ -21,6 +22,19 @@ public class QueueConsumerExtendedTests
     public class TestMessage
     {
         public string Value { get; set; }
+    }
+
+    private sealed class CapturingAckResult : IAmqpResult
+    {
+        public CancellationToken CapturedToken { get; private set; }
+
+        public Task ExecuteAsync(IAmqpContext context)
+        {
+            this.CapturedToken = context.CancellationToken;
+            return context.Channel
+                .BasicAckAsync(context.Request.DeliveryTag, false, context.CancellationToken)
+                .AsTask();
+        }
     }
 
     private static (ServiceProvider sp, Mock<IChannel> channelMock, Mock<IConnection> connectionMock) BuildTestInfrastructure(
@@ -138,6 +152,135 @@ public class QueueConsumerExtendedTests
         // Assert
         Assert.False(queueConsumer.IsConsuming);
         channelMock.Verify(it => it.BasicCancelAsync(It.IsAny<string>(), false, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task StopAsync_WithGracefulShutdown_ShouldLinkHostTokenIntoShutdownToken()
+    {
+        // Arrange
+        CancellationToken basicCancelToken = default;
+        var (sp, channelMock, connectionMock) = BuildTestInfrastructure();
+        _ = channelMock
+            .Setup(it => it.BasicCancelAsync(It.IsAny<string>(), false, It.IsAny<CancellationToken>()))
+            .Callback<string, bool, CancellationToken>((_, _, cancellationToken) => basicCancelToken = cancellationToken)
+            .Returns(Task.CompletedTask);
+
+        var consumerServer = sp.GetRequiredService<ConsumerServer>();
+        var descriptor = consumerServer.ConsumerDescriptors.Single();
+        _ = descriptor.WithGracefulShutdown(options =>
+        {
+            options.WaitForInFlightMessages = true;
+            options.DrainTimeout = TimeSpan.FromSeconds(10);
+        });
+
+        await consumerServer.StartAsync(CancellationToken.None);
+
+        var queueConsumer = (QueueConsumer)consumerServer.Consumers.Single();
+        using var stopCts = new CancellationTokenSource();
+        await stopCts.CancelAsync();
+
+        // Act - must complete without throwing even with the host token already canceled
+        await queueConsumer.StopAsync(stopCts.Token);
+
+        // Assert - the shutdown token honors the host stop token (linked), bounded by DrainTimeout
+        Assert.True(basicCancelToken.CanBeCanceled);
+        Assert.True(basicCancelToken.IsCancellationRequested);
+        channelMock.Verify(it => it.BasicCancelAsync(It.IsAny<string>(), false, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task StopAsync_WithGracefulShutdown_ShouldKeepResultExecutionTokenAliveAfterHandlerTokenIsCanceled()
+    {
+        // Arrange
+        const string consumerTag = "consumerTag";
+        const string queueName = "test-queue";
+
+        ServiceCollection services = new();
+        services.AddRabbitMQConsumer();
+
+        AsyncEventingBasicConsumer queueConsumer = null;
+        CancellationToken ackToken = default;
+
+        var channelMock = new Mock<IChannel>();
+        _ = channelMock.Setup(it => it.BasicConsumeAsync(
+            It.Is<string>(queue => queue == queueName),
+            false,
+            It.IsAny<string>(),
+            true,
+            false,
+            It.IsAny<IDictionary<string, object>>(),
+            It.IsAny<IAsyncBasicConsumer>(),
+            It.IsAny<CancellationToken>()))
+            .Callback((string queue, bool autoAck, string tag, bool noLocal, bool exclusive, IDictionary<string, object> arguments, IAsyncBasicConsumer consumer, CancellationToken cancellationToken) => queueConsumer = (AsyncEventingBasicConsumer)consumer)
+            .ReturnsAsync(consumerTag);
+        _ = channelMock.Setup(it => it.BasicCancelAsync(consumerTag, false, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        _ = channelMock.Setup(it => it.BasicAckAsync(1, false, It.IsAny<CancellationToken>()))
+            .Callback<ulong, bool, CancellationToken>((_, _, cancellationToken) => ackToken = cancellationToken)
+            .Returns(ValueTask.CompletedTask);
+
+        var channel = channelMock.Object;
+        var connectionMock = new Mock<IConnection>();
+        _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(channel);
+        _ = services.AddSingleton(connectionMock.Object);
+        _ = services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
+        _ = services.AddNewtonsoftAmqpSerializer();
+
+        var sp = services.BuildServiceProvider();
+        var handlerStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var handlerTokenCanceled = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseHandler = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var result = new CapturingAckResult();
+
+        _ = sp.MapQueue(queueName, async Task<IAmqpResult> (TestMessage message, CancellationToken cancellationToken) =>
+            {
+                using CancellationTokenRegistration registration = cancellationToken.Register(() => handlerTokenCanceled.SetResult());
+
+                handlerStarted.SetResult();
+                await releaseHandler.Task.ConfigureAwait(false);
+
+                return result;
+            })
+            .WithGracefulShutdown(options =>
+            {
+                options.CancelContextTokenOnStop = true;
+                options.WaitForInFlightMessages = true;
+                options.DrainTimeout = TimeSpan.FromSeconds(5);
+            });
+
+        var consumerServer = sp.GetRequiredService<ConsumerServer>();
+        var hostedService = sp.GetRequiredService<IHostedService>();
+        await hostedService.StartAsync(CancellationToken.None);
+
+        SafeRunner.Wait(() => queueConsumer != null);
+
+        byte[] bytes = Encoding.UTF8.GetBytes("{}");
+        Task deliveryTask = queueConsumer.HandleBasicDeliverAsync(
+            consumerTag: consumerTag,
+            deliveryTag: 1,
+            redelivered: false,
+            exchange: "e",
+            routingKey: "r",
+            properties: new BasicProperties().ToReadOnly(),
+            body: new ReadOnlyMemory<byte>(bytes));
+
+        await handlerStarted.Task.WaitAsync(TimeSpan.FromSeconds(3));
+
+        var consumer = (QueueConsumer)consumerServer.Consumers.Single();
+        Task stopTask = consumer.StopAsync(CancellationToken.None);
+        await handlerTokenCanceled.Task.WaitAsync(TimeSpan.FromSeconds(3));
+
+        // Act
+        releaseHandler.SetResult();
+        await stopTask.WaitAsync(TimeSpan.FromSeconds(3));
+        await deliveryTask.WaitAsync(TimeSpan.FromSeconds(3));
+
+        // Assert
+        Assert.True(result.CapturedToken.CanBeCanceled);
+        Assert.False(result.CapturedToken.IsCancellationRequested);
+        Assert.False(ackToken.IsCancellationRequested);
+        channelMock.Verify(it => it.BasicAckAsync(1, false, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -471,7 +614,7 @@ public class QueueConsumerExtendedTests
     #region Message Processing - Nack on exception in result execution
 
     [Fact]
-    public async Task ReceiveAsync_WhenResultExecutionThrows_ShouldNackMessage()
+    public async Task ReceiveAsync_WhenResultExecutionThrowsAfterSettlementAttempt_ShouldNackDelivery()
     {
         // Arrange
         string consumerTag = "consumerTag";
@@ -533,7 +676,8 @@ public class QueueConsumerExtendedTests
             properties: properties,
             body: new ReadOnlyMemory<byte>(bytes));
 
-        // Assert - Nack should have been called as fallback
+        // Assert - default WhenResultExecutionFail is Nack(requeue: false), matching the pre-1.10 fallback.
+        channelMock.Verify(it => it.BasicAckAsync(1, false, It.IsAny<CancellationToken>()), Times.Once);
         channelMock.Verify(it => it.BasicNackAsync(1, false, false, It.IsAny<CancellationToken>()), Times.Once);
     }
 

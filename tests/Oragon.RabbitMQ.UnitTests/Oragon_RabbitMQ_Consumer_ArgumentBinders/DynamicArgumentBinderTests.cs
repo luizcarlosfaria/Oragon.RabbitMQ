@@ -59,7 +59,7 @@ public class DynamicArgumentBinderTests
         Dictionary<string, object> headers = new Dictionary<string, object>() { { "test", testValue } };
 
         var basicPropertiesMock = new Mock<IReadOnlyBasicProperties>();
-        basicPropertiesMock.SetupGet(it => it.Headers).Returns(headers).Verifiable(Times.Once());
+        basicPropertiesMock.SetupGet(it => it.Headers).Returns(headers).Verifiable(Times.Exactly(2));
 
         var amqpSerializer = new Mock<IAmqpSerializer>();
 
@@ -86,14 +86,70 @@ public class DynamicArgumentBinderTests
     }
 
     [Fact]
-    public void FromHeaderBustBeStringFlow()
+    public void FromHeaderTypedValueFlow()
     {
         Delegate test = ([FromAmqpHeader("test")] int value) => string.Empty;
         ParameterInfo parameterInfo = test.Method.GetParameters().First();
         FromAmqpHeaderAttribute attr = parameterInfo.GetCustomAttribute<FromAmqpHeaderAttribute>() ?? throw new InvalidOperationException("Not Found!");
+        IAmqpArgumentBinder binder = attr.Build(parameterInfo);
 
-        _ = Assert.Throws<InvalidOperationException>(() => attr.Build(parameterInfo));
+        Dictionary<string, object> headers = new Dictionary<string, object>() { { "test", "12" } };
 
+        var basicPropertiesMock = new Mock<IReadOnlyBasicProperties>();
+        basicPropertiesMock.SetupGet(it => it.Headers).Returns(headers).Verifiable(Times.Exactly(2));
+
+        var basicDeliverEventArgs = new BasicDeliverEventArgs(
+                consumerTag: Guid.NewGuid().ToString(),
+                deliveryTag: 2,
+                redelivered: false,
+                exchange: Guid.NewGuid().ToString(),
+                routingKey: Guid.NewGuid().ToString(),
+                properties: basicPropertiesMock.Object,
+                body: null,
+                cancellationToken: default);
+
+        var contextMock = new Mock<IAmqpContext>();
+        contextMock.Setup(it => it.Request).Returns(basicDeliverEventArgs).Verifiable(Times.Once());
+
+        // Act
+        object result = binder.GetValue(contextMock.Object);
+
+        // Assert
+        Assert.Equal(12, result);
+        basicPropertiesMock.Verify();
+        contextMock.Verify();
+
+    }
+
+    [Fact]
+    public void FromHeaderTypedValue_WhenHeaderIsMissingAndParameterIsNotNullable_ShouldThrowInvalidOperationException()
+    {
+        Delegate test = ([FromAmqpHeader("test")] int value) => string.Empty;
+        ParameterInfo parameterInfo = test.Method.GetParameters().First();
+        FromAmqpHeaderAttribute attr = parameterInfo.GetCustomAttribute<FromAmqpHeaderAttribute>() ?? throw new InvalidOperationException("Not Found!");
+        IAmqpArgumentBinder binder = attr.Build(parameterInfo);
+
+        var basicPropertiesMock = new Mock<IReadOnlyBasicProperties>();
+        basicPropertiesMock.SetupGet(it => it.Headers).Returns(new Dictionary<string, object>()).Verifiable(Times.Once());
+
+        var basicDeliverEventArgs = new BasicDeliverEventArgs(
+                consumerTag: Guid.NewGuid().ToString(),
+                deliveryTag: 2,
+                redelivered: false,
+                exchange: Guid.NewGuid().ToString(),
+                routingKey: Guid.NewGuid().ToString(),
+                properties: basicPropertiesMock.Object,
+                body: null,
+                cancellationToken: default);
+
+        var contextMock = new Mock<IAmqpContext>();
+        contextMock.Setup(it => it.Request).Returns(basicDeliverEventArgs).Verifiable(Times.Once());
+
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => binder.GetValue(contextMock.Object));
+
+        Assert.Contains("Required AMQP header 'test'", exception.Message, StringComparison.Ordinal);
+        basicPropertiesMock.Verify();
+        contextMock.Verify();
     }
 
     [Fact]

@@ -30,6 +30,9 @@ public class RejectResult : IAmqpResult
     {
         ArgumentNullException.ThrowIfNull(context, nameof(context));
 
-        await context.Channel.BasicRejectAsync(context.Request.DeliveryTag, this.Requeue).ConfigureAwait(true);
+        await context.Channel.BasicRejectAsync(
+            context.Request.DeliveryTag,
+            requeue: this.Requeue,
+            cancellationToken: context.CancellationToken).ConfigureAwait(true);
     }
 }

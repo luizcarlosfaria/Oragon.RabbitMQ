@@ -31,9 +31,11 @@ public class QueueConsumer : IHostedAmqpConsumer
     private CancellationTokenSource cancellationTokenSource;
     private IAmqpSerializer serializer;
     private bool ownsConnection;
+    private int inFlightMessages;
     private volatile bool wasStarted;
     private volatile bool isConsuming;
     private volatile bool isInitialized;
+    private CancellationTokenSource resultExecutionCancellationTokenSource;
 
     /// <summary>
     /// Gets a value indicating whether the consumer was started.
@@ -77,12 +79,16 @@ public class QueueConsumer : IHostedAmqpConsumer
         this.connection = await this.consumerDescriptor.ConnectionFactory(this.consumerDescriptor.ApplicationServiceProvider, cancellationToken).ConfigureAwait(true);
         await this.DetermineConnectionOwnershipAsync(cancellationToken).ConfigureAwait(true);
 
-        this.channel = await this.consumerDescriptor.ChannelFactory(this.connection, cancellationToken).ConfigureAwait(true);
+        this.channel = await this.consumerDescriptor
+            .ChannelFactory(this.consumerDescriptor.ApplicationServiceProvider, this.connection, cancellationToken)
+            .ConfigureAwait(true);
         await this.ValidateServiceBindingsAsync().ConfigureAwait(true);
 
         if (this.consumerDescriptor.TopologyInitializer != null)
         {
-            await this.consumerDescriptor.TopologyInitializer(this.channel, cancellationToken).ConfigureAwait(true);
+            await this.consumerDescriptor
+                .TopologyInitializer(this.consumerDescriptor.ApplicationServiceProvider, this.channel, cancellationToken)
+                .ConfigureAwait(true);
         }
         
         await this.WaitQueueCreationAsync(cancellationToken).ConfigureAwait(true);
@@ -196,6 +202,7 @@ public class QueueConsumer : IHostedAmqpConsumer
         if (this.IsConsuming) throw new InvalidOperationException("The consumer is already started");
 
         this.cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        this.resultExecutionCancellationTokenSource = new CancellationTokenSource();
 
         this.consumerTag = await this.channel.BasicConsumeAsync(
             queue: this.consumerDescriptor.QueueName,
@@ -218,6 +225,8 @@ public class QueueConsumer : IHostedAmqpConsumer
     private async Task ReceiveAsync(object sender, BasicDeliverEventArgs eventArgs)
     {
         IAmqpContext context = null;
+        IAmqpContextAccessor contextAccessor = null;
+        _ = Interlocked.Increment(ref this.inFlightMessages);
         try
         {
             using (IServiceScope scope = this.consumerDescriptor.ApplicationServiceProvider.CreateScope())
@@ -225,13 +234,18 @@ public class QueueConsumer : IHostedAmqpConsumer
                 (bool canProceed, Exception exception) = this.TryDeserialize(eventArgs, this.dispatcher.MessageType, out object incomingMessage);
 
                 context = this.BuildAmqpContext(eventArgs, scope, incomingMessage);
+                contextAccessor = scope.ServiceProvider.GetService<IAmqpContextAccessor>();
+                if (contextAccessor is { } accessor)
+                {
+                    accessor.Current = context;
+                }
 
                 IAmqpResult result =
                     canProceed
                     ? await this.dispatcher.DispatchAsync(context).ConfigureAwait(true)
                     : this.consumerDescriptor.ResultForSerializationFailure(context, exception);
 
-                await result.ExecuteAsync(context).ConfigureAwait(true);
+                await this.ExecuteResultAsync(context, result).ConfigureAwait(true);
             }
         }
         catch (Exception ex)
@@ -240,6 +254,60 @@ public class QueueConsumer : IHostedAmqpConsumer
 
             await this.TryNackMessageAsync(context, eventArgs.DeliveryTag).ConfigureAwait(true);
         }
+        finally
+        {
+            if (contextAccessor is { } accessor)
+            {
+                accessor.Current = null;
+            }
+
+            _ = Interlocked.Decrement(ref this.inFlightMessages);
+        }
+    }
+
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Result execution failures are delegated to the configured AMQP failure policy.")]
+    private async Task ExecuteResultAsync(IAmqpContext context, IAmqpResult result)
+    {
+        IAmqpContext resultContext = this.CreateResultExecutionContext(context);
+
+        try
+        {
+            await result.ExecuteAsync(resultContext).ConfigureAwait(true);
+        }
+        catch (Exception exception)
+        {
+            s_logErrorOnExecuteResult(this.logger, context.Request.DeliveryTag, exception);
+
+            IAmqpResult failureResult = this.consumerDescriptor.ResultForResultExecutionFailure(context, exception);
+            try
+            {
+                await failureResult.ExecuteAsync(resultContext).ConfigureAwait(true);
+            }
+            catch (Exception failureException)
+            {
+                s_logErrorOnExecuteResult(this.logger, context.Request.DeliveryTag, failureException);
+            }
+        }
+    }
+
+    private IAmqpContext CreateResultExecutionContext(IAmqpContext context)
+    {
+        if (this.consumerDescriptor.GracefulShutdownOptions == null ||
+            this.resultExecutionCancellationTokenSource == null)
+        {
+            return context;
+        }
+
+        return new AmqpContext(this.logger, this.resultExecutionCancellationTokenSource.Token)
+        {
+            Request = context.Request,
+            ServiceProvider = context.ServiceProvider,
+            Serializer = context.Serializer,
+            Connection = context.Connection,
+            Channel = context.Channel,
+            QueueName = context.QueueName,
+            MessageObject = context.MessageObject,
+        };
     }
 
     [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
@@ -358,6 +426,12 @@ public class QueueConsumer : IHostedAmqpConsumer
 
     private static readonly Action<ILogger, string, Exception> s_logDeserializedNullMessage = LoggerMessage.Define<string>(LogLevel.Warning, new EventId(12, "DeserializedNullMessage"), "Deserialized message is null on queue {QueueName}. The message body may be empty or whitespace.");
 
+    private static readonly Action<ILogger, string, Exception> s_logGracefulShutdownDrainCompleted = LoggerMessage.Define<string>(LogLevel.Information, new EventId(13, "GracefulShutdownDrainCompleted"), "Graceful shutdown drain completed for queue {QueueName}.");
+
+    private static readonly Action<ILogger, string, int, TimeSpan, Exception> s_logGracefulShutdownDrainTimedOut = LoggerMessage.Define<string, int, TimeSpan>(LogLevel.Warning, new EventId(14, "GracefulShutdownDrainTimedOut"), "Graceful shutdown drain timed out for queue {QueueName}. In-flight messages: {InFlightMessages}. Drain timeout: {DrainTimeout}.");
+
+    private static readonly Action<ILogger, string, TimeSpan, Exception> s_logGracefulShutdownBasicCancelTimedOut = LoggerMessage.Define<string, TimeSpan>(LogLevel.Warning, new EventId(15, "GracefulShutdownBasicCancelTimedOut"), "Graceful shutdown BasicCancel timed out for queue {QueueName}. Drain timeout: {DrainTimeout}.");
+
 
     /// <summary>
     /// Tries to deserialize the received item.
@@ -402,9 +476,88 @@ public class QueueConsumer : IHostedAmqpConsumer
     {
         if (this.WasStarted)
         {
-            await this.channel.BasicCancelAsync(this.consumerTag, false, cancellationToken).ConfigureAwait(true);
+            GracefulShutdownOptions gracefulOptions = this.consumerDescriptor.GracefulShutdownOptions;
+            CancellationToken shutdownToken = this.CreateShutdownToken(cancellationToken, out CancellationTokenSource shutdownCts);
+            using (shutdownCts)
+            {
+                if (gracefulOptions != null && this.resultExecutionCancellationTokenSource != null)
+                {
+                    this.resultExecutionCancellationTokenSource.CancelAfter(gracefulOptions.DrainTimeout);
+                }
+
+                try
+                {
+                    await this.channel.BasicCancelAsync(this.consumerTag, false, shutdownToken).ConfigureAwait(true);
+                }
+                catch (OperationCanceledException) when (gracefulOptions != null && shutdownToken.IsCancellationRequested)
+                {
+                    s_logGracefulShutdownBasicCancelTimedOut(
+                        this.logger,
+                        this.consumerDescriptor.QueueName,
+                        gracefulOptions.DrainTimeout,
+                        null);
+                }
+
+                if (gracefulOptions != null)
+                {
+                    if (gracefulOptions.CancelContextTokenOnStop && this.cancellationTokenSource != null)
+                    {
+                        await this.cancellationTokenSource.CancelAsync().ConfigureAwait(true);
+                    }
+
+                    if (gracefulOptions.WaitForInFlightMessages)
+                    {
+                        bool drained = await this.WaitInFlightMessagesAsync(shutdownToken).ConfigureAwait(true);
+                        if (drained)
+                        {
+                            s_logGracefulShutdownDrainCompleted(this.logger, this.consumerDescriptor.QueueName, null);
+                        }
+                        else
+                        {
+                            s_logGracefulShutdownDrainTimedOut(
+                                this.logger,
+                                this.consumerDescriptor.QueueName,
+                                Volatile.Read(ref this.inFlightMessages),
+                                gracefulOptions.DrainTimeout,
+                                null);
+                        }
+                    }
+                }
+            }
+
+            this.DetachConnectionHandlers();
         }
         this.isConsuming = false;
+    }
+
+    private CancellationToken CreateShutdownToken(CancellationToken stopToken, out CancellationTokenSource shutdownCts)
+    {
+        GracefulShutdownOptions gracefulOptions = this.consumerDescriptor.GracefulShutdownOptions;
+        if (gracefulOptions == null)
+        {
+            shutdownCts = CancellationTokenSource.CreateLinkedTokenSource(stopToken);
+            return shutdownCts.Token;
+        }
+
+        shutdownCts = CancellationTokenSource.CreateLinkedTokenSource(stopToken);
+        shutdownCts.CancelAfter(gracefulOptions.DrainTimeout);
+        return shutdownCts.Token;
+    }
+
+    private async Task<bool> WaitInFlightMessagesAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            while (Volatile.Read(ref this.inFlightMessages) > 0 && !cancellationToken.IsCancellationRequested)
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(25), cancellationToken).ConfigureAwait(true);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+
+        return Volatile.Read(ref this.inFlightMessages) == 0;
     }
 
 
@@ -420,15 +573,18 @@ public class QueueConsumer : IHostedAmqpConsumer
             {
                 await this.cancellationTokenSource.CancelAsync().ConfigureAwait(true);
             }
+
+            if (this.resultExecutionCancellationTokenSource != null)
+            {
+                await this.resultExecutionCancellationTokenSource.CancelAsync().ConfigureAwait(true);
+            }
+
             this.cancellationTokenSource?.Dispose();
+            this.resultExecutionCancellationTokenSource?.Dispose();
+            this.resultExecutionCancellationTokenSource = null;
         }
 
-        if (this.connection != null)
-        {
-            this.connection.ConnectionShutdownAsync -= this.ConnectionShutdownAsync;
-            this.connection.ConnectionBlockedAsync -= this.ConnectionBlockedAsync;
-            this.connection.ConnectionUnblockedAsync -= this.ConnectionUnblockedAsync;
-        }
+        this.DetachConnectionHandlers();
 
         if (this.channel != null && this.WasStarted && this.IsConsuming && !string.IsNullOrWhiteSpace(this.consumerTag))
         {
@@ -440,12 +596,24 @@ public class QueueConsumer : IHostedAmqpConsumer
 
         if (this.connection != null && this.ownsConnection)
         {
-            if (this.connection.IsOpen)
+            try
             {
-                await this.connection.CloseAsync(cancellationToken: CancellationToken.None).ConfigureAwait(true);
+                if (this.connection.IsOpen)
+                {
+                    await this.connection.CloseAsync(cancellationToken: CancellationToken.None).ConfigureAwait(true);
+                }
+            }
+            catch (ObjectDisposedException)
+            {
             }
 
-            this.connection.Dispose();
+            try
+            {
+                this.connection.Dispose();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
         }
 
         this.connection = null;
@@ -453,6 +621,23 @@ public class QueueConsumer : IHostedAmqpConsumer
         GC.SuppressFinalize(this);
     }
 
+    private void DetachConnectionHandlers()
+    {
+        if (this.connection == null)
+        {
+            return;
+        }
+
+        try
+        {
+            this.connection.ConnectionShutdownAsync -= this.ConnectionShutdownAsync;
+            this.connection.ConnectionBlockedAsync -= this.ConnectionBlockedAsync;
+            this.connection.ConnectionUnblockedAsync -= this.ConnectionUnblockedAsync;
+        }
+        catch (ObjectDisposedException)
+        {
+        }
+    }
+
 
 }
-

@@ -33,13 +33,28 @@ public sealed class FromAmqpHeaderAttribute : Attribute, IAmqpArgumentBinderPara
     /// </summary>
     /// <param name="parameter"></param>
     /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
     public IAmqpArgumentBinder Build(ParameterInfo parameter)
     {
         ArgumentNullException.ThrowIfNull(parameter);
 
-        return parameter.ParameterType != Constants.StringType
-            ? throw new InvalidOperationException($"The parameter {parameter.Name} must be of type string")
-            : new DynamicArgumentBinder((context) => context.Request.BasicProperties.Headers?[this.Key] ?? null);
+        return new DynamicArgumentBinder((context) => this.GetValue(context, parameter));
+    }
+
+    private object GetValue(IAmqpContext context, ParameterInfo parameter)
+    {
+        var properties = context.Request.BasicProperties;
+        var headers = properties.Headers;
+        if (headers == null || !headers.ContainsKey(this.Key))
+        {
+            Type targetType = parameter.ParameterType;
+            if (targetType.IsValueType && Nullable.GetUnderlyingType(targetType) == null)
+            {
+                throw new InvalidOperationException($"Required AMQP header '{this.Key}' for parameter '{parameter.Name}' is missing.");
+            }
+
+            return null;
+        }
+
+        return AmqpHeaders.Get(properties, this.Key, parameter.ParameterType);
     }
 }

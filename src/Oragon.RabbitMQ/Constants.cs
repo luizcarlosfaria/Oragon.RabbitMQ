@@ -16,6 +16,9 @@ public static class Constants
     /// <summary>Cached type reference for <see cref="byte"/>.</summary>
     public static Type ByteType { get; } = typeof(byte);
 
+    /// <summary>Cached type reference for <see cref="Nullable{T}"/> of <see cref="byte"/>.</summary>
+    public static Type NullableByteType { get; } = typeof(byte?);
+
     /// <summary>Cached type reference for <see cref="long"/>.</summary>
     public static Type LongType { get; } = typeof(long);
 
@@ -31,8 +34,35 @@ public static class Constants
     /// <summary>Cached type reference for <see cref="string"/>.</summary>
     public static Type StringType { get; } = typeof(string);
 
+    /// <summary>Cached type reference for <see cref="Guid"/>.</summary>
+    public static Type GuidType { get; } = typeof(Guid);
+
+    /// <summary>Cached type reference for <see cref="Nullable{T}"/> of <see cref="Guid"/>.</summary>
+    public static Type NullableGuidType { get; } = typeof(Guid?);
+
+    /// <summary>Cached type reference for <see cref="DateTimeOffset"/>.</summary>
+    public static Type DateTimeOffsetType { get; } = typeof(DateTimeOffset);
+
+    /// <summary>Cached type reference for <see cref="Nullable{T}"/> of <see cref="DateTimeOffset"/>.</summary>
+    public static Type NullableDateTimeOffsetType { get; } = typeof(DateTimeOffset?);
+
+    /// <summary>Cached type reference for <see cref="IDictionary{TKey,TValue}"/> of string/object.</summary>
+    public static Type HeadersType { get; } = typeof(IDictionary<string, object>);
+
+    /// <summary>Cached type reference for <see cref="IReadOnlyDictionary{TKey,TValue}"/> of string/object.</summary>
+    public static Type ReadOnlyHeadersType { get; } = typeof(IReadOnlyDictionary<string, object>);
+
+    /// <summary>Cached type reference for <see cref="AmqpTimestamp"/>.</summary>
+    public static Type AmqpTimestampType { get; } = typeof(AmqpTimestamp);
+
+    /// <summary>Cached type reference for <see cref="Nullable{T}"/> of <see cref="AmqpTimestamp"/>.</summary>
+    public static Type NullableAmqpTimestampType { get; } = typeof(AmqpTimestamp?);
+
     /// <summary>Cached type reference for <see cref="DeliveryModes"/>.</summary>
     public static Type DeliveryMode { get; } = typeof(DeliveryModes);
+
+    /// <summary>Cached type reference for <see cref="Nullable{T}"/> of <see cref="DeliveryModes"/>.</summary>
+    public static Type NullableDeliveryMode { get; } = typeof(DeliveryModes?);
 
     /// <summary>Cached type reference for RabbitMQ.Client.IConnection.</summary>
     public static Type IConnection { get; } = typeof(IConnection);
@@ -78,6 +108,42 @@ public static class Constants
 
     /// <summary>Parameter names recognized as priority by convention.</summary>
     public static ReadOnlyCollection<string> PriorityParams { get; } = Array.AsReadOnly(["priority"]);
+
+    /// <summary>Parameter names recognized as content type by convention.</summary>
+    public static ReadOnlyCollection<string> ContentTypeParams { get; } = Array.AsReadOnly(["contentType"]);
+
+    /// <summary>Parameter names recognized as content encoding by convention.</summary>
+    public static ReadOnlyCollection<string> ContentEncodingParams { get; } = Array.AsReadOnly(["contentEncoding"]);
+
+    /// <summary>Parameter names recognized as delivery mode by convention.</summary>
+    public static ReadOnlyCollection<string> DeliveryModeParams { get; } = Array.AsReadOnly(["deliveryMode"]);
+
+    /// <summary>Parameter names recognized as correlation id by convention.</summary>
+    public static ReadOnlyCollection<string> CorrelationIdParams { get; } = Array.AsReadOnly(["correlationId"]);
+
+    /// <summary>Parameter names recognized as reply-to by convention.</summary>
+    public static ReadOnlyCollection<string> ReplyToParams { get; } = Array.AsReadOnly(["replyTo"]);
+
+    /// <summary>Parameter names recognized as expiration by convention.</summary>
+    public static ReadOnlyCollection<string> ExpirationParams { get; } = Array.AsReadOnly(["expiration"]);
+
+    /// <summary>Parameter names recognized as message id by convention.</summary>
+    public static ReadOnlyCollection<string> MessageIdParams { get; } = Array.AsReadOnly(["messageId"]);
+
+    /// <summary>Parameter names recognized as timestamp by convention.</summary>
+    public static ReadOnlyCollection<string> TimestampParams { get; } = Array.AsReadOnly(["timestamp"]);
+
+    /// <summary>Parameter names recognized as message type by convention.</summary>
+    public static ReadOnlyCollection<string> TypeParams { get; } = Array.AsReadOnly(["type", "messageType"]);
+
+    /// <summary>Parameter names recognized as user id by convention.</summary>
+    public static ReadOnlyCollection<string> UserIdParams { get; } = Array.AsReadOnly(["userId"]);
+
+    /// <summary>Parameter names recognized as app id by convention.</summary>
+    public static ReadOnlyCollection<string> AppIdParams { get; } = Array.AsReadOnly(["appId"]);
+
+    /// <summary>Parameter names recognized as cluster id by convention.</summary>
+    public static ReadOnlyCollection<string> ClusterIdParams { get; } = Array.AsReadOnly(["clusterId"]);
 
     /// <summary>Parameter names recognized as delivery count (<c>x-delivery-count</c> header) by convention.</summary>
     public static ReadOnlyCollection<string> DeliveryCountParams { get; } = Array.AsReadOnly(["deliveryCount", "attempts"]);

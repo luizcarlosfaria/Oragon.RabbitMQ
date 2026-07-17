@@ -23,6 +23,8 @@ public static class AmqpResults
 
     private static readonly RejectResult s_rejectWithoutRequeue = new(false);
 
+    private static readonly LeaveUnsettledResult s_leaveUnsettled = new();
+
     /// <summary>
     /// Return an AckResult to represents a AMQP Ack
     /// </summary>
@@ -47,6 +49,12 @@ public static class AmqpResults
         requeue
         ? AmqpResults.s_rejectWithRequeue
         : AmqpResults.s_rejectWithoutRequeue;
+
+    /// <summary>
+    /// Return a result that leaves the current delivery unsettled.
+    /// </summary>
+    /// <returns></returns>
+    public static LeaveUnsettledResult LeaveUnsettled() => AmqpResults.s_leaveUnsettled;
 
 
     /// <summary>
@@ -113,6 +121,46 @@ public static class AmqpResults
     /// <param name="objectsToForward">The objects to be forwarded. Cannot be <see langword="null"/> and must contain at least one object.</param>
 
     public static ComposableResult ForwardAndAck<T>(string exchange, string routingKey, bool mandatory, params T[] objectsToForward) => new(Forward(exchange, routingKey, mandatory, (Action<T, IBasicProperties>)null, objectsToForward), s_forSuccess);
+
+    /// <summary>
+    /// Return a result that republishes the current message to the tail of the current queue.
+    /// </summary>
+    /// <returns></returns>
+    public static RequeueToTailResult RequeueToTail() => RequeueToTail(options => { });
+
+    /// <summary>
+    /// Return a result that republishes the current message to the tail of the current queue.
+    /// </summary>
+    /// <param name="configure">Options configure action.</param>
+    /// <returns></returns>
+    public static RequeueToTailResult RequeueToTail(Action<RequeueToTailOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+        var options = new RequeueToTailOptions();
+        configure(options);
+        return new(options);
+    }
+
+    /// <summary>
+    /// Return a result that republishes the current message to the tail of the specified queue.
+    /// </summary>
+    /// <param name="queueName">Target queue name.</param>
+    /// <returns></returns>
+    public static RequeueToTailResult RequeueToTail(string queueName) => RequeueToTail(queueName, options => { });
+
+    /// <summary>
+    /// Return a result that republishes the current message to the tail of the specified queue.
+    /// </summary>
+    /// <param name="queueName">Target queue name.</param>
+    /// <param name="configure">Options configure action.</param>
+    /// <returns></returns>
+    public static RequeueToTailResult RequeueToTail(string queueName, Action<RequeueToTailOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+        var options = new RequeueToTailOptions { QueueName = queueName };
+        configure(options);
+        return new(options);
+    }
 
 
     /// <summary>

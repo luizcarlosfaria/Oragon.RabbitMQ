@@ -236,33 +236,47 @@ For explicit control, return an `IAmqpResult` from your handler:
 
 These types are resolved automatically by the model binder without any attribute:
 
-| Type                       | Value                       |
-| -------------------------- | --------------------------- |
-| `IConnection`              | Current RabbitMQ connection |
-| `IChannel`                 | Current RabbitMQ channel    |
-| `BasicDeliverEventArgs`    | Raw delivery event          |
-| `DeliveryModes`            | Message delivery mode       |
-| `IReadOnlyBasicProperties` | Message properties          |
-| `IServiceProvider`         | Scoped service provider     |
-| `IAmqpContext`             | Full AMQP context           |
-| `CancellationToken`        | Cancellation token          |
+| Type                                                                   | Value                       |
+| ---------------------------------------------------------------------- | --------------------------- |
+| `IConnection`                                                           | Current RabbitMQ connection |
+| `IChannel`                                                              | Current RabbitMQ channel    |
+| `BasicDeliverEventArgs`                                                 | Raw delivery event          |
+| `DeliveryModes?`                                                        | Message delivery mode       |
+| `AmqpTimestamp?`                                                        | Message timestamp           |
+| `IDictionary<string, object>` / `IReadOnlyDictionary<string, object>`   | Message headers             |
+| `IReadOnlyBasicProperties`                                              | Message properties          |
+| `IServiceProvider`                                                      | Scoped service provider     |
+| `IAmqpContext`                                                          | Full AMQP context           |
+| `CancellationToken`                                                     | Cancellation token          |
 
 ### Auto-bound Parameters by Name Convention
 
 Parameters are matched by name and type convention:
 
-| Parameter names             | Type(s)                | Value                                                             |
-| --------------------------- | ---------------------- | ----------------------------------------------------------------- |
-| `queue`, `queueName`        | `string`               | Name of the consumed queue                                        |
-| `routing`, `routingKey`     | `string`               | Message routing key                                               |
-| `exchange`, `exchangeName`  | `string`               | Source exchange name                                              |
-| `consumer`, `consumerTag`   | `string`               | Consumer tag                                                      |
-| `priority`                  | `byte`, `int`, `long`  | Message priority (`BasicProperties.Priority`)                     |
-| `deliveryCount`, `attempts` | `int`, `int?`, `long`, `long?` | Delivery count from the `x-delivery-count` header (quorum queues) |
+| Parameter names             | Type(s)                                      | Value                                                              |
+| --------------------------- | -------------------------------------------- | ------------------------------------------------------------------ |
+| `queue`, `queueName`        | `string`                                     | Name of the consumed queue                                         |
+| `routing`, `routingKey`     | `string`                                     | Message routing key                                                |
+| `exchange`, `exchangeName`  | `string`                                     | Source exchange name                                               |
+| `consumer`, `consumerTag`   | `string`                                     | Consumer tag                                                       |
+| `priority`                  | `byte?`, `int?`, `long?`                     | Message priority (`BasicProperties.Priority`)                      |
+| `deliveryMode`              | `DeliveryModes?`, `byte?`, `int?`, `long?`   | Message delivery mode                                              |
+| `timestamp`                 | `DateTimeOffset?`, `long?`, `AmqpTimestamp?` | Message timestamp (`long?` as Unix seconds)                        |
+| `deliveryCount`, `attempts` | `int?`, `long?`                              | Delivery count from the `x-delivery-count` header (quorum queues)  |
+| `messageId`                 | `string`, `Guid?`                            | Message id                                                         |
+| `contentType`               | `string`                                     | Content type                                                       |
+| `contentEncoding`           | `string`                                     | Content encoding                                                   |
+| `correlationId`             | `string`                                     | Correlation id                                                     |
+| `replyTo`                   | `string`                                     | Reply-to address                                                   |
+| `expiration`                | `string`                                     | Message expiration (TTL)                                           |
+| `type`, `messageType`       | `string`                                     | Message type                                                       |
+| `userId`                    | `string`                                     | User id                                                            |
+| `appId`                     | `string`                                     | Application id                                                     |
+| `clusterId`                 | `string`                                     | Cluster id                                                         |
 
-When the `x-delivery-count` header is absent (first delivery on a quorum queue, or a classic queue, which never sets it), `int`/`long` parameters receive `0` and nullable types (`int?`/`long?`) receive `null`.
+Optional AMQP metadata (priority, delivery mode, timestamp, delivery count and `Guid` message id) requires nullable types: when the value is absent — e.g. the `x-delivery-count` header on a first delivery, or on a classic queue, which never sets it — the parameter receives `null`. Declaring one of these with a non-nullable value type (e.g. `int deliveryCount`) throws an `InvalidOperationException` at startup (fail-fast).
 
-> **Note:** `byte`, `int`, `int?`, `long` and `long?` parameters whose names don't match a convention above throw an `InvalidOperationException` at startup (fail-fast), since they can't be bound.
+> **Note:** `string` and numeric (`byte`, `int`, `long`, nullable or not) parameters whose names don't match a convention above also throw an `InvalidOperationException` at startup, since they can't be bound.
 
 ## Telemetry
 

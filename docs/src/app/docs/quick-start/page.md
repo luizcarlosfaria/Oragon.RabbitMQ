@@ -29,17 +29,44 @@ public sealed class OrderService
 
 ## Mapping the queue
 
-After registering `OrderService`, use `MapQueue`.
+Register the consumer infrastructure, serializer, connection, handler service, then build the host and use `MapQueue`.
 
 ```csharp
+using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Oragon.RabbitMQ;
+using Oragon.RabbitMQ.Consumer.Dispatch.Attributes;
+using RabbitMQ.Client;
+
+var builder = Host.CreateApplicationBuilder(args);
+
+builder.Services.AddRabbitMQConsumer();
+builder.Services.AddAmqpSerializer(options: JsonSerializerOptions.Web);
+builder.Services.AddSingleton<IConnectionFactory>(_ => new ConnectionFactory
+{
+    Uri = new Uri("amqp://guest:guest@localhost:5672"),
+});
+builder.Services.AddSingleton(sp =>
+    sp.GetRequiredService<IConnectionFactory>()
+        .CreateConnectionAsync()
+        .GetAwaiter()
+        .GetResult());
 builder.Services.AddSingleton<OrderService>();
 
 var app = builder.Build();
 
 app.MapQueue("orders", ([FromServices] OrderService svc, [FromBody] OrderCreated msg) =>
-    svc.HandleAsync(msg));
+    svc.HandleAsync(msg))
+    .WithTopology((channel, cancellationToken) =>
+        channel.QueueDeclareAsync(
+            queue: "orders",
+            durable: true,
+            exclusive: false,
+            autoDelete: false,
+            cancellationToken: cancellationToken));
 
-app.Run();
+await app.RunAsync();
 ```
 
 When the handler completes successfully and does not return an `IAmqpResult`, Oragon.RabbitMQ acknowledges the message with `Ack`.
@@ -59,21 +86,28 @@ app.MapQueue("orders", ([FromServices] OrderService svc, OrderCreated msg) =>
 With `WithDispatchConcurrency` greater than 1, processing order is not guaranteed. Use thread-safe and idempotent handlers.
 {% /callout %}
 
-## Topology
+## Publish a test message
 
-If the application should declare the queue during startup, use `WithTopology`.
+Use RabbitMQ.Client or any publisher to send JSON to the queue.
 
 ```csharp
-app.MapQueue("orders", ([FromServices] OrderService svc, OrderCreated msg) =>
-    svc.HandleAsync(msg))
-    .WithTopology(async (channel, cancellationToken) =>
-    {
-        await channel.QueueDeclareAsync(
-            queue: "orders",
-            durable: true,
-            exclusive: false,
-            autoDelete: false,
-            arguments: null,
-            cancellationToken: cancellationToken);
-    });
+using IChannel channel = await connection.CreateChannelAsync(
+    new CreateChannelOptions(
+        publisherConfirmationsEnabled: true,
+        publisherConfirmationTrackingEnabled: true));
+
+var properties = new BasicProperties
+{
+    ContentType = "application/json",
+    MessageId = Guid.NewGuid().ToString("D"),
+};
+
+byte[] body = JsonSerializer.SerializeToUtf8Bytes(new OrderCreated("A-100", 42.50m));
+
+await channel.BasicPublishAsync(
+    exchange: string.Empty,
+    routingKey: "orders",
+    mandatory: true,
+    basicProperties: properties,
+    body: body);
 ```

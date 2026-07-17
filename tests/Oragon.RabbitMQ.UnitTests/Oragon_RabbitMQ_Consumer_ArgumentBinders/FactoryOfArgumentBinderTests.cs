@@ -32,6 +32,7 @@ public class FactoryOfArgumentBinderTests
         var channelMock = new Mock<IChannel>();
         var basicPropertiesMock = new Mock<IReadOnlyBasicProperties>();
         _ = basicPropertiesMock.Setup(it => it.DeliveryMode).Returns(DeliveryModes.Persistent);
+        _ = basicPropertiesMock.Setup(it => it.IsDeliveryModePresent()).Returns(true);
 
         var cancellationToken = new CancellationToken();
 
@@ -62,7 +63,7 @@ public class FactoryOfArgumentBinderTests
             IConnection connection_arg,                     //resolved by type
             IChannel channel_arg,                           //resolved by type
             BasicDeliverEventArgs eventArgs_arg,            //resolved by type
-            DeliveryModes deliveryMode_arg,                 //resolved by type
+            DeliveryModes? deliveryMode_arg,                //resolved by type
             IServiceProvider serviceProvider_arg,           //resolved by type
             IReadOnlyBasicProperties basicProperties_arg,   //resolved by type
             CancellationToken cancellationToken_arg,        //resolved by type

@@ -48,9 +48,11 @@ public class ConsumerDescriptorTests
         Assert.NotNull(descriptor.ChannelFactory);
         Assert.NotNull(descriptor.ResultForSerializationFailure);
         Assert.NotNull(descriptor.ResultForProcessFailure);
+        Assert.NotNull(descriptor.ResultForResultExecutionFailure);
         Assert.Null(descriptor.ConsumerTag);
         Assert.False(descriptor.Exclusive);
         Assert.Null(descriptor.TopologyInitializer);
+        Assert.Null(descriptor.GracefulShutdownOptions);
     }
 
     [Fact]
@@ -81,6 +83,22 @@ public class ConsumerDescriptorTests
 
         // Assert
         _ = Assert.IsType<NackResult>(result);
+    }
+
+    [Fact]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2201:Do not raise reserved exception types", Justification = "<Pending>")]
+    public void Constructor_DefaultResultExecutionFailure_ShouldNackWithoutRequeue()
+    {
+        // Arrange
+        var descriptor = CreateDescriptor();
+        var contextMock = new Mock<IAmqpContext>();
+
+        // Act
+        IAmqpResult result = descriptor.ResultForResultExecutionFailure(contextMock.Object, new Exception("test"));
+
+        // Assert
+        NackResult nackResult = Assert.IsType<NackResult>(result);
+        Assert.False(nackResult.Requeue);
     }
 
     #endregion
@@ -282,17 +300,43 @@ public class ConsumerDescriptorTests
     #region WithChannel
 
     [Fact]
-    public void WithChannel_ValidFactory_ShouldSetChannelFactory()
+    public async Task WithChannel_ValidFactory_ShouldSetChannelFactory()
     {
         // Arrange
         var descriptor = CreateDescriptor();
-        Func<IConnection, CancellationToken, Task<IChannel>> factory = (conn, ct) => Task.FromResult(Mock.Of<IChannel>());
+        IConnection expectedConnection = Mock.Of<IConnection>();
+        IChannel expectedChannel = Mock.Of<IChannel>();
+        var wasCalled = false;
+        Func<IConnection, CancellationToken, Task<IChannel>> factory = (conn, ct) =>
+        {
+            wasCalled = ReferenceEquals(expectedConnection, conn);
+            return Task.FromResult(expectedChannel);
+        };
+
+        // Act
+        _ = descriptor.WithChannel(factory);
+        IChannel actualChannel = await descriptor.ChannelFactory(
+            Mock.Of<IServiceProvider>(),
+            expectedConnection,
+            CancellationToken.None);
+
+        // Assert
+        Assert.True(wasCalled);
+        Assert.Same(expectedChannel, actualChannel);
+    }
+
+    [Fact]
+    public void WithChannel_ServiceProviderFactory_ShouldSetChannelFactory()
+    {
+        // Arrange
+        var descriptor = CreateDescriptor();
+        Func<IServiceProvider, IConnection, CancellationToken, Task<IChannel>> factory = (sp, conn, ct) => Task.FromResult(Mock.Of<IChannel>());
 
         // Act
         _ = descriptor.WithChannel(factory);
 
         // Assert
-        Assert.Equal(factory, descriptor.ChannelFactory);
+        Assert.Same(factory, descriptor.ChannelFactory);
     }
 
     [Fact]
@@ -302,7 +346,7 @@ public class ConsumerDescriptorTests
         var descriptor = CreateDescriptor();
 
         // Act & Assert
-        _ = Assert.Throws<ArgumentNullException>(() => descriptor.WithChannel(null));
+        _ = Assert.Throws<ArgumentNullException>(() => descriptor.WithChannel((Func<IConnection, CancellationToken, Task<IChannel>>)null));
     }
 
     #endregion
@@ -310,17 +354,41 @@ public class ConsumerDescriptorTests
     #region WithTopology
 
     [Fact]
-    public void WithTopology_ValidInitializer_ShouldSetTopologyInitializer()
+    public async Task WithTopology_ValidInitializer_ShouldSetTopologyInitializer()
     {
         // Arrange
         var descriptor = CreateDescriptor();
-        Func<IChannel, CancellationToken, Task> initializer = (ch, ct) => Task.CompletedTask;
+        IChannel expectedChannel = Mock.Of<IChannel>();
+        var wasCalled = false;
+        Func<IChannel, CancellationToken, Task> initializer = (ch, ct) =>
+        {
+            wasCalled = ReferenceEquals(expectedChannel, ch);
+            return Task.CompletedTask;
+        };
+
+        // Act
+        _ = descriptor.WithTopology(initializer);
+        await descriptor.TopologyInitializer(
+            Mock.Of<IServiceProvider>(),
+            expectedChannel,
+            CancellationToken.None);
+
+        // Assert
+        Assert.True(wasCalled);
+    }
+
+    [Fact]
+    public void WithTopology_ServiceProviderInitializer_ShouldSetTopologyInitializer()
+    {
+        // Arrange
+        var descriptor = CreateDescriptor();
+        Func<IServiceProvider, IChannel, CancellationToken, Task> initializer = (sp, ch, ct) => Task.CompletedTask;
 
         // Act
         _ = descriptor.WithTopology(initializer);
 
         // Assert
-        Assert.Equal(initializer, descriptor.TopologyInitializer);
+        Assert.Same(initializer, descriptor.TopologyInitializer);
     }
 
     [Fact]
@@ -330,7 +398,7 @@ public class ConsumerDescriptorTests
         var descriptor = CreateDescriptor();
 
         // Act & Assert
-        _ = Assert.Throws<ArgumentNullException>(() => descriptor.WithTopology(null));
+        _ = Assert.Throws<ArgumentNullException>(() => descriptor.WithTopology((Func<IChannel, CancellationToken, Task>)null));
     }
 
     #endregion
@@ -391,6 +459,69 @@ public class ConsumerDescriptorTests
 
     #endregion
 
+    #region WhenResultExecutionFail
+
+    [Fact]
+    public void WhenResultExecutionFail_ValidHandler_ShouldSetResultForResultExecutionFailure()
+    {
+        // Arrange
+        var descriptor = CreateDescriptor();
+        Func<IAmqpContext, Exception, IAmqpResult> handler = (ctx, ex) => AmqpResults.Reject(false);
+
+        // Act
+        _ = descriptor.WhenResultExecutionFail(handler);
+
+        // Assert
+        Assert.Equal(handler, descriptor.ResultForResultExecutionFailure);
+    }
+
+    [Fact]
+    public void WhenResultExecutionFail_Null_ShouldThrowArgumentNullException()
+    {
+        // Arrange
+        var descriptor = CreateDescriptor();
+
+        // Act & Assert
+        _ = Assert.Throws<ArgumentNullException>(() => descriptor.WhenResultExecutionFail(null));
+    }
+
+    #endregion
+
+    #region WithGracefulShutdown
+
+    [Fact]
+    public void WithGracefulShutdown_ValidOptions_ShouldSetGracefulShutdownOptions()
+    {
+        // Arrange
+        var descriptor = CreateDescriptor();
+
+        // Act
+        _ = descriptor.WithGracefulShutdown(options =>
+        {
+            options.CancelContextTokenOnStop = true;
+            options.WaitForInFlightMessages = true;
+            options.DrainTimeout = TimeSpan.FromSeconds(10);
+        });
+
+        // Assert
+        Assert.NotNull(descriptor.GracefulShutdownOptions);
+        Assert.True(descriptor.GracefulShutdownOptions.CancelContextTokenOnStop);
+        Assert.True(descriptor.GracefulShutdownOptions.WaitForInFlightMessages);
+        Assert.Equal(TimeSpan.FromSeconds(10), descriptor.GracefulShutdownOptions.DrainTimeout);
+    }
+
+    [Fact]
+    public void WithGracefulShutdown_InvalidDrainTimeout_ShouldThrowArgumentOutOfRangeException()
+    {
+        // Arrange
+        var descriptor = CreateDescriptor();
+
+        // Act & Assert
+        _ = Assert.Throws<ArgumentOutOfRangeException>(() => descriptor.WithGracefulShutdown(options => options.DrainTimeout = TimeSpan.Zero));
+    }
+
+    #endregion
+
     #region Fluent API chaining
 
     [Fact]
@@ -410,7 +541,9 @@ public class ConsumerDescriptorTests
             .WithChannel((conn, ct) => Task.FromResult(Mock.Of<IChannel>()))
             .WithTopology((ch, ct) => Task.CompletedTask)
             .WhenSerializationFail((ctx, ex) => AmqpResults.Reject(false))
-            .WhenProcessFail((ctx, ex) => AmqpResults.Nack(false));
+            .WhenProcessFail((ctx, ex) => AmqpResults.Nack(false))
+            .WhenResultExecutionFail((ctx, ex) => AmqpResults.Reject(false))
+            .WithGracefulShutdown(options => options.WaitForInFlightMessages = true);
 
         Assert.NotNull(result);
     }
@@ -472,6 +605,8 @@ public class ConsumerDescriptorTests
         _ = Assert.Throws<InvalidOperationException>(() => descriptor.WithTopology((ch, ct) => Task.CompletedTask));
         _ = Assert.Throws<InvalidOperationException>(() => descriptor.WhenSerializationFail((ctx, ex) => AmqpResults.Reject(false)));
         _ = Assert.Throws<InvalidOperationException>(() => descriptor.WhenProcessFail((ctx, ex) => AmqpResults.Nack(false)));
+        _ = Assert.Throws<InvalidOperationException>(() => descriptor.WhenResultExecutionFail((ctx, ex) => AmqpResults.Reject(false)));
+        _ = Assert.Throws<InvalidOperationException>(() => descriptor.WithGracefulShutdown(options => options.WaitForInFlightMessages = true));
     }
 
     #endregion

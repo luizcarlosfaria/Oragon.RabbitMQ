@@ -19,6 +19,7 @@ When the handler completes successfully, the message is acknowledged.
 | Handler completes successfully | `Ack` |
 | Deserialization failure | `Reject(requeue: false)` |
 | Handler exception | `Nack(requeue: false)` |
+| Result execution failure | `Nack(requeue: false)` |
 
 The defaults favor dead-lettering instead of infinite requeue loops.
 
@@ -48,6 +49,7 @@ app.MapQueue("orders", async ([FromServices] OrderService svc, OrderCreated msg)
 | RPC | `AmqpResults.ReplyAndAck<T>(T)` | Reply and acknowledge |
 | Routing | `AmqpResults.Forward<T>(exchange, routingKey, mandatory, params T[])` | Forward to another exchange |
 | Routing | `AmqpResults.ForwardAndAck<T>(exchange, routingKey, mandatory, params T[])` | Forward and acknowledge |
+| Routing | `AmqpResults.RequeueToTail()` | Publish the current body to the tail |
 | Composition | `AmqpResults.Compose(params IAmqpResult[])` | Execute multiple results |
 
 ## Composition
@@ -62,10 +64,21 @@ return AmqpResults.Compose(
 
 ## Error policies
 
-The descriptor can replace the default behavior for deserialization and processing failures.
+The descriptor can replace the default behavior for deserialization, processing, and result execution failures.
 
 ```csharp
 app.MapQueue("orders", handler)
     .WhenSerializationFail((ctx, ex) => AmqpResults.Reject(requeue: false))
-    .WhenProcessFail((ctx, ex) => AmqpResults.Nack(requeue: true));
+    .WhenProcessFail((ctx, ex) => AmqpResults.Nack(requeue: true))
+    .WhenResultExecutionFail((ctx, ex) => AmqpResults.Nack(requeue: false));
+```
+
+## Requeue to tail
+
+Use `RequeueToTail` when a message should be retried after newer ready messages, instead of immediately returning to the head of the queue.
+
+```csharp
+return AmqpResults.Compose(
+    AmqpResults.RequeueToTail(),
+    AmqpResults.Ack());
 ```
