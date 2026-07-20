@@ -22,12 +22,12 @@ public static class SafeRunner
     public static async Task ExecuteWithRetry<TException>(this Func<Task> taskToRun, Func<TException, bool> predicate = null, int? maxRetryAttempts = 4, int? delayInSeconds = 3)
         where TException : Exception
     {
-        var predicateBuilder = predicate != null
+        PredicateBuilder<object> predicateBuilder = predicate != null
             ? new PredicateBuilder<object>().Handle(predicate)
             : new PredicateBuilder<object>().Handle<TException>();
 
 
-        var pipeline = new ResiliencePipelineBuilder()
+        ResiliencePipeline pipeline = new ResiliencePipelineBuilder()
             .AddRetry(new RetryStrategyOptions()
             {
                 ShouldHandle = predicateBuilder,
@@ -59,7 +59,7 @@ public static class SafeRunner
     /// <returns>A task that represents the asynchronous operation.</returns>
     public static void Wait(this Func<bool> testFunc, int? maxRetryAttempts = 4, int? delayInSeconds = 3)
     {
-        var pipeline = new ResiliencePipelineBuilder<bool>()
+        ResiliencePipeline<bool> pipeline = new ResiliencePipelineBuilder<bool>()
             .AddRetry(new RetryStrategyOptions<bool>()
             {
                 ShouldHandle = new PredicateBuilder<bool>().HandleResult((result) => !result),

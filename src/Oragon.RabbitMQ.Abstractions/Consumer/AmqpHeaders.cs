@@ -42,7 +42,7 @@ public static class AmqpHeaders
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
         ArgumentNullException.ThrowIfNull(targetType);
 
-        var headers = properties.Headers;
+        IDictionary<string, object> headers = properties.Headers;
 
         if (headers == null || !headers.TryGetValue(key, out object value))
         {

@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.DependencyInjection;
 using Oragon.RabbitMQ.Benchmarks.Infrastructure;
@@ -82,7 +83,7 @@ public class LatencyBenchmark
         {
             _ = await this.publishChannel.QueueDeclareAsync(queueName, durable: false, exclusive: false, autoDelete: false).ConfigureAwait(false);
 
-            var (channel, consumerTag) = this.MessageSize switch
+            (IChannel channel, string consumerTag) = this.MessageSize switch
             {
                 "Small" => await this.StartNativeConsumer<SmallMessage>(queueName, countdown).ConfigureAwait(false),
                 "Medium" => await this.StartNativeConsumer<MediumMessage>(queueName, countdown).ConfigureAwait(false),
@@ -127,7 +128,7 @@ public class LatencyBenchmark
         {
             _ = await this.publishChannel.QueueDeclareAsync(queueName, durable: false, exclusive: false, autoDelete: false).ConfigureAwait(false);
 
-            await using var helper = (this.MessageSize switch
+            await using ConfiguredAsyncDisposable helper = (this.MessageSize switch
             {
                 "Small" => await this.StartOragonConsumer<SmallMessage>(queueName, countdown).ConfigureAwait(false),
                 "Medium" => await this.StartOragonConsumer<MediumMessage>(queueName, countdown).ConfigureAwait(false),

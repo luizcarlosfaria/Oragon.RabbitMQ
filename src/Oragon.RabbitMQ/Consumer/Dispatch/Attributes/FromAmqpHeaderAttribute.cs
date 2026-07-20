@@ -3,6 +3,7 @@
 
 using System.Reflection;
 using Oragon.RabbitMQ.Consumer.ArgumentBinders;
+using RabbitMQ.Client;
 
 namespace Oragon.RabbitMQ.Consumer.Dispatch.Attributes;
 
@@ -42,8 +43,8 @@ public sealed class FromAmqpHeaderAttribute : Attribute, IAmqpArgumentBinderPara
 
     private object GetValue(IAmqpContext context, ParameterInfo parameter)
     {
-        var properties = context.Request.BasicProperties;
-        var headers = properties.Headers;
+        IReadOnlyBasicProperties properties = context.Request.BasicProperties;
+        IDictionary<string, object> headers = properties.Headers;
         if (headers == null || !headers.ContainsKey(this.Key))
         {
             Type targetType = parameter.ParameterType;

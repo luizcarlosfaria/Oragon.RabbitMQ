@@ -3,28 +3,28 @@
 
 using Aspire.Hosting;
 
-var builder = DistributedApplication.CreateBuilder(args);
+IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
 
-var redis = builder.AddRedis("redis");
+IResourceBuilder<RedisResource> redis = builder.AddRedis("redis");
 
-var username = builder.AddParameter("rabbitmq-username");
-var password = builder.AddParameter("rabbitmq-password", secret: true);
+IResourceBuilder<ParameterResource> username = builder.AddParameter("rabbitmq-username");
+IResourceBuilder<ParameterResource> password = builder.AddParameter("rabbitmq-password", secret: true);
 
 
-var rabbitmq = builder.AddRabbitMQ("rabbitmq", username, password)
+IResourceBuilder<RabbitMQServerResource> rabbitmq = builder.AddRabbitMQ("rabbitmq", username, password)
     .WithImage("library/rabbitmq", "4-management")
     //.WithManagementPlugin()
     .WithHttpEndpoint(port: null, targetPort: 15672, name: "management")
     ;
 
-var apiService = builder.AddProject<Projects.DotNetAspireApp_ApiService>("apiservice")
+IResourceBuilder<ProjectResource> apiService = builder.AddProject<Projects.DotNetAspireApp_ApiService>("apiservice")
     .WithReference(rabbitmq)
 #if NET9_0_OR_GREATER
     .WaitFor(rabbitmq)
 #endif
     ;
 
-var worker = builder.AddProject<Projects.DotNetAspireApp_Worker>("worker")
+IResourceBuilder<ProjectResource> worker = builder.AddProject<Projects.DotNetAspireApp_Worker>("worker")
     .WithReference(rabbitmq)
 #if NET9_0_OR_GREATER
     .WaitFor(rabbitmq)

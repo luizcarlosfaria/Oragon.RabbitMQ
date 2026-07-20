@@ -31,7 +31,7 @@ public class NackResultTests
 
         _ = contextMock.Setup(it => it.Request).Returns(basicDeliverEventArgs);
 
-        var nackResult = AmqpResults.Nack(true);
+        NackResult nackResult = AmqpResults.Nack(true);
 
         // Act
         await nackResult.ExecuteAsync(contextMock.Object);
@@ -44,7 +44,7 @@ public class NackResultTests
     public async Task ExecuteAsync_ShouldThrowArgumentNullException_WhenContextIsNull()
     {
         // Arrange
-        var channel = new Mock<IChannel>().Object;
+        IChannel channel = new Mock<IChannel>().Object;
 
         var deliveryArgs = new BasicDeliverEventArgs(
             consumerTag: string.Empty,
@@ -54,7 +54,7 @@ public class NackResultTests
             routingKey: string.Empty,
             properties: default,
             body: default);
-        var nackResult = AmqpResults.Nack(true);
+        NackResult nackResult = AmqpResults.Nack(true);
 
         // Act & Assert
         _ = await Assert.ThrowsAsync<ArgumentNullException>(() => nackResult.ExecuteAsync(null));

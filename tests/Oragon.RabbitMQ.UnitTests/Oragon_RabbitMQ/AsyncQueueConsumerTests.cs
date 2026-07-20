@@ -25,10 +25,10 @@ public class AsyncQueueConsumerTests
     public void CreateBasicProperties_Should_Return_New_BasicProperties()
     {
         // Arrange
-        var channel = new Mock<IChannel>().Object;
+        IChannel channel = new Mock<IChannel>().Object;
 
         // Act
-        var result = channel.CreateBasicProperties();
+        BasicProperties result = channel.CreateBasicProperties();
 
         // Assert
         Assert.NotNull(result);
@@ -66,13 +66,13 @@ public class AsyncQueueConsumerTests
         channelMock.Setup(it => it.BasicNackAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Verifiable(Times.Never);
         channelMock.Setup(it => it.BasicAckAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Verifiable(Times.Never);
 
-        var channel = channelMock.Object;
+        IChannel channel = channelMock.Object;
         //-------------------------------------------------------
 
         //-------------------------------------------------------
         var connectionMock = new Mock<IConnection>();
         _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>())).ReturnsAsync(channel);
-        var connection = connectionMock.Object;
+        IConnection connection = connectionMock.Object;
         _ = services.AddSingleton(connection);
         //-------------------------------------------------------
 
@@ -80,7 +80,7 @@ public class AsyncQueueConsumerTests
         //-------------------------------------------------------
         var connectionFactoryMock = new Mock<IConnectionFactory>();
         _ = connectionFactoryMock.Setup(it => it.CreateConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(connection);
-        var connectionFactory = connectionFactoryMock.Object;
+        IConnectionFactory connectionFactory = connectionFactoryMock.Object;
         _ = services.AddSingleton(sp => connectionFactory);
         //-------------------------------------------------------
 
@@ -90,11 +90,11 @@ public class AsyncQueueConsumerTests
         //_ = services.AddScoped<ExampleService>();
         //-------------------------------------------------------
 
-        var sp = services.BuildServiceProvider();
+        ServiceProvider sp = services.BuildServiceProvider();
 
         _ = sp.MapQueue(queueName, ([FromServices] ExampleService svc, ExampleMessage msg) => svc.TestAsync(msg)).WithPrefetch(1);
 
-        var hostedService = sp.GetRequiredService<IHostedService>();
+        IHostedService hostedService = sp.GetRequiredService<IHostedService>();
 
         _ = await Assert.ThrowsAsync<InvalidOperationException>(async () => await hostedService.StartAsync(CancellationToken.None).ConfigureAwait(true));
 
@@ -131,13 +131,13 @@ public class AsyncQueueConsumerTests
         channelMock.Setup(it => it.BasicNackAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Verifiable(Times.Never);
         channelMock.Setup(it => it.BasicAckAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Verifiable(Times.Never);
 
-        var channel = channelMock.Object;
+        IChannel channel = channelMock.Object;
         //-------------------------------------------------------
 
         //-------------------------------------------------------
         var connectionMock = new Mock<IConnection>();
         _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>())).ReturnsAsync(channel);
-        var connection = connectionMock.Object;
+        IConnection connection = connectionMock.Object;
         _ = services.AddSingleton(connection);
         //-------------------------------------------------------
 
@@ -145,7 +145,7 @@ public class AsyncQueueConsumerTests
         //-------------------------------------------------------
         var connectionFactoryMock = new Mock<IConnectionFactory>();
         _ = connectionFactoryMock.Setup(it => it.CreateConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(connection);
-        var connectionFactory = connectionFactoryMock.Object;
+        IConnectionFactory connectionFactory = connectionFactoryMock.Object;
         _ = services.AddSingleton(sp => connectionFactory);
         //-------------------------------------------------------
 
@@ -155,11 +155,11 @@ public class AsyncQueueConsumerTests
         //_ = services.AddScoped<ExampleService>();
         //-------------------------------------------------------
 
-        var sp = services.BuildServiceProvider();
+        ServiceProvider sp = services.BuildServiceProvider();
 
         _ = sp.MapQueue(queueName, ([FromServices] ExampleService svc, ExampleMessage msg) => svc.TestAsync(msg)).WithPrefetch(1);
 
-        var hostedService = sp.GetRequiredService<IHostedService>();
+        IHostedService hostedService = sp.GetRequiredService<IHostedService>();
 
 
         _ = await Assert.ThrowsAsync<InvalidOperationException>(async () => await hostedService.StartAsync(CancellationToken.None).ConfigureAwait(true));
@@ -201,13 +201,13 @@ public class AsyncQueueConsumerTests
         channelMock.Setup(it => it.BasicNackAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Verifiable(Times.Never);
         channelMock.Setup(it => it.BasicAckAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Verifiable(Times.Once);
 
-        var channel = channelMock.Object;
+        IChannel channel = channelMock.Object;
         //-------------------------------------------------------
 
         //-------------------------------------------------------
         var connectionMock = new Mock<IConnection>();
         _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>())).ReturnsAsync(channel);
-        var connection = connectionMock.Object;
+        IConnection connection = connectionMock.Object;
         _ = services.AddSingleton(connection);
         //-------------------------------------------------------
 
@@ -215,7 +215,7 @@ public class AsyncQueueConsumerTests
         //-------------------------------------------------------
         var connectionFactoryMock = new Mock<IConnectionFactory>();
         _ = connectionFactoryMock.Setup(it => it.CreateConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(connection);
-        var connectionFactory = connectionFactoryMock.Object;
+        IConnectionFactory connectionFactory = connectionFactoryMock.Object;
         _ = services.AddSingleton(sp => connectionFactory);
         //-------------------------------------------------------
 
@@ -225,12 +225,12 @@ public class AsyncQueueConsumerTests
         _ = services.AddScoped<ExampleService>();
         //-------------------------------------------------------
 
-        var sp = services.BuildServiceProvider();
+        ServiceProvider sp = services.BuildServiceProvider();
 
         _ = sp.MapQueue(queueName, ([FromServices] ExampleService svc, ExampleMessage msg) => svc.TestAsync(msg)).WithPrefetch(1);
 
 
-        var hostedService = sp.GetRequiredService<IHostedService>();
+        IHostedService hostedService = sp.GetRequiredService<IHostedService>();
 
 
         await hostedService.StartAsync(CancellationToken.None).ConfigureAwait(true);

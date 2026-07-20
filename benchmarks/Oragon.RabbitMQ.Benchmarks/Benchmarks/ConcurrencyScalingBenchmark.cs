@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.DependencyInjection;
 using Oragon.RabbitMQ.Benchmarks.Infrastructure;
@@ -76,7 +77,7 @@ public class ConcurrencyScalingBenchmark
     {
         using var countdown = new CountdownEvent(MessageCount);
 
-        var (channel, consumerTag) = await NativeConsumerHelper.StartConsumingAsync(
+        (IChannel channel, string consumerTag) = await NativeConsumerHelper.StartConsumingAsync(
             this.connection, this.queueName, this.PrefetchCount, this.DispatchConcurrency,
             this.GetHandler(), countdown, this.nativeServiceProvider, this.nativeSerializer).ConfigureAwait(false);
 
@@ -89,7 +90,7 @@ public class ConcurrencyScalingBenchmark
     {
         using var countdown = new CountdownEvent(MessageCount);
 
-        await using var helper = (this.HandlerType switch
+        await using ConfiguredAsyncDisposable helper = (this.HandlerType switch
         {
             "CpuBound" => await OragonConsumerHelper.StartConsumingCpuBoundAsync<SmallMessage>(
                 this.connection, this.queueName, this.PrefetchCount, this.DispatchConcurrency, countdown).ConfigureAwait(false),

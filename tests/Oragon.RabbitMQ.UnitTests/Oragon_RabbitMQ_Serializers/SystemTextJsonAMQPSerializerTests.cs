@@ -48,7 +48,7 @@ public class SystemTextJsonAmqpSerializerTests
 
         var serializer = new SystemTextJsonAmqpSerializer(null);
 
-        var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
+        Teste targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
             deliveryTag: 1,
             redelivered: false,
@@ -73,7 +73,7 @@ public class SystemTextJsonAmqpSerializerTests
 
         var serializer = new SystemTextJsonAmqpSerializer(null);
 
-        var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
+        Teste targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
             deliveryTag: 1,
             redelivered: false,
@@ -96,7 +96,7 @@ public class SystemTextJsonAmqpSerializerTests
 
         var serializer = new SystemTextJsonAmqpSerializer(null);
 
-        var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
+        Teste targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
             deliveryTag: 1,
             redelivered: false,
@@ -120,7 +120,7 @@ public class SystemTextJsonAmqpSerializerTests
 
         var serializer = new SystemTextJsonAmqpSerializer(null);
 
-        var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
+        Teste targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
             deliveryTag: 1,
             redelivered: false,

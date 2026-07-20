@@ -14,10 +14,10 @@ public class Extensions_RabbitMQ_Tests
     public void CreateBasicProperties_Should_Return_New_BasicProperties()
     {
         // Arrange
-        var channel = new Mock<IChannel>().Object;
+        IChannel channel = new Mock<IChannel>().Object;
 
         // Act
-        var result = channel.CreateBasicProperties();
+        BasicProperties result = channel.CreateBasicProperties();
 
         // Assert
         Assert.NotNull(result);
@@ -32,7 +32,7 @@ public class Extensions_RabbitMQ_Tests
         string messageId = "12345";
 
         // Act
-        var result = basicProperties.SetMessageId(messageId);
+        BasicProperties result = basicProperties.SetMessageId(messageId);
 
         // Assert
         Assert.NotNull(result);
@@ -47,7 +47,7 @@ public class Extensions_RabbitMQ_Tests
         var originalBasicProperties = new BasicProperties { MessageId = "12345" };
 
         // Act
-        var result = basicProperties.SetCorrelationId(originalBasicProperties);
+        BasicProperties result = basicProperties.SetCorrelationId(originalBasicProperties);
 
         // Assert
         Assert.NotNull(result);
@@ -62,7 +62,7 @@ public class Extensions_RabbitMQ_Tests
         string correlationId = "54321";
 
         // Act
-        var result = basicProperties.SetCorrelationId(correlationId);
+        BasicProperties result = basicProperties.SetCorrelationId(correlationId);
 
         // Assert
         Assert.NotNull(result);
@@ -77,7 +77,7 @@ public class Extensions_RabbitMQ_Tests
         bool durable = true;
 
         // Act
-        var result = basicProperties.SetDurable(durable);
+        BasicProperties result = basicProperties.SetDurable(durable);
 
         // Assert
         Assert.NotNull(result);
@@ -92,7 +92,7 @@ public class Extensions_RabbitMQ_Tests
         bool transient = true;
 
         // Act
-        var result = basicProperties.SetTransient(transient);
+        BasicProperties result = basicProperties.SetTransient(transient);
 
         // Assert
         Assert.NotNull(result);
@@ -107,7 +107,7 @@ public class Extensions_RabbitMQ_Tests
         string replyTo = "reply_queue";
 
         // Act
-        var result = basicProperties.SetReplyTo(replyTo);
+        BasicProperties result = basicProperties.SetReplyTo(replyTo);
 
         // Assert
         Assert.NotNull(result);
@@ -122,7 +122,7 @@ public class Extensions_RabbitMQ_Tests
         string appId = "my_app";
 
         // Act
-        var result = basicProperties.SetAppId(appId);
+        BasicProperties result = basicProperties.SetAppId(appId);
 
         // Assert
         Assert.NotNull(result);
@@ -136,10 +136,10 @@ public class Extensions_RabbitMQ_Tests
         // Arrange
         var basicProperties = new BasicProperties();
         var exception = new Exception("Test Exception");
-        var exceptionType = exception.GetType();
+        Type exceptionType = exception.GetType();
 
         // Act
-        var result = basicProperties.SetException(exception);
+        BasicProperties result = basicProperties.SetException(exception);
 
         // Assert
         Assert.NotNull(result);
@@ -155,10 +155,10 @@ public class Extensions_RabbitMQ_Tests
         // Arrange
         var basicProperties = new BasicProperties();
         var exception = new Exception("Test Exception");
-        var exceptionType = exception.GetType();
+        Type exceptionType = exception.GetType();
 
         // Act
-        var result = basicProperties.TrySetException(exception);
+        BasicProperties result = basicProperties.TrySetException(exception);
 
         // Assert
         Assert.NotNull(result);
@@ -176,7 +176,7 @@ public class Extensions_RabbitMQ_Tests
         Exception exception = null;
 
         // Act
-        var result = basicProperties.TrySetException(exception);
+        BasicProperties result = basicProperties.TrySetException(exception);
 
         // Assert
         Assert.NotNull(result);
@@ -191,7 +191,7 @@ public class Extensions_RabbitMQ_Tests
         IConnectionFactory connectionFactory = new ConnectionFactory();
 
         // Act
-        var result = connectionFactory.Unbox();
+        ConnectionFactory result = connectionFactory.Unbox();
 
         // Assert
         Assert.NotNull(result);
@@ -201,14 +201,14 @@ public class Extensions_RabbitMQ_Tests
     [Fact]
     public void SetupApplication()
     {
-        var builder = WebApplication.CreateBuilder();
+        WebApplicationBuilder builder = WebApplication.CreateBuilder();
         builder.AddRabbitMQConsumer();
-        var app = builder.Build();
+        WebApplication app = builder.Build();
 
-        var consumer = app.Services.GetRequiredService<ConsumerServer>();
+        ConsumerServer consumer = app.Services.GetRequiredService<ConsumerServer>();
         Assert.NotNull(consumer);
 
-        var hostedServices = app.Services.GetServices<IHostedService>();
+        IEnumerable<IHostedService> hostedServices = app.Services.GetServices<IHostedService>();
 
         Assert.Contains(hostedServices, it => it is ConsumerServer);
     }

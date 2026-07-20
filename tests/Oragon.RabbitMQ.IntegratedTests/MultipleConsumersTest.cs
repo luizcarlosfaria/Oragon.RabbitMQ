@@ -130,20 +130,20 @@ public class MultipleConsumersTest : IAsyncLifetime
 
         // Send a message to the channel.
 
-        foreach (var pack in packs)
+        foreach (Pack pack in packs)
         {
             services.AddKeyedScoped(pack.QueueName, (sp, key) => new ExampleService(pack.WaitHandle, pack.CallBack));
         }
 
-        var sp = services.BuildServiceProvider();
+        ServiceProvider sp = services.BuildServiceProvider();
 
         await sp.WaitRabbitMQAsync();
 
         IConnection connection = sp.GetRequiredService<IConnection>();
 
-        foreach (var pack in packs)
+        foreach (Pack pack in packs)
         {
-            using var channel = await connection.CreateChannelAsync(new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true));
+            using IChannel channel = await connection.CreateChannelAsync(new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true));
 
             _ = await channel.QueueDeclareAsync(pack.QueueName, true, false, false, null);
 
@@ -153,7 +153,7 @@ public class MultipleConsumersTest : IAsyncLifetime
                 .WithPrefetch(1);
         }
 
-        var hostedServices = sp.GetServices<IHostedService>();
+        IEnumerable<IHostedService> hostedServices = sp.GetServices<IHostedService>();
 
         Assert.Single(hostedServices);
 
@@ -161,7 +161,7 @@ public class MultipleConsumersTest : IAsyncLifetime
 
         ConsumerServer consumerServer = (ConsumerServer)hostedServices.Single();
 
-        foreach (var hostedService in hostedServices)
+        foreach (IHostedService hostedService in hostedServices)
         {
             await hostedService.StartAsync(CancellationToken.None);
         }
@@ -183,13 +183,13 @@ public class MultipleConsumersTest : IAsyncLifetime
 
 
 
-        foreach (var hostedService in hostedServices.Reverse())
+        foreach (IHostedService hostedService in hostedServices.Reverse())
         {
             await hostedService.StopAsync(CancellationToken.None);
         }
 
 
-        foreach (var pack in packs)
+        foreach (Pack pack in packs)
         {
             Assert.NotNull(pack.MessagReceived);
 

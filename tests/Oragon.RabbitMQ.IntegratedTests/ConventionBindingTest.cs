@@ -69,7 +69,7 @@ public class ConventionBindingTest : IAsyncLifetime
         long? receivedLongPriority = default;
 
         // Create and establish a connection.
-        using var connection = await this.CreateConnectionAsync().ConfigureAwait(true);
+        using IConnection connection = await this.CreateConnectionAsync().ConfigureAwait(true);
 
         // Signal the completion of message reception on all queues.
         using var countdown = new CountdownEvent(3);
@@ -160,7 +160,7 @@ public class ConventionBindingTest : IAsyncLifetime
         var queue2Deliveries = new List<(long? DeliveryCount, long? Attempts)>();
 
         // Create and establish a connection.
-        using var connection = await this.CreateConnectionAsync().ConfigureAwait(true);
+        using IConnection connection = await this.CreateConnectionAsync().ConfigureAwait(true);
 
         // Signal the redelivery (second delivery) on each queue.
         using var queue1Done = new ManualResetEvent(false);

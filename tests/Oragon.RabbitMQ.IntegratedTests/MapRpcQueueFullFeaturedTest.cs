@@ -95,7 +95,7 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
         ResponseMessage receivedMessage = default;
 
         // Create and establish a connection.
-        using var connection = await this.CreateConnectionAsync().ConfigureAwait(true);
+        using IConnection connection = await this.CreateConnectionAsync().ConfigureAwait(true);
 
 
         ServiceCollection services = new();
@@ -114,12 +114,12 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
 
 
 
-        using var channel = await connection.CreateChannelAsync(new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true));
+        using IChannel channel = await connection.CreateChannelAsync(new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true));
 
         _ = await channel.QueueDeclareAsync(serverQueue, true, false, false, null);
-        var replyQueue = await channel.QueueDeclareAsync(queue: string.Empty, durable: true, exclusive: true, autoDelete: true);
+        QueueDeclareOk replyQueue = await channel.QueueDeclareAsync(queue: string.Empty, durable: true, exclusive: true, autoDelete: true);
 
-        var basicProperties = channel.CreateBasicProperties()
+        BasicProperties basicProperties = channel.CreateBasicProperties()
             .SetReplyTo(replyQueue.QueueName)
             .SetMessageId(Guid.NewGuid().ToString("D"));
 
@@ -135,7 +135,7 @@ public class MapRpcQueueFullFeaturedTest : IAsyncLifetime
         }).WithPrefetch(1);
 
 
-        var hostedService = sp.GetRequiredService<IHostedService>();
+        IHostedService hostedService = sp.GetRequiredService<IHostedService>();
         await hostedService.StartAsync(CancellationToken.None);
 
         // Signal the completion of message reception.

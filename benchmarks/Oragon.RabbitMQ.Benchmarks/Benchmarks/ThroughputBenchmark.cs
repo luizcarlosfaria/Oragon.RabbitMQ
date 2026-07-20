@@ -62,7 +62,7 @@ public class ThroughputBenchmark
     {
         using var countdown = new CountdownEvent(this.MessageCount);
 
-        var (channel, consumerTag) = this.MessageSize switch
+        (IChannel channel, string consumerTag) = this.MessageSize switch
         {
             "Small" => await NativeConsumerHelper.StartConsumingNoOpAsync<SmallMessage>(
                 this.connection, this.queueName, this.PrefetchCount, 1, countdown, this.nativeServiceProvider, this.nativeSerializer).ConfigureAwait(false),
@@ -102,7 +102,7 @@ public class ThroughputBenchmark
     {
         using var countdown = new CountdownEvent(this.MessageCount);
 
-        var (channel, consumerTag) = this.MessageSize switch
+        (IChannel channel, string consumerTag) = this.MessageSize switch
         {
             "Small" => await NativeConsumerHelper.StartConsumingCpuBoundAsync<SmallMessage>(
                 this.connection, this.queueName, this.PrefetchCount, 1, countdown, this.nativeServiceProvider, this.nativeSerializer).ConfigureAwait(false),

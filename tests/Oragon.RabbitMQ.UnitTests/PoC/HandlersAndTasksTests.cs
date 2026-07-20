@@ -94,7 +94,7 @@ public class HandlersAndTasksTests
 
         var types = delegates.Select(it => it.Method.ReturnType).ToList();
 
-        foreach (var currentDelegate in delegates)
+        foreach (Delegate currentDelegate in delegates)
         {
             await DispatchWithSuccess(currentDelegate);
             await DispatchForFailure(currentDelegate);

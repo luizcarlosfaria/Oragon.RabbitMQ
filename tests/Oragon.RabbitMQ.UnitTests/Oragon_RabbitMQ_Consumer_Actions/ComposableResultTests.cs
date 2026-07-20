@@ -31,7 +31,7 @@ public class ComposableResultTests
 
         _ = contextMock.Setup(it => it.Request).Returns(basicDeliverEventArgs);
 
-        var result = AmqpResults.Compose(AmqpResults.Ack(), AmqpResults.Reject(false));
+        ComposableResult result = AmqpResults.Compose(AmqpResults.Ack(), AmqpResults.Reject(false));
 
         // Act
         await result.ExecuteAsync(contextMock.Object);

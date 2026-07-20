@@ -11,7 +11,7 @@ public static class TestExtensions
 
         _ = amqpWriteable.WriteTo(bytesSpan);
 
-        var readOnlyBytesSpan = bytesSpan.ToReadOnly();
+        ReadOnlySpan<byte> readOnlyBytesSpan = bytesSpan.ToReadOnly();
 
         var returnValue = new ReadOnlyBasicProperties(readOnlyBytesSpan);
 

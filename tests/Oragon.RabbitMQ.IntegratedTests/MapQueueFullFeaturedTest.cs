@@ -91,7 +91,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
         ExampleMessage receivedMessage = default;
 
         // Create and establish a connection.
-        using var connection = await this.CreateConnectionAsync().ConfigureAwait(true);
+        using IConnection connection = await this.CreateConnectionAsync().ConfigureAwait(true);
 
         // Signal the completion of message reception.
         WeakReference<ManualResetEvent> waitHandleRef = new(new ManualResetEvent(false));
@@ -186,7 +186,7 @@ public class MapQueueFullFeaturedTest : IAsyncLifetime
         ExampleMessage receivedMessage = default;
 
         // Create and establish a connection.
-        using var connection = await this.CreateConnectionAsync().ConfigureAwait(true);
+        using IConnection connection = await this.CreateConnectionAsync().ConfigureAwait(true);
 
         // Signal the completion of message reception.
         WeakReference<ManualResetEvent> waitHandleRef = new(new ManualResetEvent(false));

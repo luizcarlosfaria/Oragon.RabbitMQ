@@ -46,7 +46,7 @@ public class NewtonsoftAmqpSerializerTests
 
         var serializer = new NewtonsoftAmqpSerializer(null);
 
-        var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
+        Teste targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
             deliveryTag: 1,
             redelivered: false,
@@ -71,7 +71,7 @@ public class NewtonsoftAmqpSerializerTests
 
         var serializer = new NewtonsoftAmqpSerializer(null);
 
-        var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
+        Teste targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
             deliveryTag: 1,
             redelivered: false,
@@ -94,7 +94,7 @@ public class NewtonsoftAmqpSerializerTests
 
         var serializer = new NewtonsoftAmqpSerializer(null);
 
-        var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
+        Teste targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
             deliveryTag: 1,
             redelivered: false,
@@ -118,7 +118,7 @@ public class NewtonsoftAmqpSerializerTests
 
         var serializer = new NewtonsoftAmqpSerializer(null);
 
-        var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
+        Teste targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
             consumerTag: "-",
             deliveryTag: 1,
             redelivered: false,
@@ -149,7 +149,7 @@ public class NewtonsoftAmqpSerializerTests
 
         var basicProperties = new BasicProperties();
 
-        var targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
+        Teste targetObject = serializer.Deserialize<Teste>(new BasicDeliverEventArgs(
         consumerTag: "-",
         deliveryTag: 1,
         redelivered: false,

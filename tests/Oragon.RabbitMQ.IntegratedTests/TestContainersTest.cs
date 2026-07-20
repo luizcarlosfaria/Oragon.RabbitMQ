@@ -37,10 +37,10 @@ public class TestContainersTest: IAsyncLifetime
         {
             Uri = new Uri(this._rabbitMqContainer.GetConnectionString())
         };
-        using var connection = await connectionFactory.CreateConnectionAsync().ConfigureAwait(true);
+        using IConnection connection = await connectionFactory.CreateConnectionAsync().ConfigureAwait(true);
 
         // Send a message to the channel.
-        using var channel = await connection.CreateChannelAsync();
+        using IChannel channel = await connection.CreateChannelAsync();
 
         _ = await channel.QueueDeclareAsync(queue, true, false, false, null);
 

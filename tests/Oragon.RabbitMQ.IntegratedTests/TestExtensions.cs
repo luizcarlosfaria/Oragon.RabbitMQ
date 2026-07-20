@@ -6,7 +6,7 @@ public static class TestExtensions
 {
     public static RabbitMqContainer BuildRabbitMQ(this RabbitMqBuilder builder)
     {
-        var _rabbitMqContainer = new RabbitMqBuilder(Constants.RabbitMQContainerImage)
+        RabbitMqContainer _rabbitMqContainer = new RabbitMqBuilder(Constants.RabbitMQContainerImage)
             .WithDockerEndpoint(Environment.OSVersion.Platform == PlatformID.Unix
                                 ? "unix:///var/run/docker.sock"
                                 : Environment.OSVersion.Platform == PlatformID.Win32NT

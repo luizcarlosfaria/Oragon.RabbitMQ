@@ -15,8 +15,8 @@ public class DynamicQueueConsumerTests
     public async Task ConsumeAsync_WhenInitialQueueLengthIsZero_ShouldReturnEmpty()
     {
         // Arrange
-        var services = new ServiceCollection().AddLogging().BuildServiceProvider();
-        var channelMock = CreateChannelMock("attention-queue", 0);
+        ServiceProvider services = new ServiceCollection().AddLogging().BuildServiceProvider();
+        Mock<IChannel> channelMock = CreateChannelMock("attention-queue", 0);
         var connectionMock = new Mock<IConnection>();
         connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(channelMock.Object)
@@ -74,7 +74,7 @@ public class DynamicQueueConsumerTests
             .Setup(it => it.Deserialize<string>(It.IsAny<BasicDeliverEventArgs>()))
             .Returns("message");
 
-        var services = new ServiceCollection()
+        ServiceProvider services = new ServiceCollection()
             .AddLogging()
             .AddSingleton(serializerMock.Object)
             .BuildServiceProvider();
@@ -152,7 +152,7 @@ public class DynamicQueueConsumerTests
     public async Task ConsumeAsync_WhenQueueIsEmptyAndIdleTimeoutExists_ShouldOpenConsumerUntilIdleTimeout()
     {
         // Arrange
-        var services = new ServiceCollection()
+        ServiceProvider services = new ServiceCollection()
             .AddLogging()
             .AddSingleton(Mock.Of<IAmqpSerializer>())
             .BuildServiceProvider();
@@ -205,8 +205,8 @@ public class DynamicQueueConsumerTests
     public async Task ConsumeAsync_WhenConnectionFactoryIsProvided_ShouldReceiveServiceProvider()
     {
         // Arrange
-        var services = new ServiceCollection().AddLogging().BuildServiceProvider();
-        var channelMock = CreateChannelMock("attention-queue", 0);
+        ServiceProvider services = new ServiceCollection().AddLogging().BuildServiceProvider();
+        Mock<IChannel> channelMock = CreateChannelMock("attention-queue", 0);
         var connectionMock = new Mock<IConnection>();
         _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(channelMock.Object);
@@ -243,7 +243,7 @@ public class DynamicQueueConsumerTests
             .Setup(it => it.Deserialize<string>(It.IsAny<BasicDeliverEventArgs>()))
             .Returns("message");
 
-        var services = new ServiceCollection()
+        ServiceProvider services = new ServiceCollection()
             .AddLogging()
             .AddSingleton(serializerMock.Object)
             .BuildServiceProvider();
@@ -325,7 +325,7 @@ public class DynamicQueueConsumerTests
             .Setup(it => it.Deserialize<string>(It.IsAny<BasicDeliverEventArgs>()))
             .Returns("message");
 
-        var services = new ServiceCollection()
+        ServiceProvider services = new ServiceCollection()
             .AddLogging()
             .AddSingleton(serializerMock.Object)
             .BuildServiceProvider();
@@ -411,7 +411,7 @@ public class DynamicQueueConsumerTests
     public async Task ConsumeAsync_WhenStopRuleIsMissing_ShouldThrowInvalidOperationException()
     {
         // Arrange
-        var services = new ServiceCollection().AddLogging().BuildServiceProvider();
+        ServiceProvider services = new ServiceCollection().AddLogging().BuildServiceProvider();
         var consumer = new DynamicQueueConsumer(services, new AmqpContextAccessor());
         var request = new DynamicQueueConsumeRequest<string>
         {

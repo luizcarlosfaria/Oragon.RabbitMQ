@@ -76,7 +76,7 @@ public static class SmokeTest
             await RabbitMqFixture.PreloadQueueAsync(connection, queueName, 5, MessagePayloads.SmallBytes).ConfigureAwait(false);
 
             using var countdown = new CountdownEvent(5);
-            var (channel, consumerTag) = await NativeConsumerHelper.StartConsumingNoOpAsync<SmallMessage>(
+            (IChannel channel, string consumerTag) = await NativeConsumerHelper.StartConsumingNoOpAsync<SmallMessage>(
                 connection, queueName, 5, 1, countdown, serviceProvider, serializer).ConfigureAwait(false);
 
             bool drained = countdown.Wait(TimeSpan.FromSeconds(10));

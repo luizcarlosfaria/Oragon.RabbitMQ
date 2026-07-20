@@ -11,7 +11,7 @@ public class Extensions_List_Tests
         var original = new List<int> { 1, 2, 3 };
 
         // Act
-        var result = original.NewReverseList();
+        List<int> result = original.NewReverseList();
 
         // Assert
         Assert.Equal(new List<int> { 3, 2, 1 }, result);

@@ -39,22 +39,22 @@ public class ConsumerServerExtendedTests
             It.IsAny<IAsyncBasicConsumer>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync("tag");
-        var channel = channelMock.Object;
+        IChannel channel = channelMock.Object;
 
         var connectionMock = new Mock<IConnection>();
         _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>())).ReturnsAsync(channel);
-        var connection = connectionMock.Object;
+        IConnection connection = connectionMock.Object;
         _ = services.AddSingleton(connection);
 
         _ = services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
         _ = services.AddNewtonsoftAmqpSerializer();
         _ = services.AddScoped<TestService>();
 
-        var sp = services.BuildServiceProvider();
+        ServiceProvider sp = services.BuildServiceProvider();
 
         _ = sp.MapQueue(queueName, ([FromServices] TestService svc, [FromBody] TestMessage msg) => svc.HandleAsync(msg));
 
-        var consumerServer = sp.GetRequiredService<ConsumerServer>();
+        ConsumerServer consumerServer = sp.GetRequiredService<ConsumerServer>();
 
         // Act - Start makes it read-only
         await consumerServer.StartAsync(CancellationToken.None);
@@ -70,7 +70,7 @@ public class ConsumerServerExtendedTests
     {
         // Arrange
         await using ConsumerServer consumerServer = new ConsumerServer(Mock.Of<ILogger<ConsumerServer>>());
-        var sp = Mock.Of<IServiceProvider>();
+        IServiceProvider sp = Mock.Of<IServiceProvider>();
 
         var descriptor1 = new ConsumerDescriptor(sp, "queue-1", ([FromServices] TestService svc, [FromBody] TestMessage msg) => svc.HandleAsync(msg));
         var descriptor2 = new ConsumerDescriptor(sp, "queue-2", ([FromServices] TestService svc, [FromBody] TestMessage msg) => svc.HandleAsync(msg));
@@ -113,22 +113,22 @@ public class ConsumerServerExtendedTests
             It.IsAny<IAsyncBasicConsumer>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync("tag");
-        var channel = channelMock.Object;
+        IChannel channel = channelMock.Object;
 
         var connectionMock = new Mock<IConnection>();
         _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>())).ReturnsAsync(channel);
-        var connection = connectionMock.Object;
+        IConnection connection = connectionMock.Object;
         _ = services.AddSingleton(connection);
 
         _ = services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
         _ = services.AddNewtonsoftAmqpSerializer();
         _ = services.AddScoped<TestService>();
 
-        var sp = services.BuildServiceProvider();
+        ServiceProvider sp = services.BuildServiceProvider();
 
         _ = sp.MapQueue("test-queue", ([FromServices] TestService svc, [FromBody] TestMessage msg) => svc.HandleAsync(msg));
 
-        var consumerServer = sp.GetRequiredService<ConsumerServer>();
+        ConsumerServer consumerServer = sp.GetRequiredService<ConsumerServer>();
 
         // Act
         await consumerServer.StartAsync(CancellationToken.None);
@@ -151,22 +151,22 @@ public class ConsumerServerExtendedTests
             It.IsAny<IAsyncBasicConsumer>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync("tag");
-        var channel = channelMock.Object;
+        IChannel channel = channelMock.Object;
 
         var connectionMock = new Mock<IConnection>();
         _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>())).ReturnsAsync(channel);
-        var connection = connectionMock.Object;
+        IConnection connection = connectionMock.Object;
         _ = services.AddSingleton(connection);
 
         _ = services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
         _ = services.AddNewtonsoftAmqpSerializer();
         _ = services.AddScoped<TestService>();
 
-        var sp = services.BuildServiceProvider();
+        ServiceProvider sp = services.BuildServiceProvider();
 
         _ = sp.MapQueue("test-queue", ([FromServices] TestService svc, [FromBody] TestMessage msg) => svc.HandleAsync(msg));
 
-        var consumerServer = sp.GetRequiredService<ConsumerServer>();
+        ConsumerServer consumerServer = sp.GetRequiredService<ConsumerServer>();
 
         // Act
         await consumerServer.StartAsync(CancellationToken.None);
@@ -188,8 +188,8 @@ public class ConsumerServerExtendedTests
         services.AddRabbitMQConsumer();
         _ = services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
 
-        var sp = services.BuildServiceProvider();
-        var consumerServer = sp.GetRequiredService<ConsumerServer>();
+        ServiceProvider sp = services.BuildServiceProvider();
+        ConsumerServer consumerServer = sp.GetRequiredService<ConsumerServer>();
 
         // Act & Assert - should not throw
         await consumerServer.StartAsync(CancellationToken.None);
@@ -212,23 +212,23 @@ public class ConsumerServerExtendedTests
             It.IsAny<IAsyncBasicConsumer>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync("tag");
-        var channel = channelMock.Object;
+        IChannel channel = channelMock.Object;
 
         var connectionMock = new Mock<IConnection>();
         _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>())).ReturnsAsync(channel);
-        var connection = connectionMock.Object;
+        IConnection connection = connectionMock.Object;
         _ = services.AddSingleton(connection);
 
         _ = services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
         _ = services.AddNewtonsoftAmqpSerializer();
         _ = services.AddScoped<TestService>();
 
-        var sp = services.BuildServiceProvider();
+        ServiceProvider sp = services.BuildServiceProvider();
 
         _ = sp.MapQueue("queue-1", ([FromServices] TestService svc, [FromBody] TestMessage msg) => svc.HandleAsync(msg));
         _ = sp.MapQueue("queue-2", ([FromServices] TestService svc, [FromBody] TestMessage msg) => svc.HandleAsync(msg));
 
-        var consumerServer = sp.GetRequiredService<ConsumerServer>();
+        ConsumerServer consumerServer = sp.GetRequiredService<ConsumerServer>();
 
         // Act
         await consumerServer.StartAsync(CancellationToken.None);
@@ -237,7 +237,7 @@ public class ConsumerServerExtendedTests
         Assert.Equal(2, consumerServer.Consumers.Count());
         Assert.All(consumerServer.Consumers, consumer =>
         {
-            var qc = Assert.IsType<QueueConsumer>(consumer);
+            QueueConsumer qc = Assert.IsType<QueueConsumer>(consumer);
             Assert.True(qc.WasStarted);
             Assert.True(qc.IsConsuming);
         });
@@ -262,22 +262,22 @@ public class ConsumerServerExtendedTests
             It.IsAny<CancellationToken>()))
             .ReturnsAsync("tag");
         _ = channelMock.Setup(it => it.BasicCancelAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()));
-        var channel = channelMock.Object;
+        IChannel channel = channelMock.Object;
 
         var connectionMock = new Mock<IConnection>();
         _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>())).ReturnsAsync(channel);
-        var connection = connectionMock.Object;
+        IConnection connection = connectionMock.Object;
         _ = services.AddSingleton(connection);
 
         _ = services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
         _ = services.AddNewtonsoftAmqpSerializer();
         _ = services.AddScoped<TestService>();
 
-        var sp = services.BuildServiceProvider();
+        ServiceProvider sp = services.BuildServiceProvider();
 
         _ = sp.MapQueue("queue-1", ([FromServices] TestService svc, [FromBody] TestMessage msg) => svc.HandleAsync(msg));
 
-        var consumerServer = sp.GetRequiredService<ConsumerServer>();
+        ConsumerServer consumerServer = sp.GetRequiredService<ConsumerServer>();
 
         await consumerServer.StartAsync(CancellationToken.None);
 
@@ -306,22 +306,22 @@ public class ConsumerServerExtendedTests
             It.IsAny<IAsyncBasicConsumer>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync("tag");
-        var channel = channelMock.Object;
+        IChannel channel = channelMock.Object;
 
         var connectionMock = new Mock<IConnection>();
         _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>())).ReturnsAsync(channel);
-        var connection = connectionMock.Object;
+        IConnection connection = connectionMock.Object;
         _ = services.AddSingleton(connection);
 
         _ = services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
         _ = services.AddNewtonsoftAmqpSerializer();
         _ = services.AddScoped<TestService>();
 
-        var sp = services.BuildServiceProvider();
+        ServiceProvider sp = services.BuildServiceProvider();
 
         _ = sp.MapQueue("queue-1", ([FromServices] TestService svc, [FromBody] TestMessage msg) => svc.HandleAsync(msg));
 
-        var consumerServer = sp.GetRequiredService<ConsumerServer>();
+        ConsumerServer consumerServer = sp.GetRequiredService<ConsumerServer>();
 
         await consumerServer.StartAsync(CancellationToken.None);
 
@@ -340,8 +340,8 @@ public class ConsumerServerExtendedTests
         services.AddRabbitMQConsumer();
         _ = services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
 
-        var sp = services.BuildServiceProvider();
-        var consumerServer = sp.GetRequiredService<ConsumerServer>();
+        ServiceProvider sp = services.BuildServiceProvider();
+        ConsumerServer consumerServer = sp.GetRequiredService<ConsumerServer>();
 
         await consumerServer.StartAsync(CancellationToken.None);
 
@@ -364,8 +364,8 @@ public class ConsumerServerExtendedTests
         await using ConsumerServer consumerServer = new ConsumerServer(Mock.Of<ILogger<ConsumerServer>>());
 
         // Act
-        var consumers1 = consumerServer.Consumers;
-        var consumers2 = consumerServer.Consumers;
+        IEnumerable<IHostedAmqpConsumer> consumers1 = consumerServer.Consumers;
+        IEnumerable<IHostedAmqpConsumer> consumers2 = consumerServer.Consumers;
 
         // Assert - should return different list instances (defensive copy)
         Assert.NotSame(consumers1, consumers2);
@@ -378,8 +378,8 @@ public class ConsumerServerExtendedTests
         await using ConsumerServer consumerServer = new ConsumerServer(Mock.Of<ILogger<ConsumerServer>>());
 
         // Act
-        var descriptors1 = consumerServer.ConsumerDescriptors;
-        var descriptors2 = consumerServer.ConsumerDescriptors;
+        IEnumerable<IConsumerDescriptor> descriptors1 = consumerServer.ConsumerDescriptors;
+        IEnumerable<IConsumerDescriptor> descriptors2 = consumerServer.ConsumerDescriptors;
 
         // Assert - should return different list instances (defensive copy)
         Assert.NotSame(descriptors1, descriptors2);
@@ -403,22 +403,22 @@ public class ConsumerServerExtendedTests
             It.IsAny<IAsyncBasicConsumer>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync("tag");
-        var channel = channelMock.Object;
+        IChannel channel = channelMock.Object;
 
         var connectionMock = new Mock<IConnection>();
         _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>())).ReturnsAsync(channel);
-        var connection = connectionMock.Object;
+        IConnection connection = connectionMock.Object;
         _ = services.AddSingleton(connection);
 
         _ = services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
         _ = services.AddNewtonsoftAmqpSerializer();
         _ = services.AddScoped<TestService>();
 
-        var sp = services.BuildServiceProvider();
+        ServiceProvider sp = services.BuildServiceProvider();
 
         _ = sp.MapQueue("queue-1", ([FromServices] TestService svc, [FromBody] TestMessage msg) => svc.HandleAsync(msg));
 
-        var consumerServer = sp.GetRequiredService<ConsumerServer>();
+        ConsumerServer consumerServer = sp.GetRequiredService<ConsumerServer>();
 
         // Act & Assert - full lifecycle
         Assert.False(consumerServer.IsReadOnly);

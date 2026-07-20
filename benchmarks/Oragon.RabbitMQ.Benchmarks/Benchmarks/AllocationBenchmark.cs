@@ -59,7 +59,7 @@ public class AllocationBenchmark
     {
         using var countdown = new CountdownEvent(this.MessageCount);
 
-        var (channel, consumerTag) = this.MessageSize switch
+        (IChannel channel, string consumerTag) = this.MessageSize switch
         {
             "Small" => await NativeConsumerHelper.StartConsumingNoOpAsync<SmallMessage>(
                 this.connection, this.queueName, 50, 1, countdown, this.nativeServiceProvider, this.nativeSerializer).ConfigureAwait(false),

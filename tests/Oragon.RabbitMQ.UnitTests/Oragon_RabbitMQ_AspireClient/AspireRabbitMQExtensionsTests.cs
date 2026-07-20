@@ -15,17 +15,17 @@ public class AspireRabbitMQExtensionsTests
     public void AddRabbitMQClient_ShouldRegisterConnectionFactoryUsingConnectionString()
     {
         // Arrange
-        var builder = CreateBuilder([
+        HostApplicationBuilder builder = CreateBuilder([
             new KeyValuePair<string, string>("ConnectionStrings:orders", "amqp://guest:guest@localhost:5672/")
         ]);
 
         // Act
         builder.AddRabbitMQClient("orders");
-        using var serviceProvider = builder.Services.BuildServiceProvider();
-        var connectionFactory = serviceProvider.GetRequiredService<IConnectionFactory>();
+        using ServiceProvider serviceProvider = builder.Services.BuildServiceProvider();
+        IConnectionFactory connectionFactory = serviceProvider.GetRequiredService<IConnectionFactory>();
 
         // Assert
-        var factory = Assert.IsType<ConnectionFactory>(connectionFactory);
+        ConnectionFactory factory = Assert.IsType<ConnectionFactory>(connectionFactory);
         Assert.Equal("localhost", factory.HostName);
         Assert.Equal(5672, factory.Port);
         Assert.Equal("guest", factory.UserName);
@@ -37,7 +37,7 @@ public class AspireRabbitMQExtensionsTests
     public void AddRabbitMQClient_ShouldApplySettingsAndFactoryConfiguration()
     {
         // Arrange
-        var builder = CreateBuilder([
+        HostApplicationBuilder builder = CreateBuilder([
             new KeyValuePair<string, string>("Aspire:RabbitMQ:Client:ConnectionFactory:HostName", "config-host")
         ]);
 
@@ -47,11 +47,11 @@ public class AspireRabbitMQExtensionsTests
             configureSettings: settings => settings.ConnectionString = "amqp://guest:guest@custom-host:5672/",
             configureConnectionFactory: factory => factory.ClientProvidedName = "unit-test-client");
 
-        using var serviceProvider = builder.Services.BuildServiceProvider();
-        var connectionFactory = serviceProvider.GetRequiredService<IConnectionFactory>();
+        using ServiceProvider serviceProvider = builder.Services.BuildServiceProvider();
+        IConnectionFactory connectionFactory = serviceProvider.GetRequiredService<IConnectionFactory>();
 
         // Assert
-        var factory = Assert.IsType<ConnectionFactory>(connectionFactory);
+        ConnectionFactory factory = Assert.IsType<ConnectionFactory>(connectionFactory);
         Assert.Equal("custom-host", factory.HostName);
         Assert.Equal(5672, factory.Port);
         Assert.Equal("guest", factory.UserName);
@@ -64,17 +64,17 @@ public class AspireRabbitMQExtensionsTests
     public void AddKeyedRabbitMQClient_ShouldRegisterKeyedConnectionFactory()
     {
         // Arrange
-        var builder = CreateBuilder([
+        HostApplicationBuilder builder = CreateBuilder([
             new KeyValuePair<string, string>("ConnectionStrings:billing", "amqp://guest:guest@billing-host:5672/")
         ]);
 
         // Act
         builder.AddKeyedRabbitMQClient("billing");
-        using var serviceProvider = builder.Services.BuildServiceProvider();
-        var connectionFactory = serviceProvider.GetRequiredKeyedService<IConnectionFactory>("billing");
+        using ServiceProvider serviceProvider = builder.Services.BuildServiceProvider();
+        IConnectionFactory connectionFactory = serviceProvider.GetRequiredKeyedService<IConnectionFactory>("billing");
 
         // Assert
-        var factory = Assert.IsType<ConnectionFactory>(connectionFactory);
+        ConnectionFactory factory = Assert.IsType<ConnectionFactory>(connectionFactory);
         Assert.Equal("billing-host", factory.HostName);
         Assert.Equal(5672, factory.Port);
         Assert.Equal("guest", factory.UserName);
@@ -86,14 +86,14 @@ public class AspireRabbitMQExtensionsTests
     public void AddRabbitMQClient_ShouldRegisterDefaultHealthCheck()
     {
         // Arrange
-        var builder = CreateBuilder([]);
+        HostApplicationBuilder builder = CreateBuilder([]);
 
         // Act
         builder.AddRabbitMQClient("orders", settings => settings.DisableTracing = true);
-        using var serviceProvider = builder.Services.BuildServiceProvider();
+        using ServiceProvider serviceProvider = builder.Services.BuildServiceProvider();
 
         // Assert
-        var registration = GetHealthCheckRegistration(serviceProvider, "RabbitMQ.Client");
+        HealthCheckRegistration registration = GetHealthCheckRegistration(serviceProvider, "RabbitMQ.Client");
         Assert.Equal(HealthStatus.Unhealthy, registration.FailureStatus);
     }
 
@@ -101,14 +101,14 @@ public class AspireRabbitMQExtensionsTests
     public void AddKeyedRabbitMQClient_ShouldRegisterKeyedHealthCheck()
     {
         // Arrange
-        var builder = CreateBuilder([]);
+        HostApplicationBuilder builder = CreateBuilder([]);
 
         // Act
         builder.AddKeyedRabbitMQClient("billing", settings => settings.DisableTracing = true);
-        using var serviceProvider = builder.Services.BuildServiceProvider();
+        using ServiceProvider serviceProvider = builder.Services.BuildServiceProvider();
 
         // Assert
-        var registration = GetHealthCheckRegistration(serviceProvider, "RabbitMQ.Client_billing");
+        HealthCheckRegistration registration = GetHealthCheckRegistration(serviceProvider, "RabbitMQ.Client_billing");
         Assert.Equal(HealthStatus.Unhealthy, registration.FailureStatus);
     }
 
@@ -116,7 +116,7 @@ public class AspireRabbitMQExtensionsTests
     public void AddRabbitMQClient_ShouldNotRegisterHealthCheckWhenDisabled()
     {
         // Arrange
-        var builder = CreateBuilder([]);
+        HostApplicationBuilder builder = CreateBuilder([]);
 
         // Act
         builder.AddRabbitMQClient("orders", settings =>
@@ -125,8 +125,8 @@ public class AspireRabbitMQExtensionsTests
             settings.DisableTracing = true;
         });
 
-        using var serviceProvider = builder.Services.BuildServiceProvider();
-        var options = serviceProvider.GetRequiredService<IOptions<HealthCheckServiceOptions>>().Value;
+        using ServiceProvider serviceProvider = builder.Services.BuildServiceProvider();
+        HealthCheckServiceOptions options = serviceProvider.GetRequiredService<IOptions<HealthCheckServiceOptions>>().Value;
 
         // Assert
         Assert.DoesNotContain(options.Registrations, registration => registration.Name == "RabbitMQ.Client");
@@ -136,7 +136,7 @@ public class AspireRabbitMQExtensionsTests
     public async Task RabbitMQHealthCheck_ShouldReturnHealthyWhenConnectionAndChannelAreOpen()
     {
         // Arrange
-        var builder = CreateBuilder([]);
+        HostApplicationBuilder builder = CreateBuilder([]);
         builder.AddRabbitMQClient("orders", settings => settings.DisableTracing = true);
 
         var connectionMock = new Mock<IConnection>();
@@ -149,9 +149,9 @@ public class AspireRabbitMQExtensionsTests
 
         _ = builder.Services.AddSingleton(connectionMock.Object);
 
-        using var serviceProvider = builder.Services.BuildServiceProvider();
-        var registration = GetHealthCheckRegistration(serviceProvider, "RabbitMQ.Client");
-        var healthCheck = registration.Factory(serviceProvider);
+        using ServiceProvider serviceProvider = builder.Services.BuildServiceProvider();
+        HealthCheckRegistration registration = GetHealthCheckRegistration(serviceProvider, "RabbitMQ.Client");
+        IHealthCheck healthCheck = registration.Factory(serviceProvider);
 
         // Act
         HealthCheckResult result = await healthCheck.CheckHealthAsync(new HealthCheckContext
@@ -167,16 +167,16 @@ public class AspireRabbitMQExtensionsTests
     public async Task RabbitMQHealthCheck_ShouldReturnFailureStatusWhenConnectionIsClosed()
     {
         // Arrange
-        var builder = CreateBuilder([]);
+        HostApplicationBuilder builder = CreateBuilder([]);
         builder.AddRabbitMQClient("orders", settings => settings.DisableTracing = true);
 
         var connectionMock = new Mock<IConnection>();
         _ = connectionMock.SetupGet(connection => connection.IsOpen).Returns(false);
         _ = builder.Services.AddSingleton(connectionMock.Object);
 
-        using var serviceProvider = builder.Services.BuildServiceProvider();
-        var registration = GetHealthCheckRegistration(serviceProvider, "RabbitMQ.Client");
-        var healthCheck = registration.Factory(serviceProvider);
+        using ServiceProvider serviceProvider = builder.Services.BuildServiceProvider();
+        HealthCheckRegistration registration = GetHealthCheckRegistration(serviceProvider, "RabbitMQ.Client");
+        IHealthCheck healthCheck = registration.Factory(serviceProvider);
 
         // Act
         HealthCheckResult result = await healthCheck.CheckHealthAsync(new HealthCheckContext
@@ -194,7 +194,7 @@ public class AspireRabbitMQExtensionsTests
     public async Task RabbitMQHealthCheck_ShouldReturnFailureStatusWhenChannelCreationFails()
     {
         // Arrange
-        var builder = CreateBuilder([]);
+        HostApplicationBuilder builder = CreateBuilder([]);
         builder.AddRabbitMQClient("orders", settings => settings.DisableTracing = true);
 
         var expectedException = new InvalidOperationException("channel failed");
@@ -207,9 +207,9 @@ public class AspireRabbitMQExtensionsTests
 
         _ = builder.Services.AddSingleton(connectionMock.Object);
 
-        using var serviceProvider = builder.Services.BuildServiceProvider();
-        var registration = GetHealthCheckRegistration(serviceProvider, "RabbitMQ.Client");
-        var healthCheck = registration.Factory(serviceProvider);
+        using ServiceProvider serviceProvider = builder.Services.BuildServiceProvider();
+        HealthCheckRegistration registration = GetHealthCheckRegistration(serviceProvider, "RabbitMQ.Client");
+        IHealthCheck healthCheck = registration.Factory(serviceProvider);
 
         // Act
         HealthCheckResult result = await healthCheck.CheckHealthAsync(new HealthCheckContext
@@ -237,7 +237,7 @@ public class AspireRabbitMQExtensionsTests
 
     private static HealthCheckRegistration GetHealthCheckRegistration(IServiceProvider serviceProvider, string name)
     {
-        var options = serviceProvider.GetRequiredService<IOptions<HealthCheckServiceOptions>>().Value;
+        HealthCheckServiceOptions options = serviceProvider.GetRequiredService<IOptions<HealthCheckServiceOptions>>().Value;
         return Assert.Single(options.Registrations, registration => registration.Name == name);
     }
 }

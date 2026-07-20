@@ -53,7 +53,7 @@ public class ReplyResultTests
         contextMock.Setup(it => it.Request).Returns(basicDeliverEventArgs).Verifiable(Times.Exactly(2));
         contextMock.Setup(it => it.Serializer).Returns(amqpSerializer.Object).Verifiable(Times.Once());
 
-        var result = AmqpResults.Reply(new ResponseDTO() { Name = "Text1", Age = 4 });
+        ReplyResult<ResponseDTO> result = AmqpResults.Reply(new ResponseDTO() { Name = "Text1", Age = 4 });
 
         // Act
         await result.ExecuteAsync(contextMock.Object);

@@ -37,7 +37,7 @@ public class ConsumerDescriptorTests
     public void Constructor_ShouldSetDefaultValues()
     {
         // Arrange & Act
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
 
         // Assert
         Assert.Equal("test-queue", descriptor.QueueName);
@@ -60,7 +60,7 @@ public class ConsumerDescriptorTests
     public void Constructor_DefaultSerializationFailure_ShouldReturnReject()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
         var contextMock = new Mock<IAmqpContext>();
 
         // Act
@@ -75,7 +75,7 @@ public class ConsumerDescriptorTests
     public void Constructor_DefaultProcessFailure_ShouldReturnNack()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
         var contextMock = new Mock<IAmqpContext>();
 
         // Act
@@ -90,7 +90,7 @@ public class ConsumerDescriptorTests
     public void Constructor_DefaultResultExecutionFailure_ShouldNackWithoutRequeue()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
         var contextMock = new Mock<IAmqpContext>();
 
         // Act
@@ -113,7 +113,7 @@ public class ConsumerDescriptorTests
     public void WithPrefetch_ValidValues_ShouldSetPrefetchCount(ushort prefetchCount)
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
 
         // Act
         _ = descriptor.WithPrefetch(prefetchCount);
@@ -126,7 +126,7 @@ public class ConsumerDescriptorTests
     public void WithPrefetch_Zero_ShouldThrowArgumentOutOfRangeException()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
 
         // Act & Assert
         _ = Assert.Throws<ArgumentOutOfRangeException>(() => descriptor.WithPrefetch(0));
@@ -143,7 +143,7 @@ public class ConsumerDescriptorTests
     public void WithDispatchConcurrency_ValidValues_ShouldSetConcurrency(ushort concurrency)
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
 
         // Act
         _ = descriptor.WithDispatchConcurrency(concurrency);
@@ -156,7 +156,7 @@ public class ConsumerDescriptorTests
     public void WithDispatchConcurrency_Zero_ShouldThrowArgumentOutOfRangeException()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
 
         // Act & Assert
         _ = Assert.Throws<ArgumentOutOfRangeException>(() => descriptor.WithDispatchConcurrency(0));
@@ -170,7 +170,7 @@ public class ConsumerDescriptorTests
     public void WithConsumerTag_ValidTag_ShouldSetConsumerTag()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
 
         // Act
         _ = descriptor.WithConsumerTag("my-consumer-tag");
@@ -183,7 +183,7 @@ public class ConsumerDescriptorTests
     public void WithConsumerTag_Null_ShouldThrowArgumentNullException()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
 
         // Act & Assert
         _ = Assert.Throws<ArgumentNullException>(() => descriptor.WithConsumerTag(null));
@@ -193,7 +193,7 @@ public class ConsumerDescriptorTests
     public void WithConsumerTag_Empty_ShouldThrowArgumentException()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
 
         // Act & Assert - ThrowIfNullOrWhiteSpace throws ArgumentException for empty strings
         _ = Assert.ThrowsAny<ArgumentException>(() => descriptor.WithConsumerTag(""));
@@ -203,7 +203,7 @@ public class ConsumerDescriptorTests
     public void WithConsumerTag_Whitespace_ShouldThrowArgumentException()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
 
         // Act & Assert - ThrowIfNullOrWhiteSpace throws ArgumentException for whitespace strings
         _ = Assert.ThrowsAny<ArgumentException>(() => descriptor.WithConsumerTag("   "));
@@ -217,7 +217,7 @@ public class ConsumerDescriptorTests
     public void WithExclusive_Default_ShouldSetExclusiveTrue()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
 
         // Act
         _ = descriptor.WithExclusive();
@@ -230,7 +230,7 @@ public class ConsumerDescriptorTests
     public void WithExclusive_False_ShouldSetExclusiveFalse()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
 
         // Act
         _ = descriptor.WithExclusive(false);
@@ -247,7 +247,7 @@ public class ConsumerDescriptorTests
     public void WithConnection_ValidFactory_ShouldSetConnectionFactory()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
         Func<IServiceProvider, CancellationToken, Task<IConnection>> factory = (sp, ct) => Task.FromResult(Mock.Of<IConnection>());
 
         // Act
@@ -261,7 +261,7 @@ public class ConsumerDescriptorTests
     public void WithConnection_Null_ShouldThrowArgumentNullException()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
 
         // Act & Assert
         _ = Assert.Throws<ArgumentNullException>(() => descriptor.WithConnection(null));
@@ -275,7 +275,7 @@ public class ConsumerDescriptorTests
     public void WithSerializer_ValidFactory_ShouldSetSerializerFactory()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
         Func<IServiceProvider, IAmqpSerializer> factory = (sp) => Mock.Of<IAmqpSerializer>();
 
         // Act
@@ -289,7 +289,7 @@ public class ConsumerDescriptorTests
     public void WithSerializer_Null_ShouldThrowArgumentNullException()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
 
         // Act & Assert
         _ = Assert.Throws<ArgumentNullException>(() => descriptor.WithSerializer(null));
@@ -303,7 +303,7 @@ public class ConsumerDescriptorTests
     public async Task WithChannel_ValidFactory_ShouldSetChannelFactory()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
         IConnection expectedConnection = Mock.Of<IConnection>();
         IChannel expectedChannel = Mock.Of<IChannel>();
         var wasCalled = false;
@@ -329,7 +329,7 @@ public class ConsumerDescriptorTests
     public void WithChannel_ServiceProviderFactory_ShouldSetChannelFactory()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
         Func<IServiceProvider, IConnection, CancellationToken, Task<IChannel>> factory = (sp, conn, ct) => Task.FromResult(Mock.Of<IChannel>());
 
         // Act
@@ -343,7 +343,7 @@ public class ConsumerDescriptorTests
     public void WithChannel_Null_ShouldThrowArgumentNullException()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
 
         // Act & Assert
         _ = Assert.Throws<ArgumentNullException>(() => descriptor.WithChannel((Func<IConnection, CancellationToken, Task<IChannel>>)null));
@@ -357,7 +357,7 @@ public class ConsumerDescriptorTests
     public async Task WithTopology_ValidInitializer_ShouldSetTopologyInitializer()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
         IChannel expectedChannel = Mock.Of<IChannel>();
         var wasCalled = false;
         Func<IChannel, CancellationToken, Task> initializer = (ch, ct) =>
@@ -381,7 +381,7 @@ public class ConsumerDescriptorTests
     public void WithTopology_ServiceProviderInitializer_ShouldSetTopologyInitializer()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
         Func<IServiceProvider, IChannel, CancellationToken, Task> initializer = (sp, ch, ct) => Task.CompletedTask;
 
         // Act
@@ -395,7 +395,7 @@ public class ConsumerDescriptorTests
     public void WithTopology_Null_ShouldThrowArgumentNullException()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
 
         // Act & Assert
         _ = Assert.Throws<ArgumentNullException>(() => descriptor.WithTopology((Func<IChannel, CancellationToken, Task>)null));
@@ -409,7 +409,7 @@ public class ConsumerDescriptorTests
     public void WhenSerializationFail_ValidHandler_ShouldSetResultForSerializationFailure()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
         Func<IAmqpContext, Exception, IAmqpResult> handler = (ctx, ex) => AmqpResults.Nack(true);
 
         // Act
@@ -423,7 +423,7 @@ public class ConsumerDescriptorTests
     public void WhenSerializationFail_Null_ShouldThrowArgumentNullException()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
 
         // Act & Assert
         _ = Assert.Throws<ArgumentNullException>(() => descriptor.WhenSerializationFail(null));
@@ -437,7 +437,7 @@ public class ConsumerDescriptorTests
     public void WhenProcessFail_ValidHandler_ShouldSetResultForProcessFailure()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
         Func<IAmqpContext, Exception, IAmqpResult> handler = (ctx, ex) => AmqpResults.Reject(true);
 
         // Act
@@ -451,7 +451,7 @@ public class ConsumerDescriptorTests
     public void WhenProcessFail_Null_ShouldThrowArgumentNullException()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
 
         // Act & Assert
         _ = Assert.Throws<ArgumentNullException>(() => descriptor.WhenProcessFail(null));
@@ -465,7 +465,7 @@ public class ConsumerDescriptorTests
     public void WhenResultExecutionFail_ValidHandler_ShouldSetResultForResultExecutionFailure()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
         Func<IAmqpContext, Exception, IAmqpResult> handler = (ctx, ex) => AmqpResults.Reject(false);
 
         // Act
@@ -479,7 +479,7 @@ public class ConsumerDescriptorTests
     public void WhenResultExecutionFail_Null_ShouldThrowArgumentNullException()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
 
         // Act & Assert
         _ = Assert.Throws<ArgumentNullException>(() => descriptor.WhenResultExecutionFail(null));
@@ -493,7 +493,7 @@ public class ConsumerDescriptorTests
     public void WithGracefulShutdown_ValidOptions_ShouldSetGracefulShutdownOptions()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
 
         // Act
         _ = descriptor.WithGracefulShutdown(options =>
@@ -514,7 +514,7 @@ public class ConsumerDescriptorTests
     public void WithGracefulShutdown_InvalidDrainTimeout_ShouldThrowArgumentOutOfRangeException()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
 
         // Act & Assert
         _ = Assert.Throws<ArgumentOutOfRangeException>(() => descriptor.WithGracefulShutdown(options => options.DrainTimeout = TimeSpan.Zero));
@@ -528,10 +528,10 @@ public class ConsumerDescriptorTests
     public void FluentApi_ShouldReturnSameDescriptorInstance()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
 
         // Act & Assert - all fluent methods should return the descriptor for chaining
-        var result = descriptor
+        IConsumerDescriptor result = descriptor
             .WithPrefetch(10)
             .WithDispatchConcurrency(4)
             .WithExclusive(true)
@@ -556,7 +556,7 @@ public class ConsumerDescriptorTests
     public void Validate_WithValidDefaults_ShouldNotThrow()
     {
         // Arrange
-        var descriptor = CreateDescriptor();
+        ConsumerDescriptor descriptor = CreateDescriptor();
 
         // Act & Assert - should not throw
         descriptor.Validate();
@@ -576,18 +576,18 @@ public class ConsumerDescriptorTests
         services.AddRabbitMQConsumer();
 
         var channelMock = new Mock<IChannel>();
-        var channel = channelMock.Object;
+        IChannel channel = channelMock.Object;
 
         var connectionMock = new Mock<IConnection>();
         _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>())).ReturnsAsync(channel);
-        var connection = connectionMock.Object;
+        IConnection connection = connectionMock.Object;
         _ = services.AddSingleton(connection);
 
         _ = services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
         _ = services.AddNewtonsoftAmqpSerializer();
         _ = services.AddScoped<TestService>();
 
-        var sp = services.BuildServiceProvider();
+        ServiceProvider sp = services.BuildServiceProvider();
 
         var descriptor = new ConsumerDescriptor(sp, queueName, ([FromServices] TestService svc, [FromBody] TestMessage msg) => svc.HandleAsync(msg));
 
@@ -623,27 +623,27 @@ public class ConsumerDescriptorTests
         services.AddRabbitMQConsumer();
 
         var channelMock = new Mock<IChannel>();
-        var channel = channelMock.Object;
+        IChannel channel = channelMock.Object;
 
         var connectionMock = new Mock<IConnection>();
         _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>())).ReturnsAsync(channel);
-        var connection = connectionMock.Object;
+        IConnection connection = connectionMock.Object;
         _ = services.AddSingleton(connection);
 
         _ = services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
         _ = services.AddNewtonsoftAmqpSerializer();
         _ = services.AddScoped<TestService>();
 
-        var sp = services.BuildServiceProvider();
+        ServiceProvider sp = services.BuildServiceProvider();
 
         var descriptor = new ConsumerDescriptor(sp, queueName, ([FromServices] TestService svc, [FromBody] TestMessage msg) => svc.HandleAsync(msg));
 
         // Act
-        var consumer = await descriptor.BuildConsumerAsync(CancellationToken.None);
+        IHostedAmqpConsumer consumer = await descriptor.BuildConsumerAsync(CancellationToken.None);
 
         // Assert
         Assert.NotNull(consumer);
-        var queueConsumer = Assert.IsType<QueueConsumer>(consumer);
+        QueueConsumer queueConsumer = Assert.IsType<QueueConsumer>(consumer);
         Assert.True(queueConsumer.IsInitialized);
         Assert.False(queueConsumer.WasStarted);
         Assert.False(queueConsumer.IsConsuming);
@@ -666,7 +666,7 @@ public class ConsumerDescriptorTests
 
         _ = services.AddSingleton(firstConnectionMock.Object);
 
-        var sp = services.BuildServiceProvider();
+        ServiceProvider sp = services.BuildServiceProvider();
 
         var descriptor = new ConsumerDescriptor(
             sp,
@@ -674,7 +674,7 @@ public class ConsumerDescriptorTests
             ([FromServices] TestService svc, [FromBody] TestMessage msg) => svc.HandleAsync(msg));
 
         // Act
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => descriptor.BuildConsumerAsync(CancellationToken.None));
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(() => descriptor.BuildConsumerAsync(CancellationToken.None));
 
         // Assert
         Assert.Equal("channel factory failed", exception.Message);
@@ -699,10 +699,10 @@ public class ConsumerDescriptorTests
             .ReturnsAsync(workingChannelMock.Object);
 
         _ = services.AddSingleton(workingConnectionMock.Object);
-        var sp = services.BuildServiceProvider();
+        ServiceProvider sp = services.BuildServiceProvider();
         var shouldFailInitialization = true;
 
-        var descriptor = new ConsumerDescriptor(
+        IConsumerDescriptor descriptor = new ConsumerDescriptor(
             sp,
             "test-queue",
             ([FromServices] TestService svc, [FromBody] TestMessage msg) => svc.HandleAsync(msg))
@@ -720,7 +720,7 @@ public class ConsumerDescriptorTests
         _ = await Assert.ThrowsAsync<InvalidOperationException>(() => descriptor.BuildConsumerAsync(CancellationToken.None));
         _ = descriptor.WithConsumerTag("retry-consumer");
         shouldFailInitialization = false;
-        var consumer = await descriptor.BuildConsumerAsync(CancellationToken.None);
+        IHostedAmqpConsumer consumer = await descriptor.BuildConsumerAsync(CancellationToken.None);
 
         // Assert
         Assert.NotNull(consumer);

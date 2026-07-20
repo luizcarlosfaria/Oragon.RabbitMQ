@@ -67,13 +67,13 @@ public class FlowTests
         channelMock.Setup(it => it.BasicNackAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Verifiable(Times.Never);
         channelMock.Setup(it => it.BasicAckAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Verifiable(Times.Never);
 
-        var channel = channelMock.Object;
+        IChannel channel = channelMock.Object;
         //-------------------------------------------------------
 
         //-------------------------------------------------------
         var connectionMock = new Mock<IConnection>();
         _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>())).ReturnsAsync(channel);
-        var connection = connectionMock.Object;
+        IConnection connection = connectionMock.Object;
         _ = services.AddSingleton(connection);
         //-------------------------------------------------------
 
@@ -81,7 +81,7 @@ public class FlowTests
         //-------------------------------------------------------
         var connectionFactoryMock = new Mock<IConnectionFactory>();
         _ = connectionFactoryMock.Setup(it => it.CreateConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(connection);
-        var connectionFactory = connectionFactoryMock.Object;
+        IConnectionFactory connectionFactory = connectionFactoryMock.Object;
         _ = services.AddSingleton(sp => connectionFactory);
         //-------------------------------------------------------
 
@@ -91,13 +91,13 @@ public class FlowTests
         _ = services.AddScoped<ExampleService>();
         //-------------------------------------------------------
 
-        var sp = services.BuildServiceProvider();
+        ServiceProvider sp = services.BuildServiceProvider();
 
         _ = sp.MapQueue(queueName, ([FromServices] ExampleService svc, ExampleMessage msg) => svc.TestAsync(msg)).WithPrefetch(1);
 
 
 
-        var hostedService = sp.GetRequiredService<IHostedService>();
+        IHostedService hostedService = sp.GetRequiredService<IHostedService>();
 
         await hostedService.StartAsync(CancellationToken.None);
 
@@ -153,13 +153,13 @@ public class FlowTests
         channelMock.Setup(it => it.BasicNackAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Verifiable(Times.Once);
         channelMock.Setup(it => it.BasicAckAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Verifiable(Times.Never);
 
-        var channel = channelMock.Object;
+        IChannel channel = channelMock.Object;
         //-------------------------------------------------------
 
         //-------------------------------------------------------
         var connectionMock = new Mock<IConnection>();
         _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>())).ReturnsAsync(channel);
-        var connection = connectionMock.Object;
+        IConnection connection = connectionMock.Object;
         _ = services.AddSingleton(connection);
         //-------------------------------------------------------
 
@@ -167,7 +167,7 @@ public class FlowTests
         //-------------------------------------------------------
         var connectionFactoryMock = new Mock<IConnectionFactory>();
         _ = connectionFactoryMock.Setup(it => it.CreateConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(connection);
-        var connectionFactory = connectionFactoryMock.Object;
+        IConnectionFactory connectionFactory = connectionFactoryMock.Object;
         _ = services.AddSingleton(sp => connectionFactory);
         //-------------------------------------------------------
 
@@ -176,11 +176,11 @@ public class FlowTests
         _ = services.AddNewtonsoftAmqpSerializer();
         _ = services.AddScoped<ExampleService>();
         //-------------------------------------------------------
-        var sp = services.BuildServiceProvider();
+        ServiceProvider sp = services.BuildServiceProvider();
 
         _ = sp.MapQueue(queueName, ([FromServices] ExampleService svc, ExampleMessage msg) => svc.TestAsync(msg)).WithPrefetch(1);
 
-        var hostedService = sp.GetRequiredService<IHostedService>();
+        IHostedService hostedService = sp.GetRequiredService<IHostedService>();
 
         await hostedService.StartAsync(CancellationToken.None);
 
@@ -235,13 +235,13 @@ public class FlowTests
         channelMock.Setup(it => it.BasicNackAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Verifiable(Times.Never);
         channelMock.Setup(it => it.BasicAckAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Verifiable(Times.Once);
 
-        var channel = channelMock.Object;
+        IChannel channel = channelMock.Object;
         //-------------------------------------------------------
 
         //-------------------------------------------------------
         var connectionMock = new Mock<IConnection>();
         _ = connectionMock.Setup(it => it.CreateChannelAsync(It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>())).ReturnsAsync(channel);
-        var connection = connectionMock.Object;
+        IConnection connection = connectionMock.Object;
         _ = services.AddSingleton(connection);
         //-------------------------------------------------------
 
@@ -249,7 +249,7 @@ public class FlowTests
         //-------------------------------------------------------
         var connectionFactoryMock = new Mock<IConnectionFactory>();
         _ = connectionFactoryMock.Setup(it => it.CreateConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(connection);
-        var connectionFactory = connectionFactoryMock.Object;
+        IConnectionFactory connectionFactory = connectionFactoryMock.Object;
         _ = services.AddSingleton(sp => connectionFactory);
         //-------------------------------------------------------
 
@@ -258,11 +258,11 @@ public class FlowTests
         _ = services.AddNewtonsoftAmqpSerializer();
         _ = services.AddScoped<ExampleService>();
         //-------------------------------------------------------
-        var sp = services.BuildServiceProvider();
+        ServiceProvider sp = services.BuildServiceProvider();
 
         _ = sp.MapQueue(queueName, ([FromServices] ExampleService svc, ExampleMessage msg) => svc.TestAsync(msg)).WithPrefetch(1);
 
-        var hostedService = sp.GetRequiredService<IHostedService>();
+        IHostedService hostedService = sp.GetRequiredService<IHostedService>();
 
         await hostedService.StartAsync(CancellationToken.None);
 
