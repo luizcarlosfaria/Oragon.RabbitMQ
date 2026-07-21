@@ -88,7 +88,7 @@ internal static class ArgumentBinderExtensions
             var type when type == Constants.IConnection => new DynamicArgumentBinder(context => context.Connection),
             var type when type == Constants.IChannel => new DynamicArgumentBinder(context => context.Channel),
             var type when type == Constants.BasicDeliverEventArgs => new DynamicArgumentBinder(context => context.Request),
-            var type when type == Constants.DeliveryMode => OptionalMetadataRequiresNullable(parameter, "deliveryMode", "DeliveryModes?"),
+            var type when type == Constants.DeliveryModeType => OptionalMetadataRequiresNullable(parameter, Constants.DeliveryModePropertyName, "DeliveryModes?"),
             var type when type == Constants.NullableDeliveryMode => new DynamicArgumentBinder(context => BindDeliveryModeAsNullableDeliveryMode(context)),
             var type when type == Constants.HeadersType => new DynamicArgumentBinder(context => context.Request.BasicProperties.Headers),
             var type when type == Constants.ReadOnlyHeadersType => new DynamicArgumentBinder(context => context.Request.BasicProperties.Headers),

@@ -59,7 +59,10 @@ public static class Constants
     public static Type NullableAmqpTimestampType { get; } = typeof(AmqpTimestamp?);
 
     /// <summary>Cached type reference for <see cref="DeliveryModes"/>.</summary>
-    public static Type DeliveryMode { get; } = typeof(DeliveryModes);
+    public static Type DeliveryModeType { get; } = typeof(DeliveryModes);
+
+    /// <summary>Parameter name recognized as delivery mode by convention.</summary>
+    public const string DeliveryModePropertyName = "deliveryMode";
 
     /// <summary>Cached type reference for <see cref="Nullable{T}"/> of <see cref="DeliveryModes"/>.</summary>
     public static Type NullableDeliveryMode { get; } = typeof(DeliveryModes?);

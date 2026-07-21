@@ -11,7 +11,7 @@ namespace Oragon.RabbitMQ.Consumer.Actions;
 /// <remarks>This class encapsulates the details required to forward messages to a RabbitMQ exchange, including
 /// the exchange name, routing key,  mandatory flag, and the objects to be forwarded. It is designed to be used in
 /// AMQP-based messaging scenarios.
-/// BasicProperties.[DeliveryMode|MessageId|CorrelationId] will be overrided after action BasicPropertiesConfigureAction execution.
+/// BasicProperties.[DeliveryModeType|MessageId|CorrelationId] will be overrided after action BasicPropertiesConfigureAction execution.
 /// </remarks>
 /// <typeparam name="T">The type of objects being forwarded.</typeparam>
 public class ForwardResult<T> : IAmqpResult
