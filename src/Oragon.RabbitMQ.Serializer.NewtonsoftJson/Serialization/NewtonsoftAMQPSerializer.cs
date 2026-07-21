@@ -75,12 +75,14 @@ public class NewtonsoftAmqpSerializer(JsonSerializerSettings options) : IAmqpSer
     {
         ArgumentNullException.ThrowIfNull(basicProperties);
 
+        ApplyContentMetadata(basicProperties);
+
         return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message, this.options));
     }
 
     /// <summary>
-    /// Serialize a message using Newtonsoft.Json  
-    /// </summary>    
+    /// Serialize a message using Newtonsoft.Json
+    /// </summary>
     /// <param name="basicProperties"></param>
     /// <param name="message"></param>
     /// <returns></returns>
@@ -88,7 +90,26 @@ public class NewtonsoftAmqpSerializer(JsonSerializerSettings options) : IAmqpSer
     {
         ArgumentNullException.ThrowIfNull(basicProperties);
 
+        ApplyContentMetadata(basicProperties);
+
         return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message, this.options));
+    }
+
+    // Declares the wire format on the message itself, so consumers on other stacks can
+    // negotiate through the standard AMQP headers instead of assuming JSON. Values already
+    // set by the caller win: BasicPropertiesConfigureAction runs before serialization and
+    // may have chosen a more specific media type, such as application/vnd.acme+json.
+    private static void ApplyContentMetadata(BasicProperties basicProperties)
+    {
+        if (string.IsNullOrEmpty(basicProperties.ContentType))
+        {
+            basicProperties.ContentType = "application/json";
+        }
+
+        if (string.IsNullOrEmpty(basicProperties.ContentEncoding))
+        {
+            basicProperties.ContentEncoding = "utf-8";
+        }
     }
 }
 

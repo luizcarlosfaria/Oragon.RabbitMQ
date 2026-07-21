@@ -38,6 +38,55 @@ public class SystemTextJsonAmqpSerializerTests
     }
 
     [Fact]
+    public void SerializationShouldPopulateContentMetadata()
+    {
+        var targetBasicProperties = new BasicProperties();
+
+        var sourceObject = new Teste() { Name = "Oragon.RabbitMQ", Age = 2 };
+
+        var serializer = new SystemTextJsonAmqpSerializer(null);
+
+        _ = serializer.Serialize(targetBasicProperties, sourceObject);
+
+        Assert.Equal("application/json", targetBasicProperties.ContentType);
+        Assert.Equal("utf-8", targetBasicProperties.ContentEncoding);
+    }
+
+    [Fact]
+    public void SerializationOfObjectShouldPopulateContentMetadata()
+    {
+        var targetBasicProperties = new BasicProperties();
+
+        object sourceObject = new Teste() { Name = "Oragon.RabbitMQ", Age = 2 };
+
+        var serializer = new SystemTextJsonAmqpSerializer(null);
+
+        _ = serializer.Serialize(targetBasicProperties, sourceObject);
+
+        Assert.Equal("application/json", targetBasicProperties.ContentType);
+        Assert.Equal("utf-8", targetBasicProperties.ContentEncoding);
+    }
+
+    [Fact]
+    public void SerializationShouldPreserveContentMetadataDefinedByCaller()
+    {
+        var targetBasicProperties = new BasicProperties()
+        {
+            ContentType = "application/vnd.acme.order.v2+json",
+            ContentEncoding = "gzip",
+        };
+
+        var sourceObject = new Teste() { Name = "Oragon.RabbitMQ", Age = 2 };
+
+        var serializer = new SystemTextJsonAmqpSerializer(null);
+
+        _ = serializer.Serialize(targetBasicProperties, sourceObject);
+
+        Assert.Equal("application/vnd.acme.order.v2+json", targetBasicProperties.ContentType);
+        Assert.Equal("gzip", targetBasicProperties.ContentEncoding);
+    }
+
+    [Fact]
     public void DeserializationTest()
     {
         var basicProperties = new BasicProperties();
