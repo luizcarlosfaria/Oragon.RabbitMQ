@@ -128,3 +128,20 @@ Uses Jenkins pipeline (see `Jenkinsfile`). Tags ending with `-alpha` publish deb
 - Uses `TreatWarningsAsErrors=true` and `EnforceCodeStyleInBuild=true`
 - Generated interfaces via `AutomaticInterface` source generator (marked with `[GenerateAutomaticInterface]`)
 - MIT licensed under ACADEMIA.DEV
+
+## Task Routing (token optimization)
+
+Route work to the cheapest capable model. Never run verbose commands (builds, test suites, benchmarks, Sonar JSON) in the main context — delegate to agents:
+
+| Workload | Route | Model |
+|---|---|---|
+| Feature design (interactive) | inline in session | session |
+| Specified implementation, samples, docs, renames, warnings | agent `dotnet-implementer` | Sonnet |
+| SonarCloud/DeepSource cleanup | skill `sonar-triage` → agent `sonar-issue-resolver` | Sonnet |
+| Ultra-complex bugs, threading, `Consumer/` internals | skill `concurrency-review` → agent `concurrency-specialist` | inherit (max tier) |
+| Post-implementation review of messaging code | agent `dotnet-messaging-reviewer` | Opus |
+| Writing tests / coverage analysis | agent `test-coverage-analyzer` | Sonnet |
+| Running builds/tests/containers/benchmarks, waiting on CI | agent `ci-runner` | Haiku |
+| Release, public API surface, benchmarks | skills `release-pack` / `public-api-check` / `benchmark-run` | session |
+
+Rules: integration tests and benchmarks ALWAYS execute via `ci-runner`; any synchronization-path change in `src/Oragon.RabbitMQ/Consumer/` goes through `concurrency-specialist` first; trivial renames go to Sonnet (not Haiku — retry loops under TreatWarningsAsErrors cost more than Sonnet getting it right).
