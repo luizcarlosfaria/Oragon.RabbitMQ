@@ -53,4 +53,48 @@ public class QueueArgumentsTests
 
         Assert.DoesNotContain(differences, difference => difference.Key == QueueArguments.MaxPriorityKey);
     }
+
+    [Fact]
+    public void QueueArgumentDiagnostics_WhenBothValuesAreEquivalentByteArrays_ShouldNotReportDifference()
+    {
+        // Arrange
+        var expected = new Dictionary<string, object>
+        {
+            [QueueArguments.DeadLetterExchangeKey] = "dead-letter-exchange"u8.ToArray(),
+        };
+
+        var actual = new Dictionary<string, object>
+        {
+            [QueueArguments.DeadLetterExchangeKey] = "dead-letter-exchange"u8.ToArray(),
+        };
+
+        // Act
+        IReadOnlyList<QueueArgumentDifference> differences = QueueArgumentDiagnostics.Compare(expected, actual);
+
+        // Assert
+        Assert.Empty(differences);
+    }
+
+    [Fact]
+    public void QueueArgumentDiagnostics_WhenByteArraysHaveDifferentContent_ShouldReportDifference()
+    {
+        // Arrange
+        var expected = new Dictionary<string, object>
+        {
+            [QueueArguments.DeadLetterExchangeKey] = "dead-letter-exchange"u8.ToArray(),
+        };
+
+        var actual = new Dictionary<string, object>
+        {
+            [QueueArguments.DeadLetterExchangeKey] = "another-exchange"u8.ToArray(),
+        };
+
+        // Act
+        IReadOnlyList<QueueArgumentDifference> differences = QueueArgumentDiagnostics.Compare(expected, actual);
+
+        // Assert
+        QueueArgumentDifference difference = Assert.Single(differences);
+        Assert.Equal(QueueArguments.DeadLetterExchangeKey, difference.Key);
+        Assert.Equal(QueueArgumentDifferenceType.Different, difference.Type);
+    }
 }
