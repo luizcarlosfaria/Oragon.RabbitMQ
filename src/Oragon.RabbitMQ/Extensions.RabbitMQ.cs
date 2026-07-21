@@ -227,15 +227,17 @@ public static class RabbitMQExtensions
 
 
     /// <summary>
-    /// 
+    /// Set ConsumerDispatchConcurrency on ConnectionFactory
     /// </summary>
     /// <param name="connectionFactory"></param>
-    /// <param name="consumerDispatchConcurrency"></param>
+    /// <param name="consumerDispatchConcurrency">Must be between 1 and <see cref="ushort.MaxValue"/>.</param>
     /// <returns></returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="consumerDispatchConcurrency"/> is less than 1 or greater than <see cref="ushort.MaxValue"/>.</exception>
     public static ConnectionFactory Parallelism(this ConnectionFactory connectionFactory, int consumerDispatchConcurrency)
     {
         ArgumentNullException.ThrowIfNull(connectionFactory);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(consumerDispatchConcurrency);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(consumerDispatchConcurrency, ushort.MaxValue);
 
         connectionFactory.ConsumerDispatchConcurrency = (ushort)consumerDispatchConcurrency;
 
