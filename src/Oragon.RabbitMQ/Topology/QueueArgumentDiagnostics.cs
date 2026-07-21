@@ -73,6 +73,11 @@ public static class QueueArgumentDiagnostics
             return string.Equals(Encoding.UTF8.GetString(expectedBytes), actualString, StringComparison.Ordinal);
         }
 
+        if (expected is byte[] expectedArray && actual is byte[] actualArray)
+        {
+            return expectedArray.AsSpan().SequenceEqual(actualArray);
+        }
+
         return expected.Equals(actual);
     }
 
