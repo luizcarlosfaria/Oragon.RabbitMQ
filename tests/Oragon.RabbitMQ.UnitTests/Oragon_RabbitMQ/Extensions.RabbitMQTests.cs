@@ -184,6 +184,48 @@ public class Extensions_RabbitMQ_Tests
     }
 
 
+    [Theory]
+    [InlineData(1)]
+    [InlineData(4)]
+    [InlineData(ushort.MaxValue)]
+    public void Parallelism_Should_Set_ConsumerDispatchConcurrency_When_Concurrency_Is_Valid(int concurrency)
+    {
+        // Arrange
+        var connectionFactory = new ConnectionFactory();
+
+        // Act
+        ConnectionFactory result = connectionFactory.Parallelism(concurrency);
+
+        // Assert
+        Assert.Same(connectionFactory, result);
+        Assert.Equal((ushort)concurrency, result.ConsumerDispatchConcurrency);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(ushort.MaxValue + 1)]
+    [InlineData(int.MaxValue)]
+    public void Parallelism_Should_Throw_When_Concurrency_Is_Out_Of_UShort_Range(int concurrency)
+    {
+        // Arrange
+        var connectionFactory = new ConnectionFactory();
+
+        // Act & Assert
+        ArgumentOutOfRangeException exception = Assert.Throws<ArgumentOutOfRangeException>(() => connectionFactory.Parallelism(concurrency));
+        Assert.Equal("consumerDispatchConcurrency", exception.ParamName);
+    }
+
+    [Fact]
+    public void Parallelism_Should_Throw_When_ConnectionFactory_Is_Null()
+    {
+        // Arrange
+        ConnectionFactory connectionFactory = null;
+
+        // Act & Assert
+        _ = Assert.Throws<ArgumentNullException>(() => connectionFactory.Parallelism(1));
+    }
+
     [Fact]
     public void Unbox_Should_Convert_IConnectionFactory_To_ConnectionFactory()
     {
